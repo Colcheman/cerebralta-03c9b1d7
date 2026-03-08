@@ -17,6 +17,7 @@ import GroupDetail from "./pages/GroupDetail";
 import Config from "./pages/Config";
 import Sobre from "./pages/Sobre";
 import Admin from "./pages/Admin";
+import Mensagens from "./pages/Mensagens";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ const App = () => (
                 <Route path="/grupos/:id" element={<GroupDetail />} />
                 <Route path="/config" element={<Config />} />
                 <Route path="/sobre" element={<Sobre />} />
+                <Route path="/mensagens" element={<Mensagens />} />
                 <Route path="/admin" element={<Admin />} />
               </Route>
               <Route path="*" element={<NotFound />} />

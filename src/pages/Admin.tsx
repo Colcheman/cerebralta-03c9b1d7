@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Users, Megaphone, Search, Loader2, Send, Shield, BookOpen, Plus, Clock, Globe, Settings } from "lucide-react";
+import { Users, Megaphone, Search, Loader2, Send, Shield, BookOpen, Plus, Clock, Globe, Settings, Bot } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import AdminAIAssistant from "@/components/admin/AdminAIAssistant";
 
 interface ProfileRow {
   id: string;
@@ -184,6 +185,7 @@ const Admin = () => {
         <TabsList className="bg-muted">
           <TabsTrigger value="users" className="gap-1.5"><Users className="w-4 h-4" /> Arquitetos</TabsTrigger>
           <TabsTrigger value="courses" className="gap-1.5"><BookOpen className="w-4 h-4" /> Cursos</TabsTrigger>
+          <TabsTrigger value="ai" className="gap-1.5"><Bot className="w-4 h-4" /> IA</TabsTrigger>
           <TabsTrigger value="news" className="gap-1.5"><Megaphone className="w-4 h-4" /> News</TabsTrigger>
           <TabsTrigger value="settings" className="gap-1.5"><Settings className="w-4 h-4" /> Webhooks</TabsTrigger>
         </TabsList>
@@ -263,6 +265,11 @@ const Admin = () => {
               Publicar Módulo
             </Button>
           </div>
+        </TabsContent>
+
+        {/* AI Assistant */}
+        <TabsContent value="ai" className="space-y-4">
+          <AdminAIAssistant />
         </TabsContent>
 
         {/* News */}
