@@ -44,6 +44,27 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_settings: {
+        Row: {
+          id: string
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          id?: string
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       comments: {
         Row: {
           content: string
@@ -263,6 +284,42 @@ export type Database = {
           created_at?: string
           id?: string
           title?: string
+        }
+        Relationships: []
+      }
+      notification_queue: {
+        Row: {
+          created_at: string
+          id: string
+          message_type: string
+          payload: Json
+          recipient_user_id: string
+          recipient_whatsapp: string
+          sent_at: string | null
+          status: string
+          webhook_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_type?: string
+          payload?: Json
+          recipient_user_id: string
+          recipient_whatsapp: string
+          sent_at?: string | null
+          status?: string
+          webhook_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_type?: string
+          payload?: Json
+          recipient_user_id?: string
+          recipient_whatsapp?: string
+          sent_at?: string | null
+          status?: string
+          webhook_url?: string | null
         }
         Relationships: []
       }
