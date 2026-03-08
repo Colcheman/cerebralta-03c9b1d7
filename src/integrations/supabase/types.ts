@@ -76,6 +76,45 @@ export type Database = {
           },
         ]
       }
+      courses: {
+        Row: {
+          author_id: string
+          category: string
+          created_at: string
+          description: string
+          id: string
+          is_premium: boolean
+          pdf_url: string | null
+          title: string
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          author_id: string
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          is_premium?: boolean
+          pdf_url?: string | null
+          title: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          author_id?: string
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          is_premium?: boolean
+          pdf_url?: string | null
+          title?: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       group_members: {
         Row: {
           group_id: string
@@ -98,6 +137,38 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_messages: {
+        Row: {
+          content: string
+          created_at: string
+          group_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          group_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          group_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_messages_group_id_fkey"
             columns: ["group_id"]
             isOneToOne: false
             referencedRelation: "groups"
@@ -233,6 +304,7 @@ export type Database = {
           id: string
           is_premium: boolean
           likes_count: number
+          quoted_post_id: string | null
           updated_at: string
           user_id: string
         }
@@ -244,6 +316,7 @@ export type Database = {
           id?: string
           is_premium?: boolean
           likes_count?: number
+          quoted_post_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -255,10 +328,19 @@ export type Database = {
           id?: string
           is_premium?: boolean
           likes_count?: number
+          quoted_post_id?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "posts_quoted_post_id_fkey"
+            columns: ["quoted_post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -277,9 +359,11 @@ export type Database = {
           recovery_email: string | null
           streak: number
           subscription_tier: Database["public"]["Enums"]["subscription_tier"]
+          theme_preference: string
           two_factor_enabled: boolean
           updated_at: string
           user_id: string
+          whatsapp_number: string | null
         }
         Insert: {
           app_lock_pin?: string | null
@@ -297,9 +381,11 @@ export type Database = {
           recovery_email?: string | null
           streak?: number
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
+          theme_preference?: string
           two_factor_enabled?: boolean
           updated_at?: string
           user_id: string
+          whatsapp_number?: string | null
         }
         Update: {
           app_lock_pin?: string | null
@@ -317,9 +403,11 @@ export type Database = {
           recovery_email?: string | null
           streak?: number
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
+          theme_preference?: string
           two_factor_enabled?: boolean
           updated_at?: string
           user_id?: string
+          whatsapp_number?: string | null
         }
         Relationships: []
       }
