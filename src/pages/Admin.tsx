@@ -22,6 +22,13 @@ interface ProfileRow {
   whatsapp_number?: string | null;
 }
 
+// Mask CPF: 123.456.789-00 → ***.456.***-**
+const maskCPF = (cpf: string) => {
+  const digits = cpf.replace(/\D/g, "");
+  if (digits.length !== 11) return "***.***.***-**";
+  return `***.${digits.slice(3, 6)}.***-**`;
+};
+
 const Admin = () => {
   const { user } = useAuth();
   const { toast } = useToast();
