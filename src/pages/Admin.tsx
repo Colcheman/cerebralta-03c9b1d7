@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import AdminAIAssistant from "@/components/admin/AdminAIAssistant";
+import { sanitizeText, sanitizeUrl } from "@/lib/sanitize";
 
 interface ProfileRow {
   id: string;
