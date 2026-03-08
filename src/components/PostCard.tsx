@@ -68,12 +68,24 @@ const PostCard = ({ post, index, onUpdate }: { post: PostData; index: number; on
   };
 
   const fetchComments = async () => {
-    const { data } = await supabase
+    const { data: commentsData } = await supabase
       .from("comments")
-      .select("*, profiles(display_name)")
+      .select("*")
       .eq("post_id", post.id)
       .order("created_at", { ascending: true });
-    if (data) setComments(data as Comment[]);
+    if (!commentsData) return;
+    
+    const userIds = [...new Set(commentsData.map(c => c.user_id))];
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("user_id, display_name")
+      .in("user_id", userIds);
+    const profileMap = new Map(profiles?.map(p => [p.user_id, p]) ?? []);
+    
+    setComments(commentsData.map(c => ({
+      ...c,
+      profiles: profileMap.get(c.user_id) ?? null,
+    })) as Comment[]);
   };
 
   const handleComment = async () => {

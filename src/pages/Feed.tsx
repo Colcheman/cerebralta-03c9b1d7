@@ -30,10 +30,24 @@ const Feed = () => {
   const fetchPosts = async () => {
     const { data } = await supabase
       .from("posts")
-      .select("*, profiles(display_name, level, avatar_url)")
+      .select("*")
       .order("created_at", { ascending: false })
       .limit(20);
-    if (data) setPosts(data as PostWithProfile[]);
+    if (!data) { setLoading(false); return; }
+    
+    // Fetch profiles for post authors
+    const userIds = [...new Set(data.map(p => p.user_id))];
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("user_id, display_name, level, avatar_url")
+      .in("user_id", userIds);
+    
+    const profileMap = new Map(profiles?.map(p => [p.user_id, p]) ?? []);
+    const postsWithProfiles = data.map(p => ({
+      ...p,
+      profiles: profileMap.get(p.user_id) ?? null,
+    }));
+    setPosts(postsWithProfiles as PostWithProfile[]);
     setLoading(false);
   };
 
