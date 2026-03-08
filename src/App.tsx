@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import Login from "./pages/Login";
+import Assinatura from "./pages/Assinatura";
 import AppLayout from "./components/AppLayout";
 import Feed from "./pages/Feed";
 import Aprender from "./pages/Aprender";
@@ -30,6 +31,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Login />} />
+              <Route path="/assinatura" element={<Assinatura />} />
               <Route element={<AppLayout />}>
                 <Route path="/feed" element={<Feed />} />
                 <Route path="/aprender" element={<Aprender />} />

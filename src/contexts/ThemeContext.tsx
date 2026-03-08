@@ -2,52 +2,77 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
-const themes: Record<string, { primary: string; ring: string; sidebarPrimary: string; sidebarRing: string }> = {
-  "azul-alluzion": { primary: "213 72% 42%", ring: "213 72% 42%", sidebarPrimary: "213 72% 42%", sidebarRing: "213 72% 42%" },
-  "azul-cobalto": { primary: "220 80% 50%", ring: "220 80% 50%", sidebarPrimary: "220 80% 50%", sidebarRing: "220 80% 50%" },
-  "azul-noturno": { primary: "230 60% 35%", ring: "230 60% 35%", sidebarPrimary: "230 60% 35%", sidebarRing: "230 60% 35%" },
-  "azul-celeste": { primary: "200 75% 50%", ring: "200 75% 50%", sidebarPrimary: "200 75% 50%", sidebarRing: "200 75% 50%" },
-  "azul-royal": { primary: "240 65% 45%", ring: "240 65% 45%", sidebarPrimary: "240 65% 45%", sidebarRing: "240 65% 45%" },
-};
-
-interface ThemeContextType {
-  currentTheme: string;
-  setTheme: (theme: string) => void;
-  themeOptions: string[];
+function hexToHsl(hex: string): string {
+  let r = 0, g = 0, b = 0;
+  const clean = hex.replace("#", "");
+  if (clean.length === 3) {
+    r = parseInt(clean[0] + clean[0], 16);
+    g = parseInt(clean[1] + clean[1], 16);
+    b = parseInt(clean[2] + clean[2], 16);
+  } else if (clean.length === 6) {
+    r = parseInt(clean.substring(0, 2), 16);
+    g = parseInt(clean.substring(2, 4), 16);
+    b = parseInt(clean.substring(4, 6), 16);
+  }
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s = 0;
+  const l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+    else if (max === g) h = ((b - r) / d + 2) / 6;
+    else h = ((r - g) / d + 4) / 6;
+  }
+  return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
 }
 
-const ThemeContext = createContext<ThemeContextType>({ currentTheme: "azul-alluzion", setTheme: () => {}, themeOptions: [] });
+const DEFAULT_COLOR = "#2563EB";
+
+interface ThemeContextType {
+  accentHex: string;
+  setAccentColor: (hex: string) => void;
+}
+
+const ThemeContext = createContext<ThemeContextType>({ accentHex: DEFAULT_COLOR, setAccentColor: () => {} });
 
 export const useTheme = () => useContext(ThemeContext);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const { user, profile } = useAuth();
-  const [currentTheme, setCurrentTheme] = useState("azul-alluzion");
+  const [accentHex, setAccentHex] = useState(DEFAULT_COLOR);
 
+  // Load from profile
   useEffect(() => {
-    if (profile && (profile as any).theme_preference) {
-      setCurrentTheme((profile as any).theme_preference);
+    if (profile?.theme_preference) {
+      const pref = profile.theme_preference;
+      // If it starts with # it's a hex color, otherwise use default
+      if (pref.startsWith("#")) {
+        setAccentHex(pref);
+      }
     }
   }, [profile]);
 
+  // Apply CSS vars whenever accentHex changes
   useEffect(() => {
-    const t = themes[currentTheme] ?? themes["azul-alluzion"];
+    const hsl = hexToHsl(accentHex);
     const root = document.documentElement;
-    root.style.setProperty("--primary", t.primary);
-    root.style.setProperty("--ring", t.ring);
-    root.style.setProperty("--sidebar-primary", t.sidebarPrimary);
-    root.style.setProperty("--sidebar-ring", t.sidebarRing);
-  }, [currentTheme]);
+    root.style.setProperty("--primary", hsl);
+    root.style.setProperty("--ring", hsl);
+    root.style.setProperty("--sidebar-primary", hsl);
+    root.style.setProperty("--sidebar-ring", hsl);
+  }, [accentHex]);
 
-  const setTheme = async (theme: string) => {
-    setCurrentTheme(theme);
+  const setAccentColor = async (hex: string) => {
+    setAccentHex(hex);
     if (user) {
-      await supabase.from("profiles").update({ theme_preference: theme } as any).eq("user_id", user.id);
+      await supabase.from("profiles").update({ theme_preference: hex }).eq("user_id", user.id);
     }
   };
 
   return (
-    <ThemeContext.Provider value={{ currentTheme, setTheme, themeOptions: Object.keys(themes) }}>
+    <ThemeContext.Provider value={{ accentHex, setAccentColor }}>
       {children}
     </ThemeContext.Provider>
   );
