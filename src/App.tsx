@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Login from "./pages/Login";
 import AppLayout from "./components/AppLayout";
@@ -11,6 +11,8 @@ import Aprender from "./pages/Aprender";
 import Conquistas from "./pages/Conquistas";
 import Grupos from "./pages/Grupos";
 import Config from "./pages/Config";
+import Sobre from "./pages/Sobre";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +32,8 @@ const App = () => (
               <Route path="/conquistas" element={<Conquistas />} />
               <Route path="/grupos" element={<Grupos />} />
               <Route path="/config" element={<Config />} />
+              <Route path="/sobre" element={<Sobre />} />
+              <Route path="/admin" element={<Admin />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

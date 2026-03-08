@@ -12,6 +12,11 @@ interface Profile {
   points: number;
   streak: number;
   subscription_tier: "free" | "premium";
+  recovery_email: string | null;
+  two_factor_enabled: boolean;
+  notification_push: boolean;
+  notification_whatsapp: boolean;
+  notification_email: boolean;
 }
 
 interface AuthContextType {

@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Heart, MessageCircle, Share2, Send, ChevronDown, ChevronUp } from "lucide-react";
+import { Heart, MessageCircle, Repeat2, Share, Send, MoreHorizontal, Award } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 const categoryColors: Record<string, string> = {
-  reflexão: "bg-primary/15 text-primary",
-  estratégia: "bg-accent/15 text-accent",
-  estoicismo: "bg-success/20 text-success",
-  prática: "bg-gold/15 text-gold",
+  reflexão: "text-primary",
+  estratégia: "text-accent",
+  estoicismo: "text-success",
+  prática: "text-gold",
 };
 
 interface PostData {
@@ -31,6 +31,8 @@ interface Comment {
   profiles: { display_name: string } | null;
 }
 
+const ELEVATED_LEVELS = ["Estrategista", "Mestre", "Visionário", "Arquiteto-Chefe"];
+
 const PostCard = ({ post, index, onUpdate }: { post: PostData; index: number; onUpdate?: () => void }) => {
   const { user } = useAuth();
   const [liked, setLiked] = useState(false);
@@ -40,7 +42,8 @@ const PostCard = ({ post, index, onUpdate }: { post: PostData; index: number; on
   const [newComment, setNewComment] = useState("");
   const [commentCount, setCommentCount] = useState(post.comments);
 
-  // Check if user liked this post
+  const isElevated = ELEVATED_LEVELS.includes(post.level);
+
   useEffect(() => {
     if (!user) return;
     supabase
@@ -63,7 +66,6 @@ const PostCard = ({ post, index, onUpdate }: { post: PostData; index: number; on
       setLiked(true);
       setLikeCount(c => c + 1);
     }
-    // Update post likes_count
     await supabase.from("posts").update({ likes_count: liked ? likeCount - 1 : likeCount + 1 }).eq("id", post.id);
   };
 
@@ -74,14 +76,12 @@ const PostCard = ({ post, index, onUpdate }: { post: PostData; index: number; on
       .eq("post_id", post.id)
       .order("created_at", { ascending: true });
     if (!commentsData) return;
-    
     const userIds = [...new Set(commentsData.map(c => c.user_id))];
     const { data: profiles } = await supabase
       .from("profiles")
       .select("user_id, display_name")
       .in("user_id", userIds);
     const profileMap = new Map(profiles?.map(p => [p.user_id, p]) ?? []);
-    
     setComments(commentsData.map(c => ({
       ...c,
       profiles: profileMap.get(c.user_id) ?? null,
@@ -95,7 +95,6 @@ const PostCard = ({ post, index, onUpdate }: { post: PostData; index: number; on
       user_id: user.id,
       content: newComment.trim(),
     });
-    // Update comments count
     await supabase.from("posts").update({ comments_count: commentCount + 1 }).eq("id", post.id);
     setCommentCount(c => c + 1);
     setNewComment("");
@@ -109,87 +108,114 @@ const PostCard = ({ post, index, onUpdate }: { post: PostData; index: number; on
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1, duration: 0.4 }}
-      className="glass rounded-2xl p-6 hover:border-primary/20 transition-all"
+      transition={{ delay: index * 0.05, duration: 0.3 }}
+      className="border-b border-border px-4 py-4 hover:bg-muted/30 transition-colors"
     >
-      <div className="flex items-start gap-3 mb-4">
-        <div className="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center text-xs font-bold text-primary-foreground shrink-0">
+      <div className="flex gap-3">
+        {/* Avatar */}
+        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+          isElevated ? "bg-gradient-gold text-accent-foreground" : "bg-gradient-primary text-primary-foreground"
+        }`}>
           {post.avatar}
         </div>
+
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-semibold text-foreground">{post.author}</span>
-            <span className="text-xs text-accent font-medium">{post.level}</span>
+          {/* Header line */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-sm font-bold text-foreground truncate">{post.author}</span>
+            {isElevated && <Award className="w-3.5 h-3.5 text-accent shrink-0" />}
+            <span className={`text-xs font-medium ${categoryColors[post.category] ?? "text-muted-foreground"}`}>
+              · {post.category}
+            </span>
             <span className="text-xs text-muted-foreground">· {post.timestamp}</span>
-          </div>
-          <span className={`inline-block mt-1.5 text-xs px-2.5 py-0.5 rounded-full font-medium ${categoryColors[post.category] ?? ""}`}>
-            {post.category}
-          </span>
-        </div>
-      </div>
-
-      <p className="text-foreground/90 text-sm leading-relaxed mb-5">{post.content}</p>
-
-      <div className="flex items-center gap-6 text-muted-foreground">
-        <button onClick={toggleLike} className={`flex items-center gap-1.5 text-sm transition-colors ${liked ? "text-destructive" : "hover:text-foreground"}`}>
-          <Heart className={`w-4 h-4 ${liked ? "fill-current" : ""}`} />
-          {likeCount}
-        </button>
-        <button onClick={toggleComments} className="flex items-center gap-1.5 text-sm hover:text-foreground transition-colors">
-          <MessageCircle className="w-4 h-4" />
-          {commentCount}
-          {showComments ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-        </button>
-        <button className="flex items-center gap-1.5 text-sm hover:text-foreground transition-colors">
-          <Share2 className="w-4 h-4" />
-        </button>
-      </div>
-
-      {/* Comments Section */}
-      {showComments && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          className="mt-4 pt-4 border-t border-border"
-        >
-          <div className="space-y-3 mb-3">
-            {comments.map((c) => (
-              <div key={c.id} className="flex gap-2">
-                <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground shrink-0">
-                  {(c.profiles?.display_name ?? "AM").charAt(0)}
-                </div>
-                <div>
-                  <span className="text-xs font-semibold text-foreground">{c.profiles?.display_name ?? "Anônimo"}</span>
-                  <p className="text-xs text-foreground/80">{c.content}</p>
-                </div>
-              </div>
-            ))}
-            {comments.length === 0 && (
-              <p className="text-xs text-muted-foreground">Nenhum comentário ainda.</p>
-            )}
-          </div>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleComment()}
-              placeholder="Escreva um comentário..."
-              maxLength={1000}
-              className="flex-1 bg-muted border border-border rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary"
-            />
-            <button
-              onClick={handleComment}
-              disabled={!newComment.trim()}
-              className="bg-primary text-primary-foreground p-2 rounded-lg hover:opacity-90 disabled:opacity-50"
-            >
-              <Send className="w-3 h-3" />
+            <button className="ml-auto text-muted-foreground hover:text-foreground p-1 -m-1">
+              <MoreHorizontal className="w-4 h-4" />
             </button>
           </div>
-        </motion.div>
-      )}
+
+          {/* Level badge for elevated */}
+          {isElevated && (
+            <span className="inline-block text-[10px] font-semibold text-accent bg-accent/10 rounded px-1.5 py-0.5 mt-0.5">
+              {post.level}
+            </span>
+          )}
+
+          {/* Content */}
+          <p className="text-sm text-foreground leading-relaxed mt-1.5 whitespace-pre-wrap">{post.content}</p>
+
+          {/* Action bar — X-style */}
+          <div className="flex items-center justify-between mt-3 max-w-[360px] -ml-2">
+            <button
+              onClick={toggleComments}
+              className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors group p-2 rounded-full hover:bg-primary/10"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span className="text-xs">{commentCount || ""}</span>
+            </button>
+            <button className="flex items-center gap-1.5 text-muted-foreground hover:text-success transition-colors group p-2 rounded-full hover:bg-success/10">
+              <Repeat2 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={toggleLike}
+              className={`flex items-center gap-1.5 transition-colors group p-2 rounded-full ${
+                liked ? "text-destructive" : "text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+              }`}
+            >
+              <Heart className={`w-4 h-4 ${liked ? "fill-current" : ""}`} />
+              <span className="text-xs">{likeCount || ""}</span>
+            </button>
+            <button className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors group p-2 rounded-full hover:bg-primary/10">
+              <Share className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Comments */}
+          {showComments && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              className="mt-3 pt-3 border-t border-border"
+            >
+              <div className="space-y-3 mb-3">
+                {comments.map((c) => (
+                  <div key={c.id} className="flex gap-2">
+                    <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground shrink-0">
+                      {(c.profiles?.display_name ?? "AM").charAt(0)}
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-foreground">{c.profiles?.display_name ?? "Anônimo"}</span>
+                      <p className="text-xs text-foreground/80">{c.content}</p>
+                    </div>
+                  </div>
+                ))}
+                {comments.length === 0 && (
+                  <p className="text-xs text-muted-foreground">Nenhum comentário ainda.</p>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleComment()}
+                  placeholder="Escreva um comentário..."
+                  maxLength={1000}
+                  className="flex-1 bg-muted border border-border rounded-full px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+                <button
+                  onClick={handleComment}
+                  disabled={!newComment.trim()}
+                  className="bg-primary text-primary-foreground p-2 rounded-full hover:opacity-90 disabled:opacity-50"
+                >
+                  <Send className="w-3 h-3" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </div>
+      </div>
     </motion.article>
   );
 };

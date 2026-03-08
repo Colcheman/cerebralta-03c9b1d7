@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Flame, Filter, Send } from "lucide-react";
+import { Flame, Send } from "lucide-react";
 import PostCard from "@/components/PostCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import PaywallModal from "@/components/PaywallModal";
 
 const categories = ["Todos", "Reflexão", "Estratégia", "Estoicismo", "Prática"];
 
@@ -34,14 +35,11 @@ const Feed = () => {
       .order("created_at", { ascending: false })
       .limit(20);
     if (!data) { setLoading(false); return; }
-    
-    // Fetch profiles for post authors
     const userIds = [...new Set(data.map(p => p.user_id))];
     const { data: profiles } = await supabase
       .from("profiles")
       .select("user_id, display_name, level, avatar_url")
       .in("user_id", userIds);
-    
     const profileMap = new Map(profiles?.map(p => [p.user_id, p]) ?? []);
     const postsWithProfiles = data.map(p => ({
       ...p,
@@ -68,115 +66,113 @@ const Feed = () => {
     ? posts
     : posts.filter((p) => p.category.toLowerCase() === filter.toLowerCase());
 
+  if (profile?.subscription_tier === "free") {
+    return <PaywallModal />;
+  }
+
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="flex items-center justify-between mb-6"
-      >
-        <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Feed</h1>
-          <p className="text-sm text-muted-foreground">Reflexões e práticas da comunidade</p>
+    <div className="max-w-xl mx-auto">
+      {/* Header — X style */}
+      <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-md border-b border-border">
+        <div className="flex items-center justify-between px-4 py-3">
+          <h1 className="text-lg font-bold text-foreground">Feed</h1>
+          <div className="flex items-center gap-1.5 text-streak">
+            <Flame className="w-4 h-4" />
+            <span className="text-sm font-bold">{profile?.streak ?? 0}</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2 bg-muted rounded-xl px-3 py-2">
-          <Flame className="w-4 h-4 text-streak" />
-          <span className="text-sm font-semibold text-streak">{profile?.streak ?? 0}</span>
-        </div>
-      </motion.div>
-
-      {/* New Post */}
-      <div className="glass rounded-2xl p-4 mb-6">
-        <textarea
-          value={newPost}
-          onChange={(e) => setNewPost(e.target.value)}
-          placeholder="Compartilhe uma reflexão, Arquitéto Mental..."
-          className="w-full bg-transparent text-foreground text-sm placeholder:text-muted-foreground/50 resize-none focus:outline-none min-h-[80px]"
-          maxLength={2000}
-        />
-        <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
-          <select
-            value={newCategory}
-            onChange={(e) => setNewCategory(e.target.value)}
-            className="bg-muted text-sm text-foreground rounded-lg px-3 py-1.5 border border-border focus:outline-none focus:ring-1 focus:ring-primary"
-          >
-            <option value="reflexão">Reflexão</option>
-            <option value="estratégia">Estratégia</option>
-            <option value="estoicismo">Estoicismo</option>
-            <option value="prática">Prática</option>
-          </select>
-          <button
-            onClick={handlePost}
-            disabled={!newPost.trim()}
-            className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-all disabled:opacity-50"
-          >
-            <Send className="w-4 h-4" />
-            Publicar
-          </button>
+        {/* Tabs */}
+        <div className="flex border-b border-border">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setFilter(cat)}
+              className={`flex-1 py-3 text-sm font-medium relative transition-colors ${
+                filter === cat ? "text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+              }`}
+            >
+              {cat}
+              {filter === cat && (
+                <motion.div
+                  layoutId="feedtab"
+                  className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-1 rounded-full bg-primary"
+                />
+              )}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-1 scrollbar-hide">
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setFilter(cat)}
-            className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${
-              filter === cat
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
-
-      {/* Anti-dopamine notice */}
-      <div className="glass rounded-xl p-4 mb-6 flex items-center gap-3">
-        <Filter className="w-5 h-5 text-accent shrink-0" />
-        <p className="text-xs text-muted-foreground">
-          Feed curado para seu desenvolvimento. Sem scroll infinito, sem distrações.
-        </p>
+      {/* Composer */}
+      <div className="border-b border-border px-4 py-3">
+        <div className="flex gap-3">
+          <div className="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center text-xs font-bold text-primary-foreground shrink-0">
+            {(profile?.display_name ?? "AM").split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()}
+          </div>
+          <div className="flex-1">
+            <textarea
+              value={newPost}
+              onChange={(e) => setNewPost(e.target.value)}
+              placeholder="O que está pensando, Arquiteto Mental?"
+              className="w-full bg-transparent text-foreground text-sm placeholder:text-muted-foreground/50 resize-none focus:outline-none min-h-[60px]"
+              maxLength={2000}
+            />
+            <div className="flex items-center justify-between pt-2 border-t border-border/50">
+              <select
+                value={newCategory}
+                onChange={(e) => setNewCategory(e.target.value)}
+                className="bg-transparent text-xs text-primary font-medium border border-primary/30 rounded-full px-3 py-1 focus:outline-none"
+              >
+                <option value="reflexão">Reflexão</option>
+                <option value="estratégia">Estratégia</option>
+                <option value="estoicismo">Estoicismo</option>
+                <option value="prática">Prática</option>
+              </select>
+              <button
+                onClick={handlePost}
+                disabled={!newPost.trim()}
+                className="bg-primary text-primary-foreground px-4 py-1.5 rounded-full text-sm font-bold hover:opacity-90 transition-all disabled:opacity-50"
+              >
+                Publicar
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Posts */}
-      <div className="space-y-4">
-        {loading ? (
-          <div className="text-center py-8 text-muted-foreground text-sm">Carregando...</div>
-        ) : filtered.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground text-sm">
-            Nenhuma reflexão ainda. Seja o primeiro Arquitéto Mental a compartilhar! 🧠
-          </div>
-        ) : (
-          filtered.map((post, i) => (
-            <PostCard
-              key={post.id}
-              post={{
-                id: post.id,
-                user_id: post.user_id,
-                content: post.content,
-                category: post.category,
-                author: post.profiles?.display_name ?? "Arquitéto Mental",
-                level: post.profiles?.level ?? "Iniciante",
-                avatar: (post.profiles?.display_name ?? "AM").split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase(),
-                likes: post.likes_count,
-                comments: post.comments_count,
-                timestamp: getRelativeTime(post.created_at),
-              }}
-              index={i}
-              onUpdate={fetchPosts}
-            />
-          ))
-        )}
-      </div>
+      {loading ? (
+        <div className="text-center py-8 text-muted-foreground text-sm">Carregando...</div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground text-sm">
+          Nenhuma reflexão ainda. Seja o primeiro Arquiteto Mental a compartilhar! 🧠
+        </div>
+      ) : (
+        filtered.map((post, i) => (
+          <PostCard
+            key={post.id}
+            post={{
+              id: post.id,
+              user_id: post.user_id,
+              content: post.content,
+              category: post.category,
+              author: post.profiles?.display_name ?? "Arquiteto Mental",
+              level: post.profiles?.level ?? "Iniciante",
+              avatar: (post.profiles?.display_name ?? "AM").split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase(),
+              likes: post.likes_count,
+              comments: post.comments_count,
+              timestamp: getRelativeTime(post.created_at),
+            }}
+            index={i}
+            onUpdate={fetchPosts}
+          />
+        ))
+      )}
 
       {filtered.length > 0 && (
-        <div className="text-center py-8">
+        <div className="text-center py-8 border-b border-border">
           <p className="text-sm text-muted-foreground">
-            Você viu todas as reflexões de hoje. Volte amanhã para mais. 🧠
+            Você viu todas as reflexões de hoje. Volte amanhã. 🧠
           </p>
         </div>
       )}
@@ -188,11 +184,11 @@ function getRelativeTime(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
   if (mins < 1) return "agora";
-  if (mins < 60) return `${mins}min atrás`;
+  if (mins < 60) return `${mins}min`;
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h atrás`;
+  if (hours < 24) return `${hours}h`;
   const days = Math.floor(hours / 24);
-  return `${days}d atrás`;
+  return `${days}d`;
 }
 
 export default Feed;
