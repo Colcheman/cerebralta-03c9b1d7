@@ -27,6 +27,13 @@ const Config = () => {
   const [whatsappModalOpen, setWhatsappModalOpen] = useState(false);
   const [customHex, setCustomHex] = useState(accentHex);
 
+  // App Lock PIN
+  const [lockEnabled, setLockEnabled] = useState(!!profile?.app_lock_pin);
+  const [pinInput, setPinInput] = useState("");
+  const [pinConfirm, setPinConfirm] = useState("");
+  const [pinStep, setPinStep] = useState<"idle" | "enter" | "confirm">("idle");
+  const [savingPin, setSavingPin] = useState(false);
+
   const updateProfile = async (field: string, value: any) => {
     if (!user) return;
     await supabase.from("profiles").update({ [field]: value }).eq("user_id", user.id);
