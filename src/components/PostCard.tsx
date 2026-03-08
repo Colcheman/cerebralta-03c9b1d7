@@ -72,7 +72,7 @@ const PostCard = ({ post, index, onUpdate, onQuote }: { post: PostData; index: n
     const { data: commentsData } = await supabase.from("comments").select("*").eq("post_id", post.id).order("created_at", { ascending: true });
     if (!commentsData) return;
     const userIds = [...new Set(commentsData.map(c => c.user_id))];
-    const { data: profiles } = await supabase.from("profiles").select("user_id, display_name").in("user_id", userIds);
+    const { data: profiles } = await supabase.from("safe_profiles" as any).select("user_id, display_name").in("user_id", userIds);
     const profileMap = new Map(profiles?.map(p => [p.user_id, p]) ?? []);
     setComments(commentsData.map(c => ({ ...c, profiles: profileMap.get(c.user_id) ?? null })) as Comment[]);
   };
