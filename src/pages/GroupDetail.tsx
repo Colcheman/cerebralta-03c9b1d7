@@ -91,11 +91,18 @@ const GroupDetail = () => {
     if (!id || !isMember) return;
     const channel = supabase
       .channel(`group-${id}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "group_messages", filter: `group_id=eq.${id}` }, (payload) => {
+    .on("postgres_changes", { event: "INSERT", schema: "public", table: "group_messages", filter: `group_id=eq.${id}` }, (payload) => {
         const msg = payload.new as any;
-        // Fetch display_name for the new message
-        supabase.from("profiles").select("display_name").eq("user_id", msg.user_id).single().then(({ data }) => {
-          setMessages(prev => [...prev, { ...msg, display_name: data?.display_name ?? "Anônimo" }]);
+        // Skip if we already have this message (optimistic add)
+        setMessages(prev => {
+          if (prev.some(m => m.id === msg.id || (m.user_id === msg.user_id && m.content === msg.content && Math.abs(new Date(m.created_at).getTime() - new Date(msg.created_at).getTime()) < 5000))) {
+            return prev;
+          }
+          // Fetch display_name
+          supabase.from("profiles").select("display_name").eq("user_id", msg.user_id).single().then(({ data }) => {
+            setMessages(p => p.map(m => m.id === msg.id ? { ...m, display_name: data?.display_name ?? "Anônimo" } : m));
+          });
+          return [...prev, { ...msg, display_name: "..." }];
         });
       })
       .subscribe();
