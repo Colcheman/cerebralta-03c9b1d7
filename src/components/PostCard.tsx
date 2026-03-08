@@ -70,7 +70,7 @@ const PostCard = ({ post, index, onUpdate }: { post: PostData; index: number; on
   const fetchComments = async () => {
     const { data } = await supabase
       .from("comments")
-      .select("*, profiles!comments_user_id_fkey(display_name)")
+      .select("*, profiles(display_name)")
       .eq("post_id", post.id)
       .order("created_at", { ascending: true });
     if (data) setComments(data as Comment[]);
