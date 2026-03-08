@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Users, FileText, Megaphone, Search, Loader2, Send, Shield } from "lucide-react";
+import { Users, FileText, Megaphone, Search, Loader2, Send, Shield, BookOpen, Plus, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProfileRow {
   id: string;
@@ -17,25 +18,34 @@ interface ProfileRow {
   streak: number;
   subscription_tier: string;
   created_at: string;
+  whatsapp_number?: string | null;
 }
 
 const Admin = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
   const [search, setSearch] = useState("");
   const [loadingProfiles, setLoadingProfiles] = useState(true);
 
-  // News state
+  // News
   const [newsTitle, setNewsTitle] = useState("");
   const [newsContent, setNewsContent] = useState("");
   const [publishingNews, setPublishingNews] = useState(false);
 
+  // Course
+  const [courseTitle, setCourseTitle] = useState("");
+  const [courseDesc, setCourseDesc] = useState("");
+  const [courseCat, setCourseCat] = useState("geral");
+  const [courseVideo, setCourseVideo] = useState("");
+  const [coursePdf, setCoursePdf] = useState("");
+  const [courseIsPremium, setCourseIsPremium] = useState(false);
+  const [publishingCourse, setPublishingCourse] = useState(false);
+
   useEffect(() => {
     if (!user) return;
-    supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }).then(({ data }) => {
-      setIsAdmin(!!data);
-    });
+    supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }).then(({ data }) => setIsAdmin(!!data));
   }, [user]);
 
   useEffect(() => {
@@ -48,31 +58,62 @@ const Admin = () => {
   }, [isAdmin]);
 
   if (isAdmin === null) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-6 h-6 animate-spin text-primary" />
-      </div>
-    );
+    return <div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>;
   }
-
   if (!isAdmin) return <Navigate to="/feed" replace />;
 
   const filteredProfiles = profiles.filter(p =>
-    p.display_name.toLowerCase().includes(search.toLowerCase()) ||
-    p.cpf.includes(search.replace(/\D/g, ""))
+    p.display_name.toLowerCase().includes(search.toLowerCase()) || p.cpf.includes(search.replace(/\D/g, ""))
   );
+
+  const getTimeSince = (dateStr: string) => {
+    const days = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
+    if (days < 1) return "Hoje";
+    if (days === 1) return "1 dia";
+    if (days < 30) return `${days} dias`;
+    const months = Math.floor(days / 30);
+    return `${months} ${months === 1 ? "mês" : "meses"}`;
+  };
 
   const publishNews = async () => {
     if (!newsTitle.trim() || !newsContent.trim() || !user) return;
     setPublishingNews(true);
-    await supabase.from("news").insert({
-      title: newsTitle.trim(),
-      content: newsContent.trim(),
-      author_id: user.id,
-    });
+    await supabase.from("news").insert({ title: newsTitle.trim(), content: newsContent.trim(), author_id: user.id });
+
+    // Simulate WhatsApp webhook
+    const whatsappUsers = profiles.filter(p => p.whatsapp_number);
+    if (whatsappUsers.length > 0) {
+      toast({
+        title: `📱 WhatsApp Simulado`,
+        description: `News enviada para ${whatsappUsers.length} Arquitetos Mentais via WhatsApp (simulação).`,
+      });
+    }
+
     setNewsTitle("");
     setNewsContent("");
     setPublishingNews(false);
+    toast({ title: "News publicada!", description: "Todos os Arquitetos Mentais podem ver a atualização." });
+  };
+
+  const publishCourse = async () => {
+    if (!courseTitle.trim() || !courseDesc.trim() || !user) return;
+    setPublishingCourse(true);
+    await supabase.from("courses").insert({
+      title: courseTitle.trim(),
+      description: courseDesc.trim(),
+      category: courseCat,
+      video_url: courseVideo.trim() || null,
+      pdf_url: coursePdf.trim() || null,
+      is_premium: courseIsPremium,
+      author_id: user.id,
+    } as any);
+    setCourseTitle("");
+    setCourseDesc("");
+    setCourseVideo("");
+    setCoursePdf("");
+    setCourseIsPremium(false);
+    setPublishingCourse(false);
+    toast({ title: "Módulo publicado!", description: "O conteúdo está disponível na área de Aprendizado." });
   };
 
   return (
@@ -89,27 +130,22 @@ const Admin = () => {
 
       <Tabs defaultValue="users" className="space-y-4">
         <TabsList className="bg-muted">
-          <TabsTrigger value="users" className="gap-1.5"><Users className="w-4 h-4" /> Arquitetos Mentais</TabsTrigger>
-          <TabsTrigger value="content" className="gap-1.5"><FileText className="w-4 h-4" /> Conteúdo</TabsTrigger>
+          <TabsTrigger value="users" className="gap-1.5"><Users className="w-4 h-4" /> Arquitetos</TabsTrigger>
+          <TabsTrigger value="courses" className="gap-1.5"><BookOpen className="w-4 h-4" /> Cursos</TabsTrigger>
           <TabsTrigger value="news" className="gap-1.5"><Megaphone className="w-4 h-4" /> News</TabsTrigger>
         </TabsList>
 
-        {/* Users Tab */}
+        {/* Users */}
         <TabsContent value="users" className="space-y-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Buscar por nome ou CPF..."
-              className="w-full bg-muted border border-border rounded-lg pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary"
-            />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por nome ou CPF..."
+              className="w-full bg-muted border border-border rounded-lg pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary" />
           </div>
-
           {loadingProfiles ? (
             <div className="text-center py-8"><Loader2 className="w-5 h-5 animate-spin text-primary mx-auto" /></div>
           ) : (
-            <div className="glass rounded-xl overflow-hidden">
+            <div className="glass rounded-xl overflow-hidden overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border text-left">
@@ -118,6 +154,7 @@ const Admin = () => {
                     <th className="px-4 py-3 text-muted-foreground font-medium">Pontos</th>
                     <th className="px-4 py-3 text-muted-foreground font-medium">Streak</th>
                     <th className="px-4 py-3 text-muted-foreground font-medium">Plano</th>
+                    <th className="px-4 py-3 text-muted-foreground font-medium"><Clock className="w-3.5 h-3.5 inline" /> Tempo</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -130,49 +167,59 @@ const Admin = () => {
                       <td className="px-4 py-3">
                         <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                           p.subscription_tier === "premium" ? "bg-accent/20 text-accent" : "bg-muted text-muted-foreground"
-                        }`}>
-                          {p.subscription_tier}
-                        </span>
+                        }`}>{p.subscription_tier}</span>
                       </td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground">{getTimeSince(p.created_at)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              {filteredProfiles.length === 0 && (
-                <p className="text-center py-6 text-sm text-muted-foreground">Nenhum Arquiteto Mental encontrado.</p>
-              )}
+              {filteredProfiles.length === 0 && <p className="text-center py-6 text-sm text-muted-foreground">Nenhum Arquiteto Mental encontrado.</p>}
             </div>
           )}
         </TabsContent>
 
-        {/* Content Tab */}
-        <TabsContent value="content">
-          <div className="glass rounded-xl p-6 text-center">
-            <FileText className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground">
-              Gestão de conteúdo educativo (vídeos, textos e lições) será disponibilizada em breve.
-            </p>
+        {/* Courses */}
+        <TabsContent value="courses" className="space-y-4">
+          <div className="glass rounded-xl p-6 space-y-4">
+            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Plus className="w-4 h-4" /> Publicar Módulo de Curso</h3>
+            <input value={courseTitle} onChange={e => setCourseTitle(e.target.value)} placeholder="Título do módulo" maxLength={200}
+              className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary" />
+            <textarea value={courseDesc} onChange={e => setCourseDesc(e.target.value)} placeholder="Descrição do conteúdo..." maxLength={5000}
+              className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary resize-none min-h-[100px]" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <select value={courseCat} onChange={e => setCourseCat(e.target.value)}
+                className="bg-muted border border-border rounded-lg px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
+                <option value="geral">Geral</option>
+                <option value="estratégia">Estratégia</option>
+                <option value="estoicismo">Estoicismo</option>
+                <option value="psicologia">Psicologia</option>
+                <option value="liderança">Liderança</option>
+              </select>
+              <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                <input type="checkbox" checked={courseIsPremium} onChange={e => setCourseIsPremium(e.target.checked)} className="accent-primary" />
+                Conteúdo Premium
+              </label>
+            </div>
+            <input value={courseVideo} onChange={e => setCourseVideo(e.target.value)} placeholder="URL do vídeo (YouTube/Vimeo)" maxLength={500}
+              className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary" />
+            <input value={coursePdf} onChange={e => setCoursePdf(e.target.value)} placeholder="URL do PDF de apoio" maxLength={500}
+              className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary" />
+            <Button onClick={publishCourse} disabled={!courseTitle.trim() || !courseDesc.trim() || publishingCourse} className="gap-2">
+              {publishingCourse ? <Loader2 className="w-4 h-4 animate-spin" /> : <BookOpen className="w-4 h-4" />}
+              Publicar Módulo
+            </Button>
           </div>
         </TabsContent>
 
-        {/* News Tab */}
+        {/* News */}
         <TabsContent value="news" className="space-y-4">
           <div className="glass rounded-xl p-6 space-y-4">
             <h3 className="text-sm font-semibold text-foreground">Publicar News / Atualização</h3>
-            <input
-              value={newsTitle}
-              onChange={e => setNewsTitle(e.target.value)}
-              placeholder="Título da notícia"
-              maxLength={200}
-              className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary"
-            />
-            <textarea
-              value={newsContent}
-              onChange={e => setNewsContent(e.target.value)}
-              placeholder="Conteúdo da notícia..."
-              maxLength={5000}
-              className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary resize-none min-h-[120px]"
-            />
+            <input value={newsTitle} onChange={e => setNewsTitle(e.target.value)} placeholder="Título da notícia" maxLength={200}
+              className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary" />
+            <textarea value={newsContent} onChange={e => setNewsContent(e.target.value)} placeholder="Conteúdo da notícia..." maxLength={5000}
+              className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary resize-none min-h-[120px]" />
             <Button onClick={publishNews} disabled={!newsTitle.trim() || !newsContent.trim() || publishingNews} className="gap-2">
               {publishingNews ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               Publicar para todos os Arquitetos Mentais
