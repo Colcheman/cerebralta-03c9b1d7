@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/contexts/ThemeContext";
 import WhatsAppModal from "@/components/WhatsAppModal";
+import { hashPin } from "@/lib/crypto";
 
 const presetColors = [
   "#2563EB", "#1D4ED8", "#1E3A5F", "#0EA5E9", "#4F46E5",
