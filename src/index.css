@@ -102,7 +102,6 @@
   .glass {
     @apply bg-card/80 backdrop-blur-xl border border-border/50;
   }
-  }
 
   .scrollbar-hide {
     -ms-overflow-style: none;
