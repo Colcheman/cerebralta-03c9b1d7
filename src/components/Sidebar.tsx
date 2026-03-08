@@ -1,7 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { Brain, Flame, BookOpen, Trophy, Users, Settings, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { mockUser } from "@/lib/mock-data";
 
 const navItems = [
   { to: "/feed", icon: Flame, label: "Feed" },
@@ -12,15 +11,21 @@ const navItems = [
 ];
 
 const Sidebar = () => {
-  const { logout } = useAuth();
+  const { logout, profile } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate("/");
   };
 
-  const progressPercent = (mockUser.points / mockUser.nextLevel) * 100;
+  const displayName = profile?.display_name ?? "Arquitéto Mental";
+  const level = profile?.level ?? "Iniciante";
+  const points = profile?.points ?? 0;
+  const streak = profile?.streak ?? 0;
+  const nextLevel = 1500; // TODO: calculate from LEVELS
+  const progressPercent = Math.min((points / nextLevel) * 100, 100);
+  const initials = displayName.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
 
   return (
     <aside className="hidden lg:flex flex-col w-64 h-screen bg-card border-r border-border fixed left-0 top-0 z-30">
@@ -37,17 +42,17 @@ const Sidebar = () => {
         <div className="bg-muted rounded-xl p-4">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center text-sm font-bold text-primary-foreground">
-              GE
+              {initials}
             </div>
             <div>
-              <p className="text-sm font-semibold text-foreground">{mockUser.name}</p>
-              <p className="text-xs text-accent font-medium">{mockUser.level}</p>
+              <p className="text-sm font-semibold text-foreground">{displayName}</p>
+              <p className="text-xs text-accent font-medium">{level}</p>
             </div>
           </div>
           <div className="space-y-1.5">
             <div className="flex justify-between text-xs">
-              <span className="text-muted-foreground">{mockUser.points} pts</span>
-              <span className="text-muted-foreground">{mockUser.nextLevel} pts</span>
+              <span className="text-muted-foreground">{points} pts</span>
+              <span className="text-muted-foreground">{nextLevel} pts</span>
             </div>
             <div className="h-1.5 bg-border rounded-full overflow-hidden">
               <div
@@ -58,7 +63,7 @@ const Sidebar = () => {
           </div>
           <div className="flex items-center gap-1.5 mt-3">
             <Flame className="w-4 h-4 text-streak" />
-            <span className="text-xs font-semibold text-streak">{mockUser.streak} dias de streak</span>
+            <span className="text-xs font-semibold text-streak">{streak} dias de streak</span>
           </div>
         </div>
       </div>
