@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Lock, Delete, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { hashPin } from "@/lib/crypto";
 
 interface AppLockScreenProps {
   onUnlock: () => void;
