@@ -17,6 +17,7 @@ import GroupDetail from "./pages/GroupDetail";
 import Config from "./pages/Config";
 import Sobre from "./pages/Sobre";
 import Admin from "./pages/Admin";
+import Mensagens from "./pages/Mensagens";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
