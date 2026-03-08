@@ -3,7 +3,7 @@ import { Flame, BookOpen, Trophy, Users, Settings, Info } from "lucide-react";
 
 const items = [
   { to: "/feed", icon: Flame, label: "Feed" },
-  { to: "/aprender", icon: BookOpen, label: "Aprender" },
+  { to: "/aprendizado", icon: BookOpen, label: "Aprender" },
   { to: "/conquistas", icon: Trophy, label: "Conquistas" },
   { to: "/grupos", icon: Users, label: "Grupos" },
   { to: "/config", icon: Settings, label: "Config" },
