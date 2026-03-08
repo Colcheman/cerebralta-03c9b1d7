@@ -76,6 +76,65 @@ export type Database = {
           },
         ]
       }
+      group_members: {
+        Row: {
+          group_id: string
+          id: string
+          joined_at: string
+          user_id: string
+        }
+        Insert: {
+          group_id: string
+          id?: string
+          joined_at?: string
+          user_id: string
+        }
+        Update: {
+          group_id?: string
+          id?: string
+          joined_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      groups: {
+        Row: {
+          created_at: string
+          creator_id: string
+          description: string
+          id: string
+          is_active: boolean
+          members_count: number
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          description?: string
+          id?: string
+          is_active?: boolean
+          members_count?: number
+          name: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          description?: string
+          id?: string
+          is_active?: boolean
+          members_count?: number
+          name?: string
+        }
+        Relationships: []
+      }
       missions: {
         Row: {
           category: string
@@ -108,6 +167,30 @@ export type Database = {
           is_active?: boolean
           is_premium?: boolean
           points?: number
+          title?: string
+        }
+        Relationships: []
+      }
+      news: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          id: string
+          title: string
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string
+          id?: string
+          title: string
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          id?: string
           title?: string
         }
         Relationships: []
@@ -191,6 +274,7 @@ export type Database = {
           notification_push: boolean
           notification_whatsapp: boolean
           points: number
+          recovery_email: string | null
           streak: number
           subscription_tier: Database["public"]["Enums"]["subscription_tier"]
           two_factor_enabled: boolean
@@ -210,6 +294,7 @@ export type Database = {
           notification_push?: boolean
           notification_whatsapp?: boolean
           points?: number
+          recovery_email?: string | null
           streak?: number
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
           two_factor_enabled?: boolean
@@ -229,6 +314,7 @@ export type Database = {
           notification_push?: boolean
           notification_whatsapp?: boolean
           points?: number
+          recovery_email?: string | null
           streak?: number
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
           two_factor_enabled?: boolean
