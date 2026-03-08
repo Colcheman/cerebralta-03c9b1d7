@@ -1,15 +1,27 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import type { User, Session } from "@supabase/supabase-js";
 
-interface User {
+interface Profile {
+  id: string;
+  user_id: string;
   cpf: string;
-  name: string;
+  display_name: string;
+  avatar_url: string | null;
+  level: string;
+  points: number;
+  streak: number;
+  subscription_tier: "free" | "premium";
 }
 
 interface AuthContextType {
   user: User | null;
-  login: (cpf: string, password: string) => boolean;
-  register: (cpf: string, name: string, password: string) => boolean;
-  logout: () => void;
+  session: Session | null;
+  profile: Profile | null;
+  loading: boolean;
+  login: (email: string, password: string) => Promise<{ error: string | null }>;
+  register: (cpf: string, name: string, password: string) => Promise<{ error: string | null }>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -20,24 +32,82 @@ export const useAuth = () => {
   return ctx;
 };
 
+// Convert CPF to a fake email for Supabase auth (CPF-only login)
+const cpfToEmail = (cpf: string) => {
+  const digits = cpf.replace(/\D/g, "");
+  return `${digits}@cerebralta.app`;
+};
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const login = (_cpf: string, _password: string) => {
-    // Mock login — real implementation needs Lovable Cloud
-    setUser({ cpf: _cpf, name: "Guerreiro Estoico" });
-    return true;
+  const fetchProfile = async (userId: string) => {
+    const { data } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("user_id", userId)
+      .single();
+    if (data) setProfile(data as Profile);
   };
 
-  const register = (cpf: string, name: string, _password: string) => {
-    setUser({ cpf, name });
-    return true;
+  useEffect(() => {
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          // Use setTimeout to avoid Supabase client deadlock
+          setTimeout(() => fetchProfile(session.user.id), 0);
+        } else {
+          setProfile(null);
+        }
+        setLoading(false);
+      }
+    );
+
+    // THEN check existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      }
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const login = async (cpf: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email: cpfToEmail(cpf),
+      password,
+    });
+    return { error: error?.message ?? null };
   };
 
-  const logout = () => setUser(null);
+  const register = async (cpf: string, name: string, password: string) => {
+    const { error } = await supabase.auth.signUp({
+      email: cpfToEmail(cpf),
+      password,
+      options: {
+        data: { cpf: cpf.replace(/\D/g, ""), display_name: name },
+      },
+    });
+    return { error: error?.message ?? null };
+  };
+
+  const logout = async () => {
+    await supabase.auth.signOut();
+    setProfile(null);
+  };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, session, profile, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

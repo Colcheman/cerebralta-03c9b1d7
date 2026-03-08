@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatCPF, validateCPF, validatePassword } from "@/lib/cpf";
-import { Eye, EyeOff, Shield, Brain } from "lucide-react";
+import { Eye, EyeOff, Shield, Brain, Loader2 } from "lucide-react";
 
 const Login = () => {
   const [isRegister, setIsRegister] = useState(false);
@@ -12,10 +12,17 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
-  const { login, register } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const { login, register, user } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Redirect if already logged in
+  if (user) {
+    navigate("/feed", { replace: true });
+    return null;
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: string[] = [];
 
@@ -33,12 +40,30 @@ const Login = () => {
     }
 
     setErrors([]);
-    if (isRegister) {
-      register(cpf, name, password);
-    } else {
-      login(cpf, password);
+    setIsLoading(true);
+
+    try {
+      if (isRegister) {
+        const { error } = await register(cpf, name, password);
+        if (error) {
+          setErrors([error]);
+          setIsLoading(false);
+          return;
+        }
+      } else {
+        const { error } = await login(cpf, password);
+        if (error) {
+          setErrors(["CPF ou senha incorretos"]);
+          setIsLoading(false);
+          return;
+        }
+      }
+      navigate("/feed");
+    } catch {
+      setErrors(["Erro inesperado. Tente novamente."]);
+    } finally {
+      setIsLoading(false);
     }
-    navigate("/feed");
   };
 
   return (
@@ -170,9 +195,17 @@ const Login = () => {
 
             <button
               type="submit"
-              className="w-full bg-gradient-primary text-primary-foreground py-3.5 rounded-lg font-semibold shadow-primary hover:opacity-90 transition-all"
+              disabled={isLoading}
+              className="w-full bg-gradient-primary text-primary-foreground py-3.5 rounded-lg font-semibold shadow-primary hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              {isRegister ? "Criar Conta" : "Entrar"}
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  {isRegister ? "Criando conta..." : "Entrando..."}
+                </>
+              ) : (
+                isRegister ? "Criar Conta" : "Entrar"
+              )}
             </button>
           </form>
 
