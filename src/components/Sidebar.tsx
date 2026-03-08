@@ -1,6 +1,8 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { Brain, Flame, BookOpen, Trophy, Users, Settings, LogOut } from "lucide-react";
+import { Brain, Flame, BookOpen, Trophy, Users, Settings, LogOut, Info, Shield } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const navItems = [
   { to: "/feed", icon: Flame, label: "Feed" },
@@ -8,28 +10,36 @@ const navItems = [
   { to: "/conquistas", icon: Trophy, label: "Conquistas" },
   { to: "/grupos", icon: Users, label: "Grupos" },
   { to: "/config", icon: Settings, label: "Configurações" },
+  { to: "/sobre", icon: Info, label: "Sobre" },
 ];
 
 const Sidebar = () => {
-  const { logout, profile } = useAuth();
+  const { logout, profile, user } = useAuth();
   const navigate = useNavigate();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }).then(({ data }) => setIsAdmin(!!data));
+  }, [user]);
 
   const handleLogout = async () => {
     await logout();
     navigate("/");
   };
 
-  const displayName = profile?.display_name ?? "Arquitéto Mental";
+  const displayName = profile?.display_name ?? "Arquiteto Mental";
   const level = profile?.level ?? "Iniciante";
   const points = profile?.points ?? 0;
   const streak = profile?.streak ?? 0;
-  const nextLevel = 1500; // TODO: calculate from LEVELS
+  const nextLevel = 1500;
   const progressPercent = Math.min((points / nextLevel) * 100, 100);
   const initials = displayName.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
 
+  const allItems = isAdmin ? [...navItems, { to: "/admin", icon: Shield, label: "Admin" }] : navItems;
+
   return (
     <aside className="hidden lg:flex flex-col w-64 h-screen bg-card border-r border-border fixed left-0 top-0 z-30">
-      {/* Logo */}
       <div className="flex items-center gap-3 px-6 py-6 border-b border-border">
         <div className="w-9 h-9 rounded-xl bg-gradient-primary flex items-center justify-center">
           <Brain className="w-5 h-5 text-primary-foreground" />
@@ -37,7 +47,6 @@ const Sidebar = () => {
         <span className="font-display text-xl font-bold text-foreground">Cerebralta</span>
       </div>
 
-      {/* User card */}
       <div className="px-4 py-5">
         <div className="bg-muted rounded-xl p-4">
           <div className="flex items-center gap-3 mb-3">
@@ -55,10 +64,7 @@ const Sidebar = () => {
               <span className="text-muted-foreground">{nextLevel} pts</span>
             </div>
             <div className="h-1.5 bg-border rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-gold rounded-full transition-all duration-500"
-                style={{ width: `${progressPercent}%` }}
-              />
+              <div className="h-full bg-gradient-gold rounded-full transition-all duration-500" style={{ width: `${progressPercent}%` }} />
             </div>
           </div>
           <div className="flex items-center gap-1.5 mt-3">
@@ -68,17 +74,14 @@ const Sidebar = () => {
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-3 space-y-1">
-        {navItems.map(({ to, icon: Icon, label }) => (
+      <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
+        {allItems.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
               `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                isActive
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"
               }`
             }
           >
@@ -88,7 +91,6 @@ const Sidebar = () => {
         ))}
       </nav>
 
-      {/* Logout */}
       <div className="p-4 border-t border-border">
         <button
           onClick={handleLogout}
