@@ -106,7 +106,16 @@ const Mensagens = () => {
       }, (payload) => {
         const newMsg = payload.new as Message;
         setMessages(prev => {
-          if (prev.some(m => m.id === newMsg.id)) return prev;
+          // Avoid duplicates: check by ID or by matching content+sender for optimistic msgs
+          if (prev.some(m => m.id === newMsg.id || 
+            (m.sender_id === newMsg.sender_id && m.content === newMsg.content && m.id !== newMsg.id && Math.abs(new Date(m.created_at).getTime() - new Date(newMsg.created_at).getTime()) < 5000)
+          )) {
+            // Replace optimistic msg with real one
+            return prev.map(m => 
+              (m.sender_id === newMsg.sender_id && m.content === newMsg.content && m.id !== newMsg.id && Math.abs(new Date(m.created_at).getTime() - new Date(newMsg.created_at).getTime()) < 5000)
+                ? newMsg : m
+            );
+          }
           return [...prev, newMsg];
         });
       })
