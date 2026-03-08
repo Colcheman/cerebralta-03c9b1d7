@@ -131,8 +131,18 @@ const GroupDetail = () => {
 
   const sendMessage = async () => {
     if (!newMsg.trim() || !user || !id) return;
-    await supabase.from("group_messages").insert({ group_id: id, user_id: user.id, content: newMsg.trim() });
+    const content = newMsg.trim();
     setNewMsg("");
+    // Optimistic: add message immediately
+    const optimistic: Message = {
+      id: crypto.randomUUID(),
+      user_id: user.id,
+      content,
+      created_at: new Date().toISOString(),
+      display_name: members.find(m => m.user_id === user.id)?.display_name ?? "Você",
+    };
+    setMessages(prev => [...prev, optimistic]);
+    await supabase.from("group_messages").insert({ group_id: id, user_id: user.id, content });
   };
 
   if (loading) {
