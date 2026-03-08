@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Users, Plus, LogIn, LogOut, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +19,7 @@ interface Group {
 
 const Grupos = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [groups, setGroups] = useState<Group[]>([]);
   const [myGroupIds, setMyGroupIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -57,20 +59,17 @@ const Grupos = () => {
     fetchGroups();
   };
 
-  const joinGroup = async (groupId: string) => {
+  const toggleMembership = async (e: React.MouseEvent, groupId: string, isMember: boolean) => {
+    e.stopPropagation();
     if (!user) return;
     setJoining(groupId);
-    await supabase.from("group_members").insert({ group_id: groupId, user_id: user.id });
-    await supabase.from("groups").update({ members_count: (groups.find(g => g.id === groupId)?.members_count ?? 0) + 1 }).eq("id", groupId);
-    setJoining(null);
-    fetchGroups();
-  };
-
-  const leaveGroup = async (groupId: string) => {
-    if (!user) return;
-    setJoining(groupId);
-    await supabase.from("group_members").delete().eq("group_id", groupId).eq("user_id", user.id);
-    await supabase.from("groups").update({ members_count: Math.max((groups.find(g => g.id === groupId)?.members_count ?? 1) - 1, 0) }).eq("id", groupId);
+    if (isMember) {
+      await supabase.from("group_members").delete().eq("group_id", groupId).eq("user_id", user.id);
+      await supabase.from("groups").update({ members_count: Math.max((groups.find(g => g.id === groupId)?.members_count ?? 1) - 1, 0) }).eq("id", groupId);
+    } else {
+      await supabase.from("group_members").insert({ group_id: groupId, user_id: user.id });
+      await supabase.from("groups").update({ members_count: (groups.find(g => g.id === groupId)?.members_count ?? 0) + 1 }).eq("id", groupId);
+    }
     setJoining(null);
     fetchGroups();
   };
@@ -85,32 +84,17 @@ const Grupos = () => {
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="icon" className="rounded-xl">
-                <Plus className="w-5 h-5" />
-              </Button>
+              <Button size="icon" className="rounded-xl"><Plus className="w-5 h-5" /></Button>
             </DialogTrigger>
             <DialogContent className="glass">
-              <DialogHeader>
-                <DialogTitle>Criar Grupo</DialogTitle>
-              </DialogHeader>
+              <DialogHeader><DialogTitle>Criar Grupo</DialogTitle></DialogHeader>
               <div className="space-y-4 mt-2">
-                <input
-                  value={newName}
-                  onChange={e => setNewName(e.target.value)}
-                  placeholder="Nome do grupo"
-                  maxLength={60}
-                  className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary"
-                />
-                <textarea
-                  value={newDesc}
-                  onChange={e => setNewDesc(e.target.value)}
-                  placeholder="Descrição (opcional)"
-                  maxLength={300}
-                  className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary resize-none min-h-[80px]"
-                />
+                <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="Nome do grupo" maxLength={60}
+                  className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary" />
+                <textarea value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder="Descrição (opcional)" maxLength={300}
+                  className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary resize-none min-h-[80px]" />
                 <Button onClick={createGroup} disabled={!newName.trim() || creating} className="w-full">
-                  {creating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                  Criar Grupo
+                  {creating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null} Criar Grupo
                 </Button>
               </div>
             </DialogContent>
@@ -121,9 +105,7 @@ const Grupos = () => {
       {loading ? (
         <div className="text-center py-8 text-muted-foreground text-sm">Carregando grupos...</div>
       ) : groups.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground text-sm">
-          Nenhum grupo ainda. Crie o primeiro! 🧠
-        </div>
+        <div className="text-center py-12 text-muted-foreground text-sm">Nenhum grupo ainda. Crie o primeiro! 🧠</div>
       ) : (
         <div className="space-y-3">
           {groups.map((group, i) => {
@@ -135,7 +117,8 @@ const Grupos = () => {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.06 }}
-                className="glass rounded-xl p-5 hover:border-primary/20 transition-all"
+                onClick={() => navigate(`/grupos/${group.id}`)}
+                className="glass rounded-xl p-5 hover:border-primary/20 transition-all cursor-pointer"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
@@ -147,33 +130,18 @@ const Grupos = () => {
                       {group.description && <p className="text-xs text-muted-foreground mt-0.5">{group.description}</p>}
                       <div className="flex items-center gap-3 mt-2">
                         <span className="text-xs text-muted-foreground">{group.members_count} membros</span>
-                        {isCreator && (
-                          <span className="text-xs text-accent font-medium">Criador</span>
-                        )}
+                        {isCreator && <span className="text-xs text-accent font-medium">Criador</span>}
                       </div>
                     </div>
                   </div>
                   <div>
                     {isMember ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => leaveGroup(group.id)}
-                        disabled={joining === group.id}
-                        className="text-xs gap-1"
-                      >
-                        {joining === group.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <LogOut className="w-3 h-3" />}
-                        Sair
+                      <Button size="sm" variant="outline" onClick={(e) => toggleMembership(e, group.id, true)} disabled={joining === group.id} className="text-xs gap-1">
+                        {joining === group.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <LogOut className="w-3 h-3" />} Sair
                       </Button>
                     ) : (
-                      <Button
-                        size="sm"
-                        onClick={() => joinGroup(group.id)}
-                        disabled={joining === group.id}
-                        className="text-xs gap-1"
-                      >
-                        {joining === group.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <LogIn className="w-3 h-3" />}
-                        Entrar
+                      <Button size="sm" onClick={(e) => toggleMembership(e, group.id, false)} disabled={joining === group.id} className="text-xs gap-1">
+                        {joining === group.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <LogIn className="w-3 h-3" />} Entrar
                       </Button>
                     )}
                   </div>
