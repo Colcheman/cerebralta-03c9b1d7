@@ -34,8 +34,11 @@ const Sidebar = () => {
   const level = profile?.level ?? "Iniciante";
   const points = profile?.points ?? 0;
   const streak = profile?.streak ?? 0;
-  const nextLevel = 1500;
-  const progressPercent = Math.min((points / nextLevel) * 100, 100);
+  const levelThresholds = [0, 100, 500, 1500, 3000, 5000, 10000];
+  const currentThresholdIdx = levelThresholds.filter(t => points >= t).length - 1;
+  const nextLevel = levelThresholds[Math.min(currentThresholdIdx + 1, levelThresholds.length - 1)];
+  const prevLevel = levelThresholds[currentThresholdIdx] ?? 0;
+  const progressPercent = nextLevel === prevLevel ? 100 : Math.min(((points - prevLevel) / (nextLevel - prevLevel)) * 100, 100);
   const initials = displayName.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
 
   const allItems = isAdmin ? [...navItems, { to: "/admin", icon: Shield, label: "Admin" }] : navItems;
