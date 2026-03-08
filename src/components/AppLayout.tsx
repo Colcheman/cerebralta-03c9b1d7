@@ -5,7 +5,7 @@ import MobileNav from "./MobileNav";
 import { Loader2 } from "lucide-react";
 
 const AppLayout = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, profile } = useAuth();
 
   if (loading) {
     return (
@@ -16,6 +16,11 @@ const AppLayout = () => {
   }
 
   if (!user) return <Navigate to="/" replace />;
+
+  // Full paywall: free users go to subscription page
+  if (profile && profile.subscription_tier === "free") {
+    return <Navigate to="/assinatura" replace />;
+  }
 
   return (
     <div className="min-h-screen bg-background">

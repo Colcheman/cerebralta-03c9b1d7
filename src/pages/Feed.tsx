@@ -4,7 +4,6 @@ import { Flame, Send, X } from "lucide-react";
 import PostCard from "@/components/PostCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import PaywallModal from "@/components/PaywallModal";
 
 const categories = ["Todos", "Reflexão", "Estratégia", "Estoicismo", "Prática"];
 
@@ -45,7 +44,6 @@ const Feed = () => {
     const { data: profiles } = await supabase.from("profiles").select("user_id, display_name, level, avatar_url").in("user_id", userIds);
     const profileMap = new Map(profiles?.map(p => [p.user_id, p]) ?? []);
 
-    // Fetch quoted posts
     const quotedIds = data.filter(p => p.quoted_post_id).map(p => p.quoted_post_id!);
     let quotedMap = new Map<string, { content: string; user_id: string }>();
     if (quotedIds.length > 0) {
@@ -89,10 +87,6 @@ const Feed = () => {
 
   const filtered = filter === "Todos" ? posts : posts.filter(p => p.category.toLowerCase() === filter.toLowerCase());
 
-  if (profile?.subscription_tier === "free") {
-    return <PaywallModal />;
-  }
-
   return (
     <div className="max-w-xl mx-auto">
       {/* Header */}
@@ -122,7 +116,6 @@ const Feed = () => {
             {(profile?.display_name ?? "AM").split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()}
           </div>
           <div className="flex-1">
-            {/* Quoting indicator */}
             {quoting && (
               <div className="flex items-center gap-2 mb-2 p-2 border border-border rounded-lg bg-muted/30">
                 <div className="flex-1 min-w-0">

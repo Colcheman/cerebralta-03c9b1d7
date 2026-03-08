@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Users, FileText, Megaphone, Search, Loader2, Send, Shield, BookOpen, Plus, Clock } from "lucide-react";
+import { Users, Megaphone, Search, Loader2, Send, Shield, BookOpen, Plus, Clock, Globe, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
@@ -43,6 +43,10 @@ const Admin = () => {
   const [courseIsPremium, setCourseIsPremium] = useState(false);
   const [publishingCourse, setPublishingCourse] = useState(false);
 
+  // Webhook URL
+  const [webhookUrl, setWebhookUrl] = useState("");
+  const [savingWebhook, setSavingWebhook] = useState(false);
+
   useEffect(() => {
     if (!user) return;
     supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }).then(({ data }) => setIsAdmin(!!data));
@@ -53,6 +57,10 @@ const Admin = () => {
       supabase.from("profiles").select("*").order("points", { ascending: false }).then(({ data }) => {
         setProfiles((data ?? []) as ProfileRow[]);
         setLoadingProfiles(false);
+      });
+      // Load webhook URL
+      supabase.from("admin_settings").select("value").eq("key", "whatsapp_webhook_url").single().then(({ data }) => {
+        if (data) setWebhookUrl(data.value);
       });
     }
   }, [isAdmin]);
@@ -75,18 +83,62 @@ const Admin = () => {
     return `${months} ${months === 1 ? "mês" : "meses"}`;
   };
 
+  const saveWebhookUrl = async () => {
+    setSavingWebhook(true);
+    const { data: existing } = await supabase.from("admin_settings").select("id").eq("key", "whatsapp_webhook_url").single();
+    if (existing) {
+      await supabase.from("admin_settings").update({ value: webhookUrl.trim() }).eq("key", "whatsapp_webhook_url");
+    } else {
+      await supabase.from("admin_settings").insert({ key: "whatsapp_webhook_url", value: webhookUrl.trim() } as any);
+    }
+    setSavingWebhook(false);
+    toast({ title: "Webhook salvo", description: "URL do webhook de WhatsApp atualizada." });
+  };
+
   const publishNews = async () => {
     if (!newsTitle.trim() || !newsContent.trim() || !user) return;
     setPublishingNews(true);
     await supabase.from("news").insert({ title: newsTitle.trim(), content: newsContent.trim(), author_id: user.id });
 
-    // Simulate WhatsApp webhook
+    // Queue WhatsApp notifications for users with whatsapp_number
     const whatsappUsers = profiles.filter(p => p.whatsapp_number);
     if (whatsappUsers.length > 0) {
-      toast({
-        title: `📱 WhatsApp Simulado`,
-        description: `News enviada para ${whatsappUsers.length} Arquitetos Mentais via WhatsApp (simulação).`,
-      });
+      const queueItems = whatsappUsers.map(p => ({
+        recipient_user_id: p.user_id,
+        recipient_whatsapp: p.whatsapp_number!,
+        message_type: "news",
+        payload: { title: newsTitle.trim(), content: newsContent.trim().slice(0, 500) },
+        webhook_url: webhookUrl || null,
+      }));
+      await supabase.from("notification_queue").insert(queueItems as any);
+
+      // If webhook URL is configured, try to dispatch
+      if (webhookUrl) {
+        try {
+          const response = await fetch(webhookUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type: "news_broadcast",
+              title: newsTitle.trim(),
+              content: newsContent.trim().slice(0, 500),
+              recipients: whatsappUsers.map(p => ({ name: p.display_name, number: p.whatsapp_number })),
+            }),
+          });
+          if (response.ok) {
+            toast({ title: `📱 WhatsApp enviado`, description: `Webhook disparado para ${whatsappUsers.length} Arquitetos.` });
+            // Mark as sent
+            await supabase.from("notification_queue").update({ status: "sent", sent_at: new Date().toISOString() } as any)
+              .eq("status", "pending").eq("message_type", "news");
+          } else {
+            toast({ title: "⚠️ Webhook falhou", description: `Status: ${response.status}. Notificações ficaram na fila.`, variant: "destructive" });
+          }
+        } catch {
+          toast({ title: "⚠️ Webhook inacessível", description: "Notificações salvas na fila para reprocessamento.", variant: "destructive" });
+        }
+      } else {
+        toast({ title: `📱 ${whatsappUsers.length} notificações na fila`, description: "Configure a URL do webhook para disparar automaticamente." });
+      }
     }
 
     setNewsTitle("");
@@ -133,6 +185,7 @@ const Admin = () => {
           <TabsTrigger value="users" className="gap-1.5"><Users className="w-4 h-4" /> Arquitetos</TabsTrigger>
           <TabsTrigger value="courses" className="gap-1.5"><BookOpen className="w-4 h-4" /> Cursos</TabsTrigger>
           <TabsTrigger value="news" className="gap-1.5"><Megaphone className="w-4 h-4" /> News</TabsTrigger>
+          <TabsTrigger value="settings" className="gap-1.5"><Settings className="w-4 h-4" /> Webhooks</TabsTrigger>
         </TabsList>
 
         {/* Users */}
@@ -224,6 +277,44 @@ const Admin = () => {
               {publishingNews ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               Publicar para todos os Arquitetos Mentais
             </Button>
+          </div>
+        </TabsContent>
+
+        {/* Webhook Settings */}
+        <TabsContent value="settings" className="space-y-4">
+          <div className="glass rounded-xl p-6 space-y-4">
+            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Globe className="w-4 h-4" /> URL do Webhook de WhatsApp</h3>
+            <p className="text-xs text-muted-foreground">
+              Configure a URL da sua API externa de WhatsApp. Quando uma News for publicada, o sistema disparará um POST com os números dos Arquitetos.
+            </p>
+            <input
+              value={webhookUrl}
+              onChange={e => setWebhookUrl(e.target.value)}
+              placeholder="https://sua-api.com/webhook/whatsapp"
+              maxLength={500}
+              className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary font-mono text-sm"
+            />
+            <Button onClick={saveWebhookUrl} disabled={!webhookUrl.trim() || savingWebhook} className="gap-2">
+              {savingWebhook ? <Loader2 className="w-4 h-4 animate-spin" /> : <Settings className="w-4 h-4" />}
+              Salvar Webhook URL
+            </Button>
+          </div>
+
+          <div className="glass rounded-xl p-6">
+            <h3 className="text-sm font-semibold text-foreground mb-2">Formato do Payload</h3>
+            <pre className="bg-muted rounded-lg p-4 text-xs text-muted-foreground overflow-x-auto">
+{`POST {webhook_url}
+Content-Type: application/json
+
+{
+  "type": "news_broadcast",
+  "title": "Título da News",
+  "content": "Conteúdo resumido...",
+  "recipients": [
+    { "name": "João", "number": "+5511999999999" }
+  ]
+}`}
+            </pre>
           </div>
         </TabsContent>
       </Tabs>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Shield, Bell, Palette, Lock, Mail, Loader2, Check } from "lucide-react";
+import { Shield, Bell, Palette, Lock, Mail, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,26 +8,16 @@ import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/contexts/ThemeContext";
 import WhatsAppModal from "@/components/WhatsAppModal";
 
-const themeLabels: Record<string, string> = {
-  "azul-alluzion": "Azul Alluzion",
-  "azul-cobalto": "Azul Cobalto",
-  "azul-noturno": "Azul Noturno",
-  "azul-celeste": "Azul Celeste",
-  "azul-royal": "Azul Royal",
-};
-
-const themePreview: Record<string, string> = {
-  "azul-alluzion": "hsl(213 72% 42%)",
-  "azul-cobalto": "hsl(220 80% 50%)",
-  "azul-noturno": "hsl(230 60% 35%)",
-  "azul-celeste": "hsl(200 75% 50%)",
-  "azul-royal": "hsl(240 65% 45%)",
-};
+const presetColors = [
+  "#2563EB", "#1D4ED8", "#1E3A5F", "#0EA5E9", "#4F46E5",
+  "#7C3AED", "#DB2777", "#DC2626", "#EA580C", "#16A34A",
+  "#0D9488", "#CA8A04",
+];
 
 const Config = () => {
   const { profile, user } = useAuth();
   const { toast } = useToast();
-  const { currentTheme, setTheme, themeOptions } = useTheme();
+  const { accentHex, setAccentColor } = useTheme();
   const [recoveryEmail, setRecoveryEmail] = useState(profile?.recovery_email ?? "");
   const [savingEmail, setSavingEmail] = useState(false);
   const [twoFactor, setTwoFactor] = useState(profile?.two_factor_enabled ?? false);
@@ -35,6 +25,7 @@ const Config = () => {
   const [notifWhatsapp, setNotifWhatsapp] = useState(profile?.notification_whatsapp ?? false);
   const [notifEmail, setNotifEmail] = useState(profile?.notification_email ?? true);
   const [whatsappModalOpen, setWhatsappModalOpen] = useState(false);
+  const [customHex, setCustomHex] = useState(accentHex);
 
   const updateProfile = async (field: string, value: any) => {
     if (!user) return;
@@ -50,11 +41,20 @@ const Config = () => {
   };
 
   const handleWhatsappToggle = (val: boolean) => {
-    if (val) {
-      setWhatsappModalOpen(true);
-    }
+    if (val) setWhatsappModalOpen(true);
     setNotifWhatsapp(val);
     updateProfile("notification_whatsapp", val);
+  };
+
+  const handleColorPick = (hex: string) => {
+    setCustomHex(hex);
+    setAccentColor(hex);
+  };
+
+  const handleCustomHexSubmit = () => {
+    if (/^#[0-9A-Fa-f]{6}$/.test(customHex)) {
+      setAccentColor(customHex);
+    }
   };
 
   const Toggle = ({ on, onToggle }: { on: boolean; onToggle: (val: boolean) => void }) => (
@@ -112,51 +112,60 @@ const Config = () => {
           </div>
           <div className="space-y-3">
             <div className="flex items-center justify-between py-2">
-              <div>
-                <p className="text-sm text-foreground">Lembretes diários</p>
-                <p className="text-xs text-muted-foreground">Receba lembretes de missões</p>
-              </div>
+              <div><p className="text-sm text-foreground">Lembretes diários</p><p className="text-xs text-muted-foreground">Receba lembretes de missões</p></div>
               <Toggle on={notifPush} onToggle={(v) => { setNotifPush(v); updateProfile("notification_push", v); }} />
             </div>
             <div className="flex items-center justify-between py-2">
-              <div>
-                <p className="text-sm text-foreground">WhatsApp</p>
-                <p className="text-xs text-muted-foreground">Notificações via WhatsApp</p>
-              </div>
+              <div><p className="text-sm text-foreground">WhatsApp</p><p className="text-xs text-muted-foreground">Notificações via WhatsApp</p></div>
               <Toggle on={notifWhatsapp} onToggle={handleWhatsappToggle} />
             </div>
             <div className="flex items-center justify-between py-2">
-              <div>
-                <p className="text-sm text-foreground">Email</p>
-                <p className="text-xs text-muted-foreground">Resumo semanal por email</p>
-              </div>
+              <div><p className="text-sm text-foreground">Email</p><p className="text-xs text-muted-foreground">Resumo semanal por email</p></div>
               <Toggle on={notifEmail} onToggle={(v) => { setNotifEmail(v); updateProfile("notification_email", v); }} />
             </div>
           </div>
         </motion.div>
 
-        {/* Personalização — Theme Selector */}
+        {/* Color Picker */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="glass rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-4">
             <Palette className="w-5 h-5 text-primary" />
             <h2 className="text-sm font-semibold text-foreground">Acento de Cor</h2>
           </div>
-          <p className="text-xs text-muted-foreground mb-4">Escolha a paleta de cores da interface.</p>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {themeOptions.map(t => (
+          <p className="text-xs text-muted-foreground mb-4">Escolha qualquer cor para personalizar a interface.</p>
+          
+          {/* Presets */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {presetColors.map(hex => (
               <button
-                key={t}
-                onClick={() => setTheme(t)}
-                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl border transition-all text-left ${
-                  currentTheme === t ? "border-primary bg-primary/10" : "border-border hover:border-primary/30"
+                key={hex}
+                onClick={() => handleColorPick(hex)}
+                className={`w-8 h-8 rounded-full border-2 transition-all ${
+                  accentHex === hex ? "border-foreground scale-110" : "border-transparent hover:scale-105"
                 }`}
-              >
-                <div className="w-5 h-5 rounded-full shrink-0 border-2 border-background" style={{ backgroundColor: themePreview[t] }}>
-                  {currentTheme === t && <Check className="w-3 h-3 text-primary-foreground m-auto mt-0.5" />}
-                </div>
-                <span className="text-xs font-medium text-foreground">{themeLabels[t] ?? t}</span>
-              </button>
+                style={{ backgroundColor: hex }}
+              />
             ))}
+          </div>
+
+          {/* Custom hex input */}
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              value={accentHex}
+              onChange={e => handleColorPick(e.target.value)}
+              className="w-10 h-10 rounded-lg border border-border cursor-pointer bg-transparent"
+            />
+            <input
+              value={customHex}
+              onChange={e => setCustomHex(e.target.value)}
+              onBlur={handleCustomHexSubmit}
+              onKeyDown={e => e.key === "Enter" && handleCustomHexSubmit()}
+              placeholder="#2563EB"
+              maxLength={7}
+              className="flex-1 bg-muted border border-border rounded-lg px-3 py-2.5 text-sm text-foreground font-mono placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+            <div className="w-10 h-10 rounded-lg border border-border" style={{ backgroundColor: accentHex }} />
           </div>
         </motion.div>
 
