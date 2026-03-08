@@ -4,6 +4,7 @@ import { Heart, MessageCircle, Repeat2, Share, Send, MoreHorizontal, Award, Quot
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import ProfileHoverCard from "@/components/ProfileHoverCard";
+import { sanitizeText } from "@/lib/sanitize";
 
 const categoryColors: Record<string, string> = {
   reflexão: "text-primary",
