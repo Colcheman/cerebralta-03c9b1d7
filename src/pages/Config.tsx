@@ -227,7 +227,8 @@ const Config = () => {
                   return;
                 }
                 setSavingPin(true);
-                await updateProfile("app_lock_pin", pinInput);
+                const hashedPin = await hashPin(pinInput);
+                await updateProfile("app_lock_pin", hashedPin);
                 setLockEnabled(true);
                 setPinStep("idle");
                 setSavingPin(false);

@@ -16,17 +16,23 @@ const AppLockScreen = ({ onUnlock }: AppLockScreenProps) => {
 
   const storedPin = profile?.app_lock_pin;
 
+  const checking = useRef(false);
+
   useEffect(() => {
-    if (pin.length === 4 && storedPin) {
-      if (pin === storedPin) {
-        onUnlock();
-      } else {
-        setError(true);
-        setTimeout(() => {
-          setPin("");
-          setError(false);
-        }, 600);
-      }
+    if (pin.length === 4 && storedPin && !checking.current) {
+      checking.current = true;
+      hashPin(pin).then(hashed => {
+        if (hashed === storedPin) {
+          onUnlock();
+        } else {
+          setError(true);
+          setTimeout(() => {
+            setPin("");
+            setError(false);
+          }, 600);
+        }
+        checking.current = false;
+      });
     }
   }, [pin, storedPin, onUnlock]);
 
