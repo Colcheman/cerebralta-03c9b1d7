@@ -267,6 +267,11 @@ const Admin = () => {
           </div>
         </TabsContent>
 
+        {/* AI Assistant */}
+        <TabsContent value="ai" className="space-y-4">
+          <AdminAIAssistant />
+        </TabsContent>
+
         {/* News */}
         <TabsContent value="news" className="space-y-4">
           <div className="glass rounded-xl p-6 space-y-4">

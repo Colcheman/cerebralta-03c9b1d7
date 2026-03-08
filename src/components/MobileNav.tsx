@@ -1,12 +1,12 @@
 import { NavLink } from "react-router-dom";
-import { Flame, BookOpen, Trophy, Users, Settings, Info } from "lucide-react";
+import { Flame, BookOpen, Trophy, Users, Settings, MessageCircle } from "lucide-react";
 
 const items = [
   { to: "/feed", icon: Flame, label: "Feed" },
+  { to: "/mensagens", icon: MessageCircle, label: "Chat" },
   { to: "/aprendizado", icon: BookOpen, label: "Aprender" },
   { to: "/conquistas", icon: Trophy, label: "Conquistas" },
   { to: "/grupos", icon: Users, label: "Grupos" },
-  { to: "/config", icon: Settings, label: "Config" },
 ];
 
 const MobileNav = () => (

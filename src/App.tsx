@@ -42,6 +42,7 @@ const App = () => (
                 <Route path="/grupos/:id" element={<GroupDetail />} />
                 <Route path="/config" element={<Config />} />
                 <Route path="/sobre" element={<Sobre />} />
+                <Route path="/mensagens" element={<Mensagens />} />
                 <Route path="/admin" element={<Admin />} />
               </Route>
               <Route path="*" element={<NotFound />} />

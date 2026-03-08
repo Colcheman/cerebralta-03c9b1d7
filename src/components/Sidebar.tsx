@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const navItems = [
   { to: "/feed", icon: Flame, label: "Feed" },
+  { to: "/mensagens", icon: MessageCircle, label: "Mensagens" },
   { to: "/aprender", icon: BookOpen, label: "Missões" },
   { to: "/aprendizado", icon: BookOpen, label: "Aprendizado" },
   { to: "/conquistas", icon: Trophy, label: "Conquistas" },
