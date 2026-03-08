@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Flame, Send, X } from "lucide-react";
+import { sanitizeText } from "@/lib/sanitize";
 import PostCard from "@/components/PostCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -69,9 +70,11 @@ const Feed = () => {
 
   const handlePost = async () => {
     if (!newPost.trim() || !user) return;
+    const sanitized = sanitizeText(newPost, 2000);
+    if (!sanitized) return;
     await supabase.from("posts").insert({
       user_id: user.id,
-      content: newPost.trim(),
+      content: sanitized,
       category: newCategory as any,
       ...(quoting ? { quoted_post_id: quoting.id } : {}),
     });

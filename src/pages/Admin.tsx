@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import AdminAIAssistant from "@/components/admin/AdminAIAssistant";
+import { sanitizeText, sanitizeUrl } from "@/lib/sanitize";
 
 interface ProfileRow {
   id: string;
@@ -21,6 +22,13 @@ interface ProfileRow {
   created_at: string;
   whatsapp_number?: string | null;
 }
+
+// Mask CPF: 123.456.789-00 → ***.456.***-**
+const maskCPF = (cpf: string) => {
+  const digits = cpf.replace(/\D/g, "");
+  if (digits.length !== 11) return "***.***.***-**";
+  return `***.${digits.slice(3, 6)}.***-**`;
+};
 
 const Admin = () => {
   const { user } = useAuth();
@@ -85,12 +93,17 @@ const Admin = () => {
   };
 
   const saveWebhookUrl = async () => {
+    const safeUrl = sanitizeUrl(webhookUrl);
+    if (!safeUrl) {
+      toast({ title: "URL inválida", description: "Use uma URL https:// válida.", variant: "destructive" });
+      return;
+    }
     setSavingWebhook(true);
     const { data: existing } = await supabase.from("admin_settings").select("id").eq("key", "whatsapp_webhook_url").single();
     if (existing) {
-      await supabase.from("admin_settings").update({ value: webhookUrl.trim() }).eq("key", "whatsapp_webhook_url");
+      await supabase.from("admin_settings").update({ value: safeUrl }).eq("key", "whatsapp_webhook_url");
     } else {
-      await supabase.from("admin_settings").insert({ key: "whatsapp_webhook_url", value: webhookUrl.trim() } as any);
+      await supabase.from("admin_settings").insert({ key: "whatsapp_webhook_url", value: safeUrl } as any);
     }
     setSavingWebhook(false);
     toast({ title: "Webhook salvo", description: "URL do webhook de WhatsApp atualizada." });
@@ -99,7 +112,9 @@ const Admin = () => {
   const publishNews = async () => {
     if (!newsTitle.trim() || !newsContent.trim() || !user) return;
     setPublishingNews(true);
-    await supabase.from("news").insert({ title: newsTitle.trim(), content: newsContent.trim(), author_id: user.id });
+    const safeTitle = sanitizeText(newsTitle, 200);
+    const safeContent = sanitizeText(newsContent, 5000);
+    await supabase.from("news").insert({ title: safeTitle, content: safeContent, author_id: user.id });
 
     // Queue WhatsApp notifications for users with whatsapp_number
     const whatsappUsers = profiles.filter(p => p.whatsapp_number);
@@ -152,11 +167,11 @@ const Admin = () => {
     if (!courseTitle.trim() || !courseDesc.trim() || !user) return;
     setPublishingCourse(true);
     await supabase.from("courses").insert({
-      title: courseTitle.trim(),
-      description: courseDesc.trim(),
+      title: sanitizeText(courseTitle, 200),
+      description: sanitizeText(courseDesc, 5000),
       category: courseCat,
-      video_url: courseVideo.trim() || null,
-      pdf_url: coursePdf.trim() || null,
+      video_url: sanitizeUrl(courseVideo) || null,
+      pdf_url: sanitizeUrl(coursePdf) || null,
       is_premium: courseIsPremium,
       author_id: user.id,
     } as any);
