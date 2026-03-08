@@ -42,7 +42,7 @@ const Feed = () => {
     const { data } = await supabase.from("posts").select("*").order("created_at", { ascending: false }).limit(20);
     if (!data) { setLoading(false); return; }
     const userIds = [...new Set(data.map(p => p.user_id))];
-    const { data: profiles } = await supabase.from("safe_profiles" as any).select("user_id, display_name, level, avatar_url").in("user_id", userIds);
+    const { data: profiles } = await supabase.from("profiles").select("user_id, display_name, level, avatar_url").in("user_id", userIds);
     const profileMap = new Map(profiles?.map(p => [p.user_id, p]) ?? []);
 
     const quotedIds = data.filter(p => p.quoted_post_id).map(p => p.quoted_post_id!);
