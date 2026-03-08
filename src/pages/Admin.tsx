@@ -107,7 +107,9 @@ const Admin = () => {
   const publishNews = async () => {
     if (!newsTitle.trim() || !newsContent.trim() || !user) return;
     setPublishingNews(true);
-    await supabase.from("news").insert({ title: newsTitle.trim(), content: newsContent.trim(), author_id: user.id });
+    const safeTitle = sanitizeText(newsTitle, 200);
+    const safeContent = sanitizeText(newsContent, 5000);
+    await supabase.from("news").insert({ title: safeTitle, content: safeContent, author_id: user.id });
 
     // Queue WhatsApp notifications for users with whatsapp_number
     const whatsappUsers = profiles.filter(p => p.whatsapp_number);
