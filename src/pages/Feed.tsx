@@ -101,10 +101,10 @@ const Feed = () => {
             <span className="text-sm font-bold">{profile?.streak ?? 0}</span>
           </div>
         </div>
-        <div className="flex border-b border-border">
+        <div className="flex overflow-x-auto scrollbar-hide border-b border-border">
           {categories.map(cat => (
             <button key={cat} onClick={() => setFilter(cat)}
-              className={`flex-1 py-3 text-sm font-medium relative transition-colors ${filter === cat ? "text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/30"}`}>
+              className={`shrink-0 px-4 py-3 text-sm font-medium relative transition-colors ${filter === cat ? "text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/30"}`}>
               {cat}
               {filter === cat && <motion.div layoutId="feedtab" className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-1 rounded-full bg-primary" />}
             </button>
