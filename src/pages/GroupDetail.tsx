@@ -91,11 +91,18 @@ const GroupDetail = () => {
     if (!id || !isMember) return;
     const channel = supabase
       .channel(`group-${id}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "group_messages", filter: `group_id=eq.${id}` }, (payload) => {
+    .on("postgres_changes", { event: "INSERT", schema: "public", table: "group_messages", filter: `group_id=eq.${id}` }, (payload) => {
         const msg = payload.new as any;
-        // Fetch display_name for the new message
-        supabase.from("profiles").select("display_name").eq("user_id", msg.user_id).single().then(({ data }) => {
-          setMessages(prev => [...prev, { ...msg, display_name: data?.display_name ?? "Anônimo" }]);
+        // Skip if we already have this message (optimistic add)
+        setMessages(prev => {
+          if (prev.some(m => m.id === msg.id || (m.user_id === msg.user_id && m.content === msg.content && Math.abs(new Date(m.created_at).getTime() - new Date(msg.created_at).getTime()) < 5000))) {
+            return prev;
+          }
+          // Fetch display_name
+          supabase.from("profiles").select("display_name").eq("user_id", msg.user_id).single().then(({ data }) => {
+            setMessages(p => p.map(m => m.id === msg.id ? { ...m, display_name: data?.display_name ?? "Anônimo" } : m));
+          });
+          return [...prev, { ...msg, display_name: "..." }];
         });
       })
       .subscribe();
@@ -131,8 +138,18 @@ const GroupDetail = () => {
 
   const sendMessage = async () => {
     if (!newMsg.trim() || !user || !id) return;
-    await supabase.from("group_messages").insert({ group_id: id, user_id: user.id, content: newMsg.trim() });
+    const content = newMsg.trim();
     setNewMsg("");
+    // Optimistic: add message immediately
+    const optimistic: Message = {
+      id: crypto.randomUUID(),
+      user_id: user.id,
+      content,
+      created_at: new Date().toISOString(),
+      display_name: members.find(m => m.user_id === user.id)?.display_name ?? "Você",
+    };
+    setMessages(prev => [...prev, optimistic]);
+    await supabase.from("group_messages").insert({ group_id: id, user_id: user.id, content });
   };
 
   if (loading) {
