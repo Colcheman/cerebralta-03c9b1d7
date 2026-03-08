@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Shield, Bell, Palette, Lock, Mail, Loader2 } from "lucide-react";
+import { Shield, Bell, Palette, Lock, Mail, Loader2, KeyRound } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,13 @@ const Config = () => {
   const [notifEmail, setNotifEmail] = useState(profile?.notification_email ?? true);
   const [whatsappModalOpen, setWhatsappModalOpen] = useState(false);
   const [customHex, setCustomHex] = useState(accentHex);
+
+  // App Lock PIN
+  const [lockEnabled, setLockEnabled] = useState(!!profile?.app_lock_pin);
+  const [pinInput, setPinInput] = useState("");
+  const [pinConfirm, setPinConfirm] = useState("");
+  const [pinStep, setPinStep] = useState<"idle" | "enter" | "confirm">("idle");
+  const [savingPin, setSavingPin] = useState(false);
 
   const updateProfile = async (field: string, value: any) => {
     if (!user) return;
@@ -167,6 +174,66 @@ const Config = () => {
             />
             <div className="w-10 h-10 rounded-lg border border-border" style={{ backgroundColor: accentHex }} />
           </div>
+        </motion.div>
+
+        {/* App Lock */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="glass rounded-2xl p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <KeyRound className="w-5 h-5 text-primary" />
+            <h2 className="text-sm font-semibold text-foreground">Bloqueio do App</h2>
+          </div>
+          <div className="flex items-center justify-between py-2 mb-3">
+            <div>
+              <p className="text-sm text-foreground">Bloquear com PIN</p>
+              <p className="text-xs text-muted-foreground">Exige PIN de 4 dígitos ao abrir o app</p>
+            </div>
+            <Toggle on={lockEnabled} onToggle={(v) => {
+              if (v) {
+                setPinStep("enter");
+                setPinInput("");
+                setPinConfirm("");
+              } else {
+                setLockEnabled(false);
+                setPinStep("idle");
+                updateProfile("app_lock_pin", null);
+                toast({ title: "Bloqueio desativado" });
+              }
+            }} />
+          </div>
+          {pinStep === "enter" && (
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground">Digite um PIN de 4 dígitos:</p>
+              <input type="password" inputMode="numeric" maxLength={4} value={pinInput}
+                onChange={e => { const v = e.target.value.replace(/\D/g, ""); setPinInput(v); }}
+                className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground text-center text-2xl tracking-[1em] font-mono focus:outline-none focus:ring-1 focus:ring-primary" />
+              <Button size="sm" disabled={pinInput.length !== 4} onClick={() => { setPinStep("confirm"); setPinConfirm(""); }}>
+                Continuar
+              </Button>
+            </div>
+          )}
+          {pinStep === "confirm" && (
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground">Confirme o PIN:</p>
+              <input type="password" inputMode="numeric" maxLength={4} value={pinConfirm}
+                onChange={e => { const v = e.target.value.replace(/\D/g, ""); setPinConfirm(v); }}
+                className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground text-center text-2xl tracking-[1em] font-mono focus:outline-none focus:ring-1 focus:ring-primary" />
+              <Button size="sm" disabled={pinConfirm.length !== 4 || savingPin} onClick={async () => {
+                if (pinConfirm !== pinInput) {
+                  toast({ title: "PINs não coincidem", variant: "destructive" });
+                  setPinConfirm("");
+                  return;
+                }
+                setSavingPin(true);
+                await updateProfile("app_lock_pin", pinInput);
+                setLockEnabled(true);
+                setPinStep("idle");
+                setSavingPin(false);
+                toast({ title: "🔒 PIN ativado!", description: "O app será bloqueado ao abrir." });
+              }}>
+                {savingPin ? <Loader2 className="w-4 h-4 animate-spin" /> : "Ativar Bloqueio"}
+              </Button>
+            </div>
+          )}
         </motion.div>
 
         {/* Privacy */}

@@ -18,6 +18,7 @@ interface Profile {
   notification_whatsapp: boolean;
   notification_email: boolean;
   theme_preference: string;
+  app_lock_pin: string | null;
 }
 
 interface AuthContextType {
