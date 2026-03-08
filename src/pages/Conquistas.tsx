@@ -1,0 +1,94 @@
+import { motion } from "framer-motion";
+import { Lock, Trophy } from "lucide-react";
+import { mockAchievements, mockUser, LEVELS } from "@/lib/mock-data";
+
+const Conquistas = () => {
+  const currentLevelIdx = LEVELS.findIndex((l) => l.name === mockUser.level);
+
+  return (
+    <div className="max-w-2xl mx-auto px-4 py-6">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        <h1 className="font-display text-2xl font-bold text-foreground mb-1">Conquistas</h1>
+        <p className="text-sm text-muted-foreground mb-6">Sua jornada de evolução</p>
+      </motion.div>
+
+      {/* Level progression */}
+      <div className="glass rounded-2xl p-6 mb-6">
+        <h2 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+          <Trophy className="w-4 h-4 text-accent" />
+          Níveis de Desenvolvimento
+        </h2>
+        <div className="space-y-3">
+          {LEVELS.map((level, i) => {
+            const isActive = i === currentLevelIdx;
+            const isUnlocked = i <= currentLevelIdx;
+            return (
+              <motion.div
+                key={level.name}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.08 }}
+                className={`flex items-center gap-4 p-3 rounded-xl transition-all ${
+                  isActive ? "bg-primary/10 border border-primary/30" : ""
+                }`}
+              >
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                  isActive
+                    ? "bg-gradient-primary text-primary-foreground animate-pulse-gold"
+                    : isUnlocked
+                    ? "bg-accent/20 text-accent"
+                    : "bg-muted text-muted-foreground"
+                }`}>
+                  {i + 1}
+                </div>
+                <div className="flex-1">
+                  <p className={`text-sm font-semibold ${isUnlocked ? "text-foreground" : "text-muted-foreground"}`}>
+                    {level.name}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{level.minPoints} pontos necessários</p>
+                </div>
+                {isActive && (
+                  <span className="text-xs bg-primary/20 text-primary px-2.5 py-1 rounded-full font-medium">
+                    Atual
+                  </span>
+                )}
+                {!isUnlocked && <Lock className="w-4 h-4 text-muted-foreground" />}
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Achievements */}
+      <h2 className="text-sm font-semibold text-foreground mb-3">Medalhas</h2>
+      <div className="grid grid-cols-2 gap-3">
+        {mockAchievements.map((ach, i) => (
+          <motion.div
+            key={ach.id}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: i * 0.08 }}
+            className={`glass rounded-xl p-4 text-center transition-all ${
+              ach.unlocked ? "hover:border-accent/30" : "opacity-50"
+            }`}
+          >
+            <div className="text-3xl mb-2">{ach.icon}</div>
+            <p className="text-sm font-semibold text-foreground">{ach.title}</p>
+            <p className="text-xs text-muted-foreground mt-1">{ach.description}</p>
+            {ach.unlocked && ach.date && (
+              <p className="text-xs text-accent mt-2 font-medium">{ach.date}</p>
+            )}
+            {!ach.unlocked && (
+              <div className="flex items-center justify-center gap-1 mt-2">
+                <Lock className="w-3 h-3 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">Bloqueada</span>
+              </div>
+            )}
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default Conquistas;
