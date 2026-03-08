@@ -61,6 +61,8 @@ const Config = () => {
   const handleCustomHexSubmit = () => {
     if (/^#[0-9A-Fa-f]{6}$/.test(customHex)) {
       setAccentColor(customHex);
+    } else {
+      setCustomHex(accentHex); // Revert invalid input
     }
   };
 

@@ -70,9 +70,11 @@ const Feed = () => {
 
   const handlePost = async () => {
     if (!newPost.trim() || !user) return;
+    const sanitized = sanitizeText(newPost, 2000);
+    if (!sanitized) return;
     await supabase.from("posts").insert({
       user_id: user.id,
-      content: newPost.trim(),
+      content: sanitized,
       category: newCategory as any,
       ...(quoting ? { quoted_post_id: quoting.id } : {}),
     });
