@@ -93,12 +93,17 @@ const Admin = () => {
   };
 
   const saveWebhookUrl = async () => {
+    const safeUrl = sanitizeUrl(webhookUrl);
+    if (!safeUrl) {
+      toast({ title: "URL inválida", description: "Use uma URL https:// válida.", variant: "destructive" });
+      return;
+    }
     setSavingWebhook(true);
     const { data: existing } = await supabase.from("admin_settings").select("id").eq("key", "whatsapp_webhook_url").single();
     if (existing) {
-      await supabase.from("admin_settings").update({ value: webhookUrl.trim() }).eq("key", "whatsapp_webhook_url");
+      await supabase.from("admin_settings").update({ value: safeUrl }).eq("key", "whatsapp_webhook_url");
     } else {
-      await supabase.from("admin_settings").insert({ key: "whatsapp_webhook_url", value: webhookUrl.trim() } as any);
+      await supabase.from("admin_settings").insert({ key: "whatsapp_webhook_url", value: safeUrl } as any);
     }
     setSavingWebhook(false);
     toast({ title: "Webhook salvo", description: "URL do webhook de WhatsApp atualizada." });
