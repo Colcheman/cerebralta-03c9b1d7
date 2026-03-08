@@ -162,11 +162,11 @@ const Admin = () => {
     if (!courseTitle.trim() || !courseDesc.trim() || !user) return;
     setPublishingCourse(true);
     await supabase.from("courses").insert({
-      title: courseTitle.trim(),
-      description: courseDesc.trim(),
+      title: sanitizeText(courseTitle, 200),
+      description: sanitizeText(courseDesc, 5000),
       category: courseCat,
-      video_url: courseVideo.trim() || null,
-      pdf_url: coursePdf.trim() || null,
+      video_url: sanitizeUrl(courseVideo) || null,
+      pdf_url: sanitizeUrl(coursePdf) || null,
       is_premium: courseIsPremium,
       author_id: user.id,
     } as any);
