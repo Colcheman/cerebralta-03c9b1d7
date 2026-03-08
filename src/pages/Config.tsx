@@ -176,6 +176,66 @@ const Config = () => {
           </div>
         </motion.div>
 
+        {/* App Lock */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="glass rounded-2xl p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <KeyRound className="w-5 h-5 text-primary" />
+            <h2 className="text-sm font-semibold text-foreground">Bloqueio do App</h2>
+          </div>
+          <div className="flex items-center justify-between py-2 mb-3">
+            <div>
+              <p className="text-sm text-foreground">Bloquear com PIN</p>
+              <p className="text-xs text-muted-foreground">Exige PIN de 4 dígitos ao abrir o app</p>
+            </div>
+            <Toggle on={lockEnabled} onToggle={(v) => {
+              if (v) {
+                setPinStep("enter");
+                setPinInput("");
+                setPinConfirm("");
+              } else {
+                setLockEnabled(false);
+                setPinStep("idle");
+                updateProfile("app_lock_pin", null);
+                toast({ title: "Bloqueio desativado" });
+              }
+            }} />
+          </div>
+          {pinStep === "enter" && (
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground">Digite um PIN de 4 dígitos:</p>
+              <input type="password" inputMode="numeric" maxLength={4} value={pinInput}
+                onChange={e => { const v = e.target.value.replace(/\D/g, ""); setPinInput(v); }}
+                className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground text-center text-2xl tracking-[1em] font-mono focus:outline-none focus:ring-1 focus:ring-primary" />
+              <Button size="sm" disabled={pinInput.length !== 4} onClick={() => { setPinStep("confirm"); setPinConfirm(""); }}>
+                Continuar
+              </Button>
+            </div>
+          )}
+          {pinStep === "confirm" && (
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground">Confirme o PIN:</p>
+              <input type="password" inputMode="numeric" maxLength={4} value={pinConfirm}
+                onChange={e => { const v = e.target.value.replace(/\D/g, ""); setPinConfirm(v); }}
+                className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground text-center text-2xl tracking-[1em] font-mono focus:outline-none focus:ring-1 focus:ring-primary" />
+              <Button size="sm" disabled={pinConfirm.length !== 4 || savingPin} onClick={async () => {
+                if (pinConfirm !== pinInput) {
+                  toast({ title: "PINs não coincidem", variant: "destructive" });
+                  setPinConfirm("");
+                  return;
+                }
+                setSavingPin(true);
+                await updateProfile("app_lock_pin", pinInput);
+                setLockEnabled(true);
+                setPinStep("idle");
+                setSavingPin(false);
+                toast({ title: "🔒 PIN ativado!", description: "O app será bloqueado ao abrir." });
+              }}>
+                {savingPin ? <Loader2 className="w-4 h-4 animate-spin" /> : "Ativar Bloqueio"}
+              </Button>
+            </div>
+          )}
+        </motion.div>
+
         {/* Privacy */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="glass rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-4">
