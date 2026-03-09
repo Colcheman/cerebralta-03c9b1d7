@@ -64,6 +64,7 @@ const App = () => (
                   <Route path="/aprender" element={<Aprender />} />
                   <Route path="/aprendizado" element={<Aprendizado />} />
                   <Route path="/conquistas" element={<Conquistas />} />
+                  <Route path="/amigos" element={<Amigos />} />
                   <Route path="/grupos" element={<Grupos />} />
                   <Route path="/grupos/:id" element={<GroupDetail />} />
                   <Route path="/config" element={<Config />} />

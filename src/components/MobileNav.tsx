@@ -6,6 +6,7 @@ const items = [
   { to: "/mensagens", icon: MessageCircle, label: "Chat" },
   { to: "/aprendizado", icon: BookOpen, label: "Aprender" },
   { to: "/conquistas", icon: Trophy, label: "Conquistas" },
+  { to: "/amigos", icon: UserPlus, label: "Amigos" },
   { to: "/grupos", icon: Users, label: "Grupos" },
 ];
 
