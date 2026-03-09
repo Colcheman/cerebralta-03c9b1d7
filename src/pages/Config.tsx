@@ -181,7 +181,33 @@ const Config = () => {
             </div>
           </div>
 
-          {/* Display name */}
+          {/* Banner */}
+          <div className="mb-5">
+            <label className="text-xs font-medium text-muted-foreground mb-2 block">Banner do perfil</label>
+            <div
+              onClick={() => bannerInputRef.current?.click()}
+              className="relative h-24 rounded-xl overflow-hidden cursor-pointer group border border-border"
+            >
+              {bannerUrl ? (
+                <img src={bannerUrl} alt="banner" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-primary/30 via-accent/20 to-transparent" />
+              )}
+              <div className="absolute inset-0 bg-background/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                {bannerUploading ? (
+                  <Loader2 className="w-5 h-5 animate-spin text-foreground" />
+                ) : (
+                  <>
+                    <ImagePlus className="w-5 h-5 text-foreground" />
+                    <span className="text-sm font-medium text-foreground">Trocar banner</span>
+                  </>
+                )}
+              </div>
+            </div>
+            <input ref={bannerInputRef} type="file" accept="image/*" className="hidden" onChange={handleBannerUpload} />
+          </div>
+
+
           <div className="space-y-3">
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Nome de exibição</label>
