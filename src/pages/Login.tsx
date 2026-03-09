@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatCPF, validateCPF, validatePassword } from "@/lib/cpf";
-import { Eye, EyeOff, Shield, Brain, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Shield, Brain, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const [isRegister, setIsRegister] = useState(false);
@@ -16,11 +17,48 @@ const Login = () => {
   const { login, register, user } = useAuth();
   const navigate = useNavigate();
 
+  // CPF lookup state
+  const [lookupName, setLookupName] = useState<string | null>(null);
+  const [lookupLoading, setLookupLoading] = useState(false);
+  const [lookupError, setLookupError] = useState<string | null>(null);
+
   // Redirect if already logged in
   if (user) {
     navigate("/feed", { replace: true });
     return null;
   }
+
+  const handleCpfChange = async (rawValue: string) => {
+    const formatted = formatCPF(rawValue);
+    setCpf(formatted);
+
+    // Auto-lookup when CPF is complete and in register mode
+    const digits = formatted.replace(/\D/g, "");
+    if (isRegister && digits.length === 11 && validateCPF(formatted)) {
+      setLookupLoading(true);
+      setLookupError(null);
+      setLookupName(null);
+      try {
+        const { data, error } = await supabase.functions.invoke("cpf-lookup", {
+          body: { cpf: digits },
+        });
+        if (error) {
+          setLookupError("Não foi possível consultar o CPF");
+        } else if (data?.found && data?.name) {
+          setLookupName(data.name);
+          setName(data.name);
+        } else {
+          setLookupError(data?.error || "CPF não encontrado na base da Receita Federal");
+        }
+      } catch {
+        setLookupError("Erro ao consultar CPF");
+      }
+      setLookupLoading(false);
+    } else {
+      setLookupName(null);
+      setLookupError(null);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,6 +87,19 @@ const Login = () => {
           setErrors([error]);
           setIsLoading(false);
           return;
+        }
+        // Store real_name if found from API
+        if (lookupName) {
+          // Will be saved after profile is created by trigger
+          setTimeout(async () => {
+            const { data: { user: newUser } } = await supabase.auth.getUser();
+            if (newUser) {
+              await supabase.from("profiles").update({
+                real_name: lookupName,
+                name_verified: true,
+              } as any).eq("user_id", newUser.id);
+            }
+          }, 1000);
         }
       } else {
         const { error } = await login(cpf, password);
