@@ -19,6 +19,10 @@ interface Profile {
   notification_email: boolean;
   theme_preference: string;
   app_lock_pin: string | null;
+  language: string;
+  country: string;
+  timezone: string;
+  locale_configured: boolean;
 }
 
 interface AuthContextType {
