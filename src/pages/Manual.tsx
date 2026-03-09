@@ -52,8 +52,8 @@ const sections: Section[] = [
     title: "Conquistas — Marcos da Jornada",
     color: "text-accent",
     items: [
-      "Conquistas são desbloqueadas automaticamente ao atingir marcos de pontos, streak, missões e posts.",
-      "Marcos especiais de streak: 7 dias, 30 dias e 100 dias consecutivos geram celebrações na plataforma.",
+      "Conquistas são desbloqueadas automaticamente ao atingir marcos de pontos, dias seguidos, missões e posts.",
+      "Marcos especiais de sequência: 7 dias, 30 dias e 100 dias consecutivos geram celebrações na plataforma.",
       "Cada conquista é uma prova do seu comprometimento real com a evolução.",
       "Veja o progresso de cada conquista e saiba exatamente o que falta para desbloqueá-la.",
     ],

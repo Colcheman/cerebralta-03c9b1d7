@@ -269,7 +269,7 @@ const Admin = () => {
                         </td>
                         <td className="px-4 py-3 text-accent">{p.level}</td>
                         <td className="px-4 py-3">{p.points}</td>
-                        <td className="px-4 py-3 text-streak">{p.streak}🔥</td>
+                        <td className="px-4 py-3 text-streak">{p.streak} dias🔥</td>
                         <td className="px-4 py-3">
                           <button
                             onClick={() => togglePremium(p.user_id, p.subscription_tier)}

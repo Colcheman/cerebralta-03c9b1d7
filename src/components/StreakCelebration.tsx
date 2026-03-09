@@ -97,7 +97,7 @@ const StreakCelebration = ({ streak, onDismiss }: StreakCelebrationProps) => {
             transition={{ delay: 0.6 }}
             className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-accent to-primary"
           >
-            {streak} 🔥
+            {streak} dias 🔥
           </motion.div>
 
           <motion.button
