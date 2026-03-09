@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import OnboardingChat from "@/components/missions/OnboardingChat";
 
 interface Mission {
   id: string;
