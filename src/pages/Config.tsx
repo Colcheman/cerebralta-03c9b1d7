@@ -50,6 +50,34 @@ const Config = () => {
     await supabase.from("profiles").update({ [field]: value }).eq("user_id", user.id);
   };
 
+  const saveProfileInfo = async () => {
+    if (!user) return;
+    const name = displayName.trim();
+    if (!name || name.length > 60) { toast({ title: "Nome inválido", description: "Entre 1 e 60 caracteres.", variant: "destructive" }); return; }
+    if (bio.length > 300) { toast({ title: "Bio muito longa", description: "Máximo 300 caracteres.", variant: "destructive" }); return; }
+    setSavingProfile(true);
+    await supabase.from("profiles").update({ display_name: name, bio: bio.trim() }).eq("user_id", user.id);
+    toast({ title: "✅ Perfil atualizado!", description: "As pessoas já podem ver suas novas informações." });
+    setSavingProfile(false);
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    if (file.size > 2 * 1024 * 1024) { toast({ title: "Arquivo muito grande", description: "Máximo 2MB.", variant: "destructive" }); return; }
+    setAvatarUploading(true);
+    const ext = file.name.split(".").pop();
+    const path = `${user.id}.${ext}`;
+    const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
+    if (!error) {
+      const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
+      setAvatarUrl(publicUrl);
+      await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("user_id", user.id);
+      toast({ title: "📸 Foto atualizada!" });
+    }
+    setAvatarUploading(false);
+  };
+
   const saveRecoveryEmail = async () => {
     if (!recoveryEmail.trim() || !user) return;
     setSavingEmail(true);
@@ -57,6 +85,8 @@ const Config = () => {
     toast({ title: "Email salvo", description: "Seu email de recuperação foi atualizado." });
     setSavingEmail(false);
   };
+
+
 
   const handleWhatsappToggle = (val: boolean) => {
     if (val) setWhatsappModalOpen(true);
