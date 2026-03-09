@@ -11,6 +11,7 @@ interface PublicProfile {
   user_id: string;
   display_name: string | null;
   avatar_url: string | null;
+  banner_url: string | null;
   level: string | null;
   points: number | null;
   streak: number | null;
