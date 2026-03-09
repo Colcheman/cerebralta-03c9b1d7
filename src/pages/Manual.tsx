@@ -82,10 +82,10 @@ const sections: Section[] = [
 ];
 
 const discountRules = [
-  { pct: "75%", label: "Entrar na plataforma e comentar seu progresso todos os dias do mês" },
-  { pct: "50%", label: "Completar todas as missões em 20 ou mais dias no mês" },
-  { pct: "30%", label: "Manter streak ativo por 30 dias consecutivos" },
-  { pct: "20%", label: "Desbloquear 5 ou mais conquistas no mês" },
+  { pct: "75%", label: "Comentar seu progresso todos os dias do mês (30/31 dias)" },
+  { pct: "45%", label: "Comentar seu progresso em pelo menos 20 dias no mês" },
+  { pct: "25%", label: "Comentar seu progresso em pelo menos 10 dias no mês" },
+  { pct: "0%", label: "Menos de 10 dias de participação — mensalidade cheia de R$ 52,90" },
 ];
 
 const conduct = [
