@@ -171,10 +171,26 @@ const Manual = () => (
         </div>
       </div>
 
-      <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
-        No Cerebralta, quanto mais você pratica, menos você paga. Os descontos são calculados sobre a assinatura do 
-        mês seguinte com base na sua consistência no mês atual.
+      <p className="text-xs text-muted-foreground mb-2 leading-relaxed">
+        A mensalidade do Cerebralta é <strong className="text-foreground">R$ 52,90</strong>. Ao entrar, você já começa pagando apenas 
+        <strong className="text-foreground"> R$ 13,23</strong> (75% de desconto). Para manter ou conquistar descontos, basta comentar 
+        seu progresso no Feed regularmente. O desconto é calculado com base nos dias que você participou durante o mês.
       </p>
+
+      <div className="grid grid-cols-3 gap-2 mb-4">
+        <div className="bg-accent/10 rounded-xl p-2.5 text-center">
+          <p className="text-accent font-bold text-sm">R$ 13,23</p>
+          <p className="text-[10px] text-muted-foreground">com 75%</p>
+        </div>
+        <div className="bg-primary/10 rounded-xl p-2.5 text-center">
+          <p className="text-primary font-bold text-sm">R$ 29,10</p>
+          <p className="text-[10px] text-muted-foreground">com 45%</p>
+        </div>
+        <div className="bg-muted rounded-xl p-2.5 text-center">
+          <p className="text-foreground font-bold text-sm">R$ 39,68</p>
+          <p className="text-[10px] text-muted-foreground">com 25%</p>
+        </div>
+      </div>
 
       <div className="space-y-3">
         {discountRules.map(({ pct, label }) => (
