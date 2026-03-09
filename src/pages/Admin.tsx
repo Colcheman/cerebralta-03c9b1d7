@@ -56,6 +56,11 @@ const Admin = () => {
   const [webhookUrl, setWebhookUrl] = useState("");
   const [savingWebhook, setSavingWebhook] = useState(false);
 
+  // Password reset
+  const [resetTarget, setResetTarget] = useState<ProfileRow | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [resettingPassword, setResettingPassword] = useState(false);
+
   useEffect(() => {
     if (!user) return;
     supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }).then(({ data }) => setIsAdmin(!!data));
