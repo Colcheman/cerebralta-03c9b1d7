@@ -202,10 +202,10 @@ const Manual = () => (
       </div>
 
       <div className="mt-4 p-3 rounded-xl bg-accent/5 border border-accent/10">
-        <p className="text-xs text-accent font-semibold mb-1">💡 Desconto máximo: 75%</p>
+        <p className="text-xs text-accent font-semibold mb-1">💡 Você já entra com 75% de desconto!</p>
         <p className="text-xs text-muted-foreground leading-relaxed">
-          Para garantir os 75%, entre na plataforma todos os dias e registre seu progresso real comentando 
-          seus aprendizados, missões e reflexões. Consistência é a chave.
+          Ao se cadastrar, você automaticamente recebe o maior desconto possível. Basta manter a consistência: 
+          entre todos os dias e comente seu progresso no Feed para continuar pagando apenas R$ 13,23/mês.
         </p>
       </div>
     </motion.div>
