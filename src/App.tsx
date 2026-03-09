@@ -58,7 +58,8 @@ const App = () => (
                 <Route path="/" element={<Login />} />
                 <Route path="/assinatura" element={<Assinatura />} />
                 <Route element={<AppLayout />}>
-                  <Route path="/feed" element={<Feed />} />
+                <Route path="/feed" element={<Feed />} />
+                  <Route path="/perfil/:userId" element={<Perfil />} />
                   <Route path="/aprender" element={<Aprender />} />
                   <Route path="/aprendizado" element={<Aprendizado />} />
                   <Route path="/conquistas" element={<Conquistas />} />
