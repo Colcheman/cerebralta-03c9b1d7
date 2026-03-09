@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Flame, BookOpen, Trophy, Users, Settings, MessageCircle } from "lucide-react";
+import { Flame, BookOpen, Trophy, Users, MessageCircle, UserPlus } from "lucide-react";
 
 const items = [
   { to: "/feed", icon: Flame, label: "Feed" },

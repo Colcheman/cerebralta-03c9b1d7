@@ -5,6 +5,7 @@ import { ArrowLeft, Flame, Star, Zap, Award, MessageCircle } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import PostCard from "@/components/PostCard";
+import FriendControls from "@/components/profile/FriendControls";
 
 interface PublicProfile {
   user_id: string;

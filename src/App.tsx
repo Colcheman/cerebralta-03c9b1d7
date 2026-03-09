@@ -20,6 +20,7 @@ import Config from "./pages/Config";
 import Sobre from "./pages/Sobre";
 import Admin from "./pages/Admin";
 import Mensagens from "./pages/Mensagens";
+import Amigos from "./pages/Amigos";
 import NotFound from "./pages/NotFound";
 import Perfil from "./pages/Perfil";
 
