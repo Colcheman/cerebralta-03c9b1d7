@@ -254,9 +254,9 @@ const Admin = () => {
                           <div className="flex items-center gap-1.5">
                             {p.display_name}
                             {p.name_verified ? (
-                              <CheckCircle2 className="w-3.5 h-3.5 text-green-500" title="Nome verificado" />
+                              <span title="Nome verificado"><CheckCircle2 className="w-3.5 h-3.5 text-green-500" /></span>
                             ) : (
-                              <XCircle className="w-3.5 h-3.5 text-muted-foreground/40" title="Nome não verificado" />
+                              <span title="Nome não verificado"><XCircle className="w-3.5 h-3.5 text-muted-foreground/40" /></span>
                             )}
                           </div>
                           {p.real_name && p.real_name !== p.display_name && (
