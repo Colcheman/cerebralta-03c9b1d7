@@ -303,6 +303,14 @@ const Admin = () => {
                             >
                               <CheckCircle2 className="w-3.5 h-3.5" /> {p.name_verified ? "Verificado" : "Verificar"}
                             </button>
+                            <button
+                              onClick={() => setDeleteTarget(p)}
+                              className="text-xs text-destructive hover:underline flex items-center gap-1"
+                              title="Excluir usuário"
+                              disabled={p.user_id === user?.id}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" /> Excluir
+                            </button>
                           </div>
                         </td>
                       </tr>
