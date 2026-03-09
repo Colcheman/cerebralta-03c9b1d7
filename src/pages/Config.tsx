@@ -26,7 +26,10 @@ const Config = () => {
   const [savingProfile, setSavingProfile] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url ?? null);
+  const [bannerUrl, setBannerUrl] = useState((profile as any)?.banner_url ?? null);
+  const [bannerUploading, setBannerUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
 
   const [recoveryEmail, setRecoveryEmail] = useState(profile?.recovery_email ?? "");
   const [savingEmail, setSavingEmail] = useState(false);
