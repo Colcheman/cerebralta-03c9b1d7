@@ -19,6 +19,15 @@ const Config = () => {
   const { profile, user } = useAuth();
   const { toast } = useToast();
   const { accentHex, setAccentColor } = useTheme();
+
+  // Profile editing
+  const [displayName, setDisplayName] = useState(profile?.display_name ?? "");
+  const [bio, setBio] = useState((profile as any)?.bio ?? "");
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url ?? null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [recoveryEmail, setRecoveryEmail] = useState(profile?.recovery_email ?? "");
   const [savingEmail, setSavingEmail] = useState(false);
   const [twoFactor, setTwoFactor] = useState(profile?.two_factor_enabled ?? false);
@@ -27,6 +36,7 @@ const Config = () => {
   const [notifEmail, setNotifEmail] = useState(profile?.notification_email ?? true);
   const [whatsappModalOpen, setWhatsappModalOpen] = useState(false);
   const [customHex, setCustomHex] = useState(accentHex);
+
 
   // App Lock PIN
   const [lockEnabled, setLockEnabled] = useState(!!profile?.app_lock_pin);
