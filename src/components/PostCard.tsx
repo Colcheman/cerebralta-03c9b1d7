@@ -41,6 +41,7 @@ const ELEVATED_LEVELS = ["Estrategista", "Mestre", "Visionário", "Arquiteto-Che
 
 const PostCard = ({ post, index, onUpdate, onQuote }: { post: PostData; index: number; onUpdate?: () => void; onQuote?: (post: PostData) => void }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(post.likes);
   const [showComments, setShowComments] = useState(false);
