@@ -109,7 +109,7 @@ const Login = () => {
           return;
         }
       }
-      navigate("/feed");
+      navigate("/feed"); // AppLayout will redirect to /locale-setup if needed
     } catch {
       setErrors(["Erro inesperado. Tente novamente."]);
     } finally {

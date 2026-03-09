@@ -29,6 +29,10 @@ const AppLayout = () => {
     return <Navigate to="/assinatura" replace />;
   }
 
+  if (profile && !(profile as any).locale_configured) {
+    return <Navigate to="/locale-setup" replace />;
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
