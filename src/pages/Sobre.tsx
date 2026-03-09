@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { Brain, ExternalLink, Globe } from "lucide-react";
+import { Brain, ExternalLink, Globe, BookMarked } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Sobre = () => (
   <div className="max-w-2xl mx-auto px-4 py-6">
