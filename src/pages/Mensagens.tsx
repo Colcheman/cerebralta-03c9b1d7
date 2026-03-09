@@ -186,7 +186,7 @@ const Mensagens = () => {
   // Load all users for new chat
   useEffect(() => {
     if (!showNewChat || !user) return;
-    supabase.from("profiles").select("user_id, display_name, avatar_url, level").neq("user_id", user.id).then(({ data }) => {
+    supabase.from("safe_profiles").select("user_id, display_name, avatar_url, level").neq("user_id", user.id).then(({ data }) => {
       setAllUsers((data ?? []) as ProfileBasic[]);
     });
   }, [showNewChat, user]);
