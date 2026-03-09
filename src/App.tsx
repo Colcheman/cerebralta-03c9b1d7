@@ -59,6 +59,7 @@ const App = () => (
             <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Login />} />
+                <Route path="/locale-setup" element={<LocaleSetup />} />
                 <Route path="/assinatura" element={<Assinatura />} />
                 <Route element={<AppLayout />}>
                 <Route path="/feed" element={<Feed />} />
