@@ -21,6 +21,7 @@ import Sobre from "./pages/Sobre";
 import Admin from "./pages/Admin";
 import Mensagens from "./pages/Mensagens";
 import NotFound from "./pages/NotFound";
+import Perfil from "./pages/Perfil";
 
 const queryClient = new QueryClient();
 

@@ -105,9 +105,11 @@ const PostCard = ({ post, index, onUpdate, onQuote }: { post: PostData; index: n
       <div className="flex gap-3">
         {/* Avatar with hover */}
         <ProfileHoverCard name={post.author} level={post.level} avatar={post.avatar}>
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold shrink-0 cursor-pointer ${
-            isElevated ? "bg-gradient-gold text-accent-foreground" : "bg-gradient-primary text-primary-foreground"
-          }`}>
+          <div 
+            onClick={() => navigate(`/perfil/${post.user_id}`)}
+            className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold shrink-0 cursor-pointer hover:opacity-80 transition-opacity ${
+              isElevated ? "bg-gradient-gold text-accent-foreground" : "bg-gradient-primary text-primary-foreground"
+            }`}>
             {post.avatar}
           </div>
         </ProfileHoverCard>
@@ -116,7 +118,12 @@ const PostCard = ({ post, index, onUpdate, onQuote }: { post: PostData; index: n
           {/* Header */}
           <div className="flex items-center gap-1.5 flex-wrap">
             <ProfileHoverCard name={post.author} level={post.level} avatar={post.avatar}>
-              <span className="text-sm font-bold text-foreground truncate cursor-pointer hover:underline">{post.author}</span>
+              <span 
+                onClick={() => navigate(`/perfil/${post.user_id}`)} 
+                className="text-sm font-bold text-foreground truncate cursor-pointer hover:underline"
+              >
+                {post.author}
+              </span>
             </ProfileHoverCard>
             {isElevated && <Award className="w-3.5 h-3.5 text-accent shrink-0" />}
             <span className={`text-xs font-medium ${categoryColors[post.category] ?? "text-muted-foreground"}`}>· {post.category}</span>
