@@ -56,7 +56,7 @@ const Mensagens = () => {
       if (!convos) { setLoading(false); return; }
 
       const otherIds = convos.map(c => c.participant_1 === user.id ? c.participant_2 : c.participant_1);
-      const { data: profiles } = await supabase.from("profiles").select("user_id, display_name, avatar_url, level").in("user_id", otherIds);
+      const { data: profiles } = await supabase.from("safe_profiles").select("user_id, display_name, avatar_url, level").in("user_id", otherIds);
       const profileMap = new Map((profiles ?? []).map(p => [p.user_id, p]));
 
       const enriched = convos.map(c => {
@@ -186,7 +186,7 @@ const Mensagens = () => {
   // Load all users for new chat
   useEffect(() => {
     if (!showNewChat || !user) return;
-    supabase.from("profiles").select("user_id, display_name, avatar_url, level").neq("user_id", user.id).then(({ data }) => {
+    supabase.from("safe_profiles").select("user_id, display_name, avatar_url, level").neq("user_id", user.id).then(({ data }) => {
       setAllUsers((data ?? []) as ProfileBasic[]);
     });
   }, [showNewChat, user]);
