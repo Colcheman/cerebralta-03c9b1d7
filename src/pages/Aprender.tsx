@@ -30,6 +30,7 @@ const Aprender = () => {
   const [expandedMission, setExpandedMission] = useState<string | null>(null);
   const [reflections, setReflections] = useState<Map<string, string>>(new Map());
   const [generating, setGenerating] = useState(false);
+  const [hasEverHadMissions, setHasEverHadMissions] = useState<boolean | null>(null);
 
   const loadData = async () => {
     if (!user) return;
