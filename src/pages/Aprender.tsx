@@ -48,8 +48,12 @@ const Aprender = () => {
       .eq("user_id", user.id);
 
     const map = new Map<string, boolean>();
-    (userMissionsData ?? []).forEach((um: UserMission) => map.set(um.mission_id, um.completed));
+    const umList = (userMissionsData ?? []) as UserMission[];
+    umList.forEach((um) => map.set(um.mission_id, um.completed));
     setUserMissions(map);
+
+    // Check if user has ever had missions assigned
+    setHasEverHadMissions(umList.length > 0);
     setLoading(false);
   };
 
