@@ -49,6 +49,12 @@ const Config = () => {
   const [pinStep, setPinStep] = useState<"idle" | "enter" | "confirm">("idle");
   const [savingPin, setSavingPin] = useState(false);
 
+  // Change password
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
+
   const updateProfile = async (field: string, value: any) => {
     if (!user) return;
     await supabase.from("profiles").update({ [field]: value }).eq("user_id", user.id);
