@@ -489,6 +489,7 @@ export type Database = {
         Row: {
           app_lock_pin: string | null
           avatar_url: string | null
+          bio: string | null
           cpf: string
           created_at: string
           display_name: string
@@ -511,6 +512,7 @@ export type Database = {
         Insert: {
           app_lock_pin?: string | null
           avatar_url?: string | null
+          bio?: string | null
           cpf: string
           created_at?: string
           display_name: string
@@ -533,6 +535,7 @@ export type Database = {
         Update: {
           app_lock_pin?: string | null
           avatar_url?: string | null
+          bio?: string | null
           cpf?: string
           created_at?: string
           display_name?: string
