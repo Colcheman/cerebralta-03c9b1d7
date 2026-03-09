@@ -58,7 +58,7 @@ const GroupDetail = () => {
     const userIds = gm.map(m => m.user_id);
     if (user) setIsMember(userIds.includes(user.id));
     const { data: profiles } = await supabase
-      .from("profiles")
+      .from("safe_profiles")
       .select("user_id, display_name, level, avatar_url")
       .in("user_id", userIds);
     setMembers((profiles ?? []) as Member[]);
