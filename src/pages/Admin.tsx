@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Users, Megaphone, Search, Loader2, Send, Shield, BookOpen, Plus, Clock, Globe, Settings, Bot, KeyRound, CheckCircle2, XCircle } from "lucide-react";
+import { Users, Megaphone, Search, Loader2, Send, Shield, BookOpen, Plus, Clock, Globe, Settings, Bot, KeyRound, CheckCircle2, XCircle, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
@@ -62,6 +62,10 @@ const Admin = () => {
   const [resetTarget, setResetTarget] = useState<ProfileRow | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [resettingPassword, setResettingPassword] = useState(false);
+
+  // Delete user
+  const [deleteTarget, setDeleteTarget] = useState<ProfileRow | null>(null);
+  const [deletingUser, setDeletingUser] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -299,6 +303,14 @@ const Admin = () => {
                             >
                               <CheckCircle2 className="w-3.5 h-3.5" /> {p.name_verified ? "Verificado" : "Verificar"}
                             </button>
+                            <button
+                              onClick={() => setDeleteTarget(p)}
+                              className="text-xs text-destructive hover:underline flex items-center gap-1"
+                              title="Excluir usuário"
+                              disabled={p.user_id === user?.id}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" /> Excluir
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -346,6 +358,48 @@ const Admin = () => {
                       >
                         {resettingPassword ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <KeyRound className="w-3.5 h-3.5" />}
                         Salvar
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {deleteTarget && (
+                <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setDeleteTarget(null)}>
+                  <div className="glass rounded-2xl p-6 w-full max-w-sm space-y-4" onClick={e => e.stopPropagation()}>
+                    <h3 className="text-sm font-semibold text-destructive flex items-center gap-2">
+                      <Trash2 className="w-4 h-4" /> Excluir Usuário
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Tem certeza que deseja excluir permanentemente o usuário <span className="font-medium text-foreground">{deleteTarget.display_name}</span>?
+                    </p>
+                    <p className="text-xs text-destructive/80">
+                      Esta ação é irreversível. Todos os dados do usuário serão removidos.
+                    </p>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={() => setDeleteTarget(null)} className="flex-1">Cancelar</Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        disabled={deletingUser}
+                        className="flex-1 gap-1"
+                        onClick={async () => {
+                          setDeletingUser(true);
+                          const { data, error } = await supabase.functions.invoke("admin-delete-user", {
+                            body: { target_user_id: deleteTarget.user_id },
+                          });
+                          setDeletingUser(false);
+                          if (error || data?.error) {
+                            toast({ title: "Erro", description: data?.error || error?.message, variant: "destructive" });
+                          } else {
+                            setProfiles(prev => prev.filter(p => p.user_id !== deleteTarget.user_id));
+                            toast({ title: "🗑️ Usuário excluído", description: `${deleteTarget.display_name} foi removido do sistema.` });
+                            setDeleteTarget(null);
+                          }
+                        }}
+                      >
+                        {deletingUser ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                        Excluir
                       </Button>
                     </div>
                   </div>
