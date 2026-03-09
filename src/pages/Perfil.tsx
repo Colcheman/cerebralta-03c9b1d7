@@ -244,8 +244,11 @@ const Perfil = () => {
             </div>
           </div>
 
+          {/* Discount Panel - only for own profile */}
+          {isOwnProfile && userId && <DiscountPanel userId={userId} />}
+
           {/* Tabs */}
-          <div className="border-b border-border">
+          <div className="border-b border-border mt-4">
             <button
               className="px-6 py-3 text-sm font-medium text-foreground border-b-2 border-primary transition-colors"
             >
