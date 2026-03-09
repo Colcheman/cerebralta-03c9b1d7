@@ -745,7 +745,16 @@ export type Database = {
       }
     }
     Functions: {
+      calculate_billing_amount: {
+        Args: { _active_days: number }
+        Returns: number
+      }
+      calculate_discount: { Args: { _active_days: number }; Returns: number }
       complete_mission: { Args: { _mission_id: string }; Returns: boolean }
+      get_monthly_active_days: {
+        Args: { _month?: number; _user_id: string; _year?: number }
+        Returns: number
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
