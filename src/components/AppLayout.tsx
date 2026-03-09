@@ -2,10 +2,13 @@ import { Outlet, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import Sidebar from "./Sidebar";
 import MobileNav from "./MobileNav";
+import StreakCelebration from "./StreakCelebration";
+import { useStreakCheck } from "@/hooks/useStreakCheck";
 import { Loader2 } from "lucide-react";
 
 const AppLayout = () => {
   const { user, loading, profile } = useAuth();
+  const { celebrateStreak, dismissCelebration } = useStreakCheck(user?.id, profile?.streak ?? 0);
 
   if (loading) {
     return (
@@ -29,6 +32,9 @@ const AppLayout = () => {
       <main className="lg:ml-64 pb-20 lg:pb-0">
         <Outlet />
       </main>
+      {celebrateStreak && (
+        <StreakCelebration streak={celebrateStreak} onDismiss={dismissCelebration} />
+      )}
     </div>
   );
 };
