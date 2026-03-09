@@ -165,12 +165,14 @@ const Perfil = () => {
             <div className="h-24 bg-gradient-to-br from-primary/30 via-accent/20 to-transparent" />
             <div className="px-4 pb-3">
               <div className="flex items-end justify-between -mt-8 mb-3">
-                <div className={`w-16 h-16 rounded-full border-4 border-background flex items-center justify-center text-lg font-bold ${
+                <div className={`w-16 h-16 rounded-full border-4 border-background flex items-center justify-center text-lg font-bold overflow-hidden ${
                   ["Estrategista", "Mestre", "Visionário", "Arquiteto-Chefe"].includes(profile.level ?? "")
                     ? "bg-gradient-gold text-accent-foreground"
                     : "bg-gradient-primary text-primary-foreground"
                 }`}>
-                  {initials}
+                  {profile.avatar_url ? (
+                    <img src={profile.avatar_url} alt={profile.display_name ?? "avatar"} className="w-full h-full object-cover" />
+                  ) : initials}
                 </div>
                 {!isOwnProfile && user && (
                   <button
