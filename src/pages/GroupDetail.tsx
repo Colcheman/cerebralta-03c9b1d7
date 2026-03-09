@@ -75,7 +75,7 @@ const GroupDetail = () => {
     if (!msgs) return;
     const userIds = [...new Set(msgs.map(m => m.user_id))];
     const { data: profiles } = await supabase
-      .from("profiles")
+      .from("safe_profiles")
       .select("user_id, display_name")
       .in("user_id", userIds);
     const pMap = new Map(profiles?.map(p => [p.user_id, p.display_name]) ?? []);
