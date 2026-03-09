@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Users, Megaphone, Search, Loader2, Send, Shield, BookOpen, Plus, Clock, Globe, Settings, Bot } from "lucide-react";
+import { Users, Megaphone, Search, Loader2, Send, Shield, BookOpen, Plus, Clock, Globe, Settings, Bot, KeyRound } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
@@ -55,6 +55,11 @@ const Admin = () => {
   // Webhook URL
   const [webhookUrl, setWebhookUrl] = useState("");
   const [savingWebhook, setSavingWebhook] = useState(false);
+
+  // Password reset
+  const [resetTarget, setResetTarget] = useState<ProfileRow | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [resettingPassword, setResettingPassword] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -226,43 +231,99 @@ const Admin = () => {
           {loadingProfiles ? (
             <div className="text-center py-8"><Loader2 className="w-5 h-5 animate-spin text-primary mx-auto" /></div>
           ) : (
-            <div className="glass rounded-xl overflow-hidden overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-left">
-                    <th className="px-4 py-3 text-muted-foreground font-medium">Nome</th>
-                    <th className="px-4 py-3 text-muted-foreground font-medium">Nível</th>
-                    <th className="px-4 py-3 text-muted-foreground font-medium">Pontos</th>
-                    <th className="px-4 py-3 text-muted-foreground font-medium">Streak</th>
-                    <th className="px-4 py-3 text-muted-foreground font-medium">Plano</th>
-                    <th className="px-4 py-3 text-muted-foreground font-medium"><Clock className="w-3.5 h-3.5 inline" /> Tempo</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredProfiles.map(p => (
-                    <tr key={p.id} className="border-b border-border/50 hover:bg-muted/30">
-                      <td className="px-4 py-3 font-medium text-foreground">{p.display_name}</td>
-                      <td className="px-4 py-3 text-accent">{p.level}</td>
-                      <td className="px-4 py-3">{p.points}</td>
-                      <td className="px-4 py-3 text-streak">{p.streak}🔥</td>
-                      <td className="px-4 py-3">
-                        <button
-                          onClick={() => togglePremium(p.user_id, p.subscription_tier)}
-                          className={`text-xs font-medium px-2 py-0.5 rounded-full cursor-pointer hover:opacity-80 transition-opacity ${
-                            p.subscription_tier === "premium" ? "bg-accent/20 text-accent" : "bg-muted text-muted-foreground"
-                          }`}
-                          title={p.subscription_tier === "premium" ? "Clique para remover Premium" : "Clique para ativar Premium"}
-                        >
-                          {p.subscription_tier === "premium" ? "⭐ premium" : "free"}
-                        </button>
-                      </td>
-                      <td className="px-4 py-3 text-xs text-muted-foreground">{getTimeSince(p.created_at)}</td>
+            <>
+              <div className="glass rounded-xl overflow-hidden overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border text-left">
+                      <th className="px-4 py-3 text-muted-foreground font-medium">Nome</th>
+                      <th className="px-4 py-3 text-muted-foreground font-medium">Nível</th>
+                      <th className="px-4 py-3 text-muted-foreground font-medium">Pontos</th>
+                      <th className="px-4 py-3 text-muted-foreground font-medium">Streak</th>
+                      <th className="px-4 py-3 text-muted-foreground font-medium">Plano</th>
+                      <th className="px-4 py-3 text-muted-foreground font-medium"><Clock className="w-3.5 h-3.5 inline" /> Tempo</th>
+                      <th className="px-4 py-3 text-muted-foreground font-medium">Ações</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-              {filteredProfiles.length === 0 && <p className="text-center py-6 text-sm text-muted-foreground">Nenhum Arquiteto Mental encontrado.</p>}
-            </div>
+                  </thead>
+                  <tbody>
+                    {filteredProfiles.map(p => (
+                      <tr key={p.id} className="border-b border-border/50 hover:bg-muted/30">
+                        <td className="px-4 py-3 font-medium text-foreground">{p.display_name}</td>
+                        <td className="px-4 py-3 text-accent">{p.level}</td>
+                        <td className="px-4 py-3">{p.points}</td>
+                        <td className="px-4 py-3 text-streak">{p.streak}🔥</td>
+                        <td className="px-4 py-3">
+                          <button
+                            onClick={() => togglePremium(p.user_id, p.subscription_tier)}
+                            className={`text-xs font-medium px-2 py-0.5 rounded-full cursor-pointer hover:opacity-80 transition-opacity ${
+                              p.subscription_tier === "premium" ? "bg-accent/20 text-accent" : "bg-muted text-muted-foreground"
+                            }`}
+                            title={p.subscription_tier === "premium" ? "Clique para remover Premium" : "Clique para ativar Premium"}
+                          >
+                            {p.subscription_tier === "premium" ? "⭐ premium" : "free"}
+                          </button>
+                        </td>
+                        <td className="px-4 py-3 text-xs text-muted-foreground">{getTimeSince(p.created_at)}</td>
+                        <td className="px-4 py-3">
+                          <button
+                            onClick={() => { setResetTarget(p); setNewPassword(""); }}
+                            className="text-xs text-primary hover:underline flex items-center gap-1"
+                            title="Redefinir senha"
+                          >
+                            <KeyRound className="w-3.5 h-3.5" /> Senha
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {filteredProfiles.length === 0 && <p className="text-center py-6 text-sm text-muted-foreground">Nenhum Arquiteto Mental encontrado.</p>}
+              </div>
+
+              {resetTarget && (
+                <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setResetTarget(null)}>
+                  <div className="glass rounded-2xl p-6 w-full max-w-sm space-y-4" onClick={e => e.stopPropagation()}>
+                    <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                      <KeyRound className="w-4 h-4 text-primary" /> Redefinir Senha
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      Definir nova senha para <span className="font-medium text-foreground">{resetTarget.display_name}</span>
+                    </p>
+                    <input
+                      type="text"
+                      value={newPassword}
+                      onChange={e => setNewPassword(e.target.value)}
+                      placeholder="Nova senha (mín. 6 caracteres)"
+                      className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary text-sm"
+                    />
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={() => setResetTarget(null)} className="flex-1">Cancelar</Button>
+                      <Button
+                        size="sm"
+                        disabled={newPassword.length < 6 || resettingPassword}
+                        className="flex-1 gap-1"
+                        onClick={async () => {
+                          setResettingPassword(true);
+                          const { data, error } = await supabase.functions.invoke("admin-reset-password", {
+                            body: { target_user_id: resetTarget.user_id, new_password: newPassword },
+                          });
+                          setResettingPassword(false);
+                          if (error || data?.error) {
+                            toast({ title: "Erro", description: data?.error || error?.message, variant: "destructive" });
+                          } else {
+                            toast({ title: "🔑 Senha redefinida!", description: `Senha de ${resetTarget.display_name} atualizada.` });
+                            setResetTarget(null);
+                          }
+                        }}
+                      >
+                        {resettingPassword ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <KeyRound className="w-3.5 h-3.5" />}
+                        Salvar
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </TabsContent>
 
