@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { Shield, Bell, Palette, Lock, Mail, Loader2, KeyRound, User, Camera, Check } from "lucide-react";
+import { Shield, Bell, Palette, Lock, Mail, Loader2, KeyRound, User, Camera, Check, ImagePlus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,10 @@ const Config = () => {
   const [savingProfile, setSavingProfile] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url ?? null);
+  const [bannerUrl, setBannerUrl] = useState((profile as any)?.banner_url ?? null);
+  const [bannerUploading, setBannerUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
 
   const [recoveryEmail, setRecoveryEmail] = useState(profile?.recovery_email ?? "");
   const [savingEmail, setSavingEmail] = useState(false);
@@ -77,6 +80,25 @@ const Config = () => {
       toast({ title: "📸 Foto atualizada!" });
     }
     setAvatarUploading(false);
+  };
+
+  const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    if (file.size > 5 * 1024 * 1024) { toast({ title: "Arquivo muito grande", description: "Máximo 5MB.", variant: "destructive" }); return; }
+    setBannerUploading(true);
+    const ext = file.name.split(".").pop();
+    const path = `${user.id}.${ext}`;
+    const { error } = await supabase.storage.from("banners").upload(path, file, { upsert: true });
+    if (!error) {
+      const { data: { publicUrl } } = supabase.storage.from("banners").getPublicUrl(path);
+      setBannerUrl(publicUrl);
+      await supabase.from("profiles").update({ banner_url: publicUrl }).eq("user_id", user.id);
+      toast({ title: "🖼️ Banner atualizado!" });
+    } else {
+      toast({ title: "Erro ao enviar banner", variant: "destructive" });
+    }
+    setBannerUploading(false);
   };
 
   const saveRecoveryEmail = async () => {
@@ -159,7 +181,33 @@ const Config = () => {
             </div>
           </div>
 
-          {/* Display name */}
+          {/* Banner */}
+          <div className="mb-5">
+            <label className="text-xs font-medium text-muted-foreground mb-2 block">Banner do perfil</label>
+            <div
+              onClick={() => bannerInputRef.current?.click()}
+              className="relative h-24 rounded-xl overflow-hidden cursor-pointer group border border-border"
+            >
+              {bannerUrl ? (
+                <img src={bannerUrl} alt="banner" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-primary/30 via-accent/20 to-transparent" />
+              )}
+              <div className="absolute inset-0 bg-background/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                {bannerUploading ? (
+                  <Loader2 className="w-5 h-5 animate-spin text-foreground" />
+                ) : (
+                  <>
+                    <ImagePlus className="w-5 h-5 text-foreground" />
+                    <span className="text-sm font-medium text-foreground">Trocar banner</span>
+                  </>
+                )}
+              </div>
+            </div>
+            <input ref={bannerInputRef} type="file" accept="image/*" className="hidden" onChange={handleBannerUpload} />
+          </div>
+
+
           <div className="space-y-3">
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Nome de exibição</label>
