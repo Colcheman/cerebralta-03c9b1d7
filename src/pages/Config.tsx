@@ -35,6 +35,7 @@ const Config = () => {
   const [notifWhatsapp, setNotifWhatsapp] = useState(profile?.notification_whatsapp ?? false);
   const [notifEmail, setNotifEmail] = useState(profile?.notification_email ?? true);
   const [whatsappModalOpen, setWhatsappModalOpen] = useState(false);
+  const [allowMessagesFrom, setAllowMessagesFrom] = useState((profile as any)?.allow_messages_from ?? "everyone");
   const [customHex, setCustomHex] = useState(accentHex);
 
 
@@ -238,6 +239,41 @@ const Config = () => {
               <div><p className="text-sm text-foreground">Email</p><p className="text-xs text-muted-foreground">Resumo semanal por email</p></div>
               <Toggle on={notifEmail} onToggle={(v) => { setNotifEmail(v); updateProfile("notification_email", v); }} />
             </div>
+          </div>
+        </motion.div>
+
+        {/* Message Privacy */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="glass rounded-2xl p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Mail className="w-5 h-5 text-primary" />
+            <h2 className="text-sm font-semibold text-foreground">Privacidade de Mensagens</h2>
+          </div>
+          <p className="text-xs text-muted-foreground mb-4">Escolha quem pode iniciar conversas com você.</p>
+          <div className="space-y-2">
+            <button
+              onClick={() => { setAllowMessagesFrom("everyone"); updateProfile("allow_messages_from", "everyone"); }}
+              className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all ${allowMessagesFrom === "everyone" ? "border-primary bg-primary/10" : "border-border bg-muted hover:border-primary/50"}`}
+            >
+              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${allowMessagesFrom === "everyone" ? "border-primary" : "border-muted-foreground"}`}>
+                {allowMessagesFrom === "everyone" && <div className="w-2 h-2 rounded-full bg-primary" />}
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-medium text-foreground">Todos</p>
+                <p className="text-xs text-muted-foreground">Qualquer pessoa pode me enviar mensagens</p>
+              </div>
+            </button>
+            <button
+              onClick={() => { setAllowMessagesFrom("friends_only"); updateProfile("allow_messages_from", "friends_only"); }}
+              className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all ${allowMessagesFrom === "friends_only" ? "border-primary bg-primary/10" : "border-border bg-muted hover:border-primary/50"}`}
+            >
+              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${allowMessagesFrom === "friends_only" ? "border-primary" : "border-muted-foreground"}`}>
+                {allowMessagesFrom === "friends_only" && <div className="w-2 h-2 rounded-full bg-primary" />}
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-medium text-foreground">Apenas amigos</p>
+                <p className="text-xs text-muted-foreground">Só pessoas na minha lista de amigos</p>
+              </div>
+            </button>
           </div>
         </motion.div>
 
