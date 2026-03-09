@@ -1,1 +1,4 @@
 project_id = "bikechkxqdnnafgeoxlb"
+
+[functions.generate-content]
+verify_jwt = false
