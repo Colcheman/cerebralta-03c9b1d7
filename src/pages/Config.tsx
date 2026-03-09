@@ -35,6 +35,7 @@ const Config = () => {
   const [notifWhatsapp, setNotifWhatsapp] = useState(profile?.notification_whatsapp ?? false);
   const [notifEmail, setNotifEmail] = useState(profile?.notification_email ?? true);
   const [whatsappModalOpen, setWhatsappModalOpen] = useState(false);
+  const [allowMessagesFrom, setAllowMessagesFrom] = useState((profile as any)?.allow_messages_from ?? "everyone");
   const [customHex, setCustomHex] = useState(accentHex);
 
 
