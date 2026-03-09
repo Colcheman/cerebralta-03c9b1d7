@@ -5,6 +5,7 @@ import { ArrowLeft, Flame, Star, Zap, Award, MessageCircle } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import PostCard from "@/components/PostCard";
+import FriendControls from "@/components/profile/FriendControls";
 
 interface PublicProfile {
   user_id: string;
@@ -175,13 +176,16 @@ const Perfil = () => {
                   ) : initials}
                 </div>
                 {!isOwnProfile && user && (
-                  <button
-                    onClick={handleStartConversation}
-                    className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors"
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                    Mensagem
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {userId && <FriendControls targetUserId={userId} />}
+                    <button
+                      onClick={handleStartConversation}
+                      className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      Mensagem
+                    </button>
+                  </div>
                 )}
                 {isOwnProfile && (
                   <button

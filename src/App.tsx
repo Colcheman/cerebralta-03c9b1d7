@@ -20,6 +20,7 @@ import Config from "./pages/Config";
 import Sobre from "./pages/Sobre";
 import Admin from "./pages/Admin";
 import Mensagens from "./pages/Mensagens";
+import Amigos from "./pages/Amigos";
 import NotFound from "./pages/NotFound";
 import Perfil from "./pages/Perfil";
 
@@ -63,6 +64,7 @@ const App = () => (
                   <Route path="/aprender" element={<Aprender />} />
                   <Route path="/aprendizado" element={<Aprendizado />} />
                   <Route path="/conquistas" element={<Conquistas />} />
+                  <Route path="/amigos" element={<Amigos />} />
                   <Route path="/grupos" element={<Grupos />} />
                   <Route path="/grupos/:id" element={<GroupDetail />} />
                   <Route path="/config" element={<Config />} />
