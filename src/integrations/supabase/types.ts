@@ -514,8 +514,10 @@ export type Database = {
       }
       profiles: {
         Row: {
+          allow_messages_from: string
           app_lock_pin: string | null
           avatar_url: string | null
+          banner_url: string | null
           bio: string | null
           cpf: string
           created_at: string
@@ -537,8 +539,10 @@ export type Database = {
           whatsapp_number: string | null
         }
         Insert: {
+          allow_messages_from?: string
           app_lock_pin?: string | null
           avatar_url?: string | null
+          banner_url?: string | null
           bio?: string | null
           cpf: string
           created_at?: string
@@ -560,8 +564,10 @@ export type Database = {
           whatsapp_number?: string | null
         }
         Update: {
+          allow_messages_from?: string
           app_lock_pin?: string | null
           avatar_url?: string | null
+          banner_url?: string | null
           bio?: string | null
           cpf?: string
           created_at?: string
@@ -670,7 +676,10 @@ export type Database = {
     Views: {
       safe_profiles: {
         Row: {
+          allow_messages_from: string | null
           avatar_url: string | null
+          banner_url: string | null
+          bio: string | null
           created_at: string | null
           display_name: string | null
           level: string | null
@@ -682,7 +691,10 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          allow_messages_from?: string | null
           avatar_url?: string | null
+          banner_url?: string | null
+          bio?: string | null
           created_at?: string | null
           display_name?: string | null
           level?: string | null
@@ -694,7 +706,10 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          allow_messages_from?: string | null
           avatar_url?: string | null
+          banner_url?: string | null
+          bio?: string | null
           created_at?: string | null
           display_name?: string | null
           level?: string | null
