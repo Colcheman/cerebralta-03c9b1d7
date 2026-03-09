@@ -127,13 +127,39 @@ Responda em português brasileiro. Seja útil, conciso e criativo.`,
       const content = data.choices?.[0]?.message?.content ?? "";
 
       // Auto-save generated content to DB
+      if (mode === "onboarding_chat") {
+        // Check if AI returned ready JSON with missions
+        try {
+          const jsonMatch = content.match(/\{[\s\S]*"ready"\s*:\s*true[\s\S]*\}/);
+          if (jsonMatch) {
+            const parsed = JSON.parse(jsonMatch[0]);
+            if (parsed.missions && Array.isArray(parsed.missions)) {
+              for (const m of parsed.missions) {
+                const { data: inserted } = await supabase.from("missions").insert({
+                  title: m.title,
+                  description: m.description,
+                  category: m.category,
+                  points: m.points || 10,
+                  icon: m.icon || "📝",
+                  is_active: true,
+                  is_premium: false,
+                }).select("id").single();
+                if (inserted) {
+                  await supabase.from("user_missions").insert({ user_id: user.id, mission_id: inserted.id });
+                }
+              }
+            }
+          }
+        } catch (e) { console.error("Failed to save onboarding missions:", e); }
+      }
+
       if (mode === "generate_missions") {
         try {
           const jsonMatch = content.match(/\[[\s\S]*\]/);
           if (jsonMatch) {
             const missions = JSON.parse(jsonMatch[0]);
             for (const m of missions) {
-              await supabase.from("missions").insert({
+              const { data: inserted } = await supabase.from("missions").insert({
                 title: m.title,
                 description: m.description,
                 category: m.category,
@@ -141,13 +167,9 @@ Responda em português brasileiro. Seja útil, conciso e criativo.`,
                 icon: m.icon || "📝",
                 is_active: true,
                 is_premium: false,
-              });
-            }
-            // Auto-assign to user
-            const { data: newMissions } = await supabase.from("missions").select("id").eq("is_active", true).order("created_at", { ascending: false }).limit(missions.length);
-            if (newMissions) {
-              for (const nm of newMissions) {
-                await supabase.from("user_missions").insert({ user_id: user.id, mission_id: nm.id }).maybeSingle();
+              }).select("id").single();
+              if (inserted) {
+                await supabase.from("user_missions").insert({ user_id: user.id, mission_id: inserted.id });
               }
             }
           }
