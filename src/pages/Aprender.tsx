@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Check, Zap, BookOpen, Loader2 } from "lucide-react";
+import { Check, Zap, BookOpen, Loader2, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Mission {
   id: string;
@@ -24,11 +25,12 @@ const Aprender = () => {
   const [userMissions, setUserMissions] = useState<Map<string, boolean>>(new Map());
   const [loading, setLoading] = useState(true);
   const [completing, setCompleting] = useState<string | null>(null);
+  const [expandedMission, setExpandedMission] = useState<string | null>(null);
+  const [reflections, setReflections] = useState<Map<string, string>>(new Map());
 
   useEffect(() => {
     if (!user) return;
     const load = async () => {
-      // Fetch active missions
       const { data: missionsData } = await supabase
         .from("missions")
         .select("*")
@@ -37,7 +39,6 @@ const Aprender = () => {
 
       setMissions((missionsData ?? []) as Mission[]);
 
-      // Fetch user's mission progress for today
       const { data: userMissionsData } = await supabase
         .from("user_missions")
         .select("mission_id, completed")
@@ -51,10 +52,19 @@ const Aprender = () => {
     load();
   }, [user]);
 
+  const handleExpand = (missionId: string) => {
+    const isCompleted = userMissions.get(missionId) === true;
+    if (isCompleted) return;
+    setExpandedMission(expandedMission === missionId ? null : missionId);
+  };
+
   const handleComplete = async (missionId: string) => {
     if (!user || completing) return;
     const alreadyCompleted = userMissions.get(missionId);
     if (alreadyCompleted) return;
+
+    const reflection = reflections.get(missionId)?.trim();
+    if (!reflection || reflection.length < 20) return;
 
     setCompleting(missionId);
 
@@ -68,6 +78,7 @@ const Aprender = () => {
 
     if (success) {
       setUserMissions(prev => new Map(prev).set(missionId, true));
+      setExpandedMission(null);
     }
     setCompleting(null);
   };
@@ -76,10 +87,10 @@ const Aprender = () => {
   const totalPoints = missions.filter(m => userMissions.get(m.id) === true).reduce((s, m) => s + m.points, 0);
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6">
+    <div className="max-w-2xl mx-auto px-4 py-6 pb-32">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <h1 className="font-display text-2xl font-bold text-foreground mb-1">Aprendizado</h1>
-        <p className="text-sm text-muted-foreground mb-6">Missões diárias para evolução constante</p>
+        <h1 className="font-display text-2xl font-bold text-foreground mb-1">Missões</h1>
+        <p className="text-sm text-muted-foreground mb-6">Pratique, reflita e evolua de verdade</p>
       </motion.div>
 
       {loading ? (
@@ -135,47 +146,119 @@ const Aprender = () => {
               {missions.map((mission, i) => {
                 const isCompleted = userMissions.get(mission.id) === true;
                 const isCompleting = completing === mission.id;
+                const isExpanded = expandedMission === mission.id;
+                const reflection = reflections.get(mission.id) ?? "";
+                const canSubmit = reflection.trim().length >= 20;
+
                 return (
                   <motion.div
                     key={mission.id}
                     initial={{ opacity: 0, x: -12 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.08 }}
-                    onClick={() => handleComplete(mission.id)}
-                    className={`glass rounded-xl p-4 cursor-pointer transition-all hover:border-primary/20 ${
-                      isCompleted ? "opacity-70" : ""
+                    className={`glass rounded-xl overflow-hidden transition-all ${
+                      isCompleted ? "opacity-70" : "hover:border-primary/20"
                     }`}
                   >
-                    <div className="flex items-start gap-4">
-                      <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all ${
-                        isCompleted
-                          ? "bg-success border-success"
-                          : "border-border"
-                      }`}>
-                        {isCompleting ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
-                        ) : isCompleted ? (
-                          <Check className="w-3.5 h-3.5 text-foreground" />
-                        ) : null}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg">{mission.icon}</span>
-                          <h3 className={`text-sm font-semibold ${isCompleted ? "line-through text-muted-foreground" : "text-foreground"}`}>
-                            {mission.title}
-                          </h3>
-                          <span className="ml-auto text-xs font-medium text-accent">+{mission.points} pts</span>
+                    <div
+                      onClick={() => handleExpand(mission.id)}
+                      className="p-4 cursor-pointer"
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all ${
+                          isCompleted
+                            ? "bg-success border-success"
+                            : "border-border"
+                        }`}>
+                          {isCompleting ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
+                          ) : isCompleted ? (
+                            <Check className="w-3.5 h-3.5 text-foreground" />
+                          ) : null}
                         </div>
-                        <p className="text-xs text-muted-foreground mt-1">{mission.description}</p>
-                        <span className="inline-block mt-2 text-xs bg-muted rounded-full px-2.5 py-0.5 text-muted-foreground">
-                          {mission.category}
-                        </span>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">{mission.icon}</span>
+                            <h3 className={`text-sm font-semibold ${isCompleted ? "line-through text-muted-foreground" : "text-foreground"}`}>
+                              {mission.title}
+                            </h3>
+                            <span className="ml-auto text-xs font-medium text-accent">+{mission.points} pts</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">{mission.description}</p>
+                          <span className="inline-block mt-2 text-xs bg-muted rounded-full px-2.5 py-0.5 text-muted-foreground">
+                            {mission.category}
+                          </span>
+                        </div>
                       </div>
                     </div>
+
+                    {/* Reflection area */}
+                    {isExpanded && !isCompleted && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        className="border-t border-border px-4 pb-4 pt-3"
+                      >
+                        <label className="text-xs font-semibold text-foreground block mb-2">
+                          📝 Como você cumpriu essa missão? O que aprendeu?
+                        </label>
+                        <Textarea
+                          value={reflection}
+                          onChange={(e) =>
+                            setReflections(prev => new Map(prev).set(mission.id, e.target.value))
+                          }
+                          placeholder="Escreva aqui sua reflexão honesta sobre como praticou essa missão... (mínimo 20 caracteres)"
+                          className="text-sm min-h-[80px] bg-muted/50 border-border"
+                        />
+                        <div className="flex items-center justify-between mt-3">
+                          <span className={`text-xs ${canSubmit ? "text-success" : "text-muted-foreground"}`}>
+                            {reflection.trim().length}/20 caracteres mín.
+                          </span>
+                          <button
+                            onClick={() => handleComplete(mission.id)}
+                            disabled={!canSubmit || !!completing}
+                            className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+                              canSubmit
+                                ? "bg-primary text-primary-foreground hover:opacity-90"
+                                : "bg-muted text-muted-foreground cursor-not-allowed"
+                            }`}
+                          >
+                            {isCompleting ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              "Concluir Missão"
+                            )}
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
                   </motion.div>
                 );
               })}
             </div>
+          )}
+
+          {/* Honesty warning */}
+          {missions.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="mt-8 glass rounded-xl p-5 border-destructive/20"
+            >
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-semibold text-destructive mb-1">Aviso sobre honestidade</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Você pode até escrever qualquer coisa para ganhar pontos e conseguir mais conteúdo para estudar, 
+                    mas você não estará enganando ninguém a não ser <span className="font-bold text-foreground">você mesmo</span>. 
+                    Esse espaço existe para que você <span className="italic">realmente</span> pratique e reflita. 
+                    Evolução exige verdade.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
           )}
         </>
       )}
