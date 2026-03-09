@@ -83,6 +83,17 @@ const Admin = () => {
     p.display_name.toLowerCase().includes(search.toLowerCase()) || p.cpf.includes(search.replace(/\D/g, ""))
   );
 
+  const togglePremium = async (profileUserId: string, currentTier: string) => {
+    const newTier = currentTier === "premium" ? "free" : "premium";
+    const { error } = await supabase.from("profiles").update({ subscription_tier: newTier } as any).eq("user_id", profileUserId);
+    if (error) {
+      toast({ title: "Erro ao atualizar", description: error.message, variant: "destructive" });
+      return;
+    }
+    setProfiles(prev => prev.map(p => p.user_id === profileUserId ? { ...p, subscription_tier: newTier } : p));
+    toast({ title: newTier === "premium" ? "⭐ Premium ativado!" : "Plano revertido para Free" });
+  };
+
   const getTimeSince = (dateStr: string) => {
     const days = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
     if (days < 1) return "Hoje";
@@ -235,9 +246,15 @@ const Admin = () => {
                       <td className="px-4 py-3">{p.points}</td>
                       <td className="px-4 py-3 text-streak">{p.streak}🔥</td>
                       <td className="px-4 py-3">
-                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                          p.subscription_tier === "premium" ? "bg-accent/20 text-accent" : "bg-muted text-muted-foreground"
-                        }`}>{p.subscription_tier}</span>
+                        <button
+                          onClick={() => togglePremium(p.user_id, p.subscription_tier)}
+                          className={`text-xs font-medium px-2 py-0.5 rounded-full cursor-pointer hover:opacity-80 transition-opacity ${
+                            p.subscription_tier === "premium" ? "bg-accent/20 text-accent" : "bg-muted text-muted-foreground"
+                          }`}
+                          title={p.subscription_tier === "premium" ? "Clique para remover Premium" : "Clique para ativar Premium"}
+                        >
+                          {p.subscription_tier === "premium" ? "⭐ premium" : "free"}
+                        </button>
                       </td>
                       <td className="px-4 py-3 text-xs text-muted-foreground">{getTimeSince(p.created_at)}</td>
                     </tr>
