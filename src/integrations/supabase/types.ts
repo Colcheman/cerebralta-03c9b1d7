@@ -525,10 +525,12 @@ export type Database = {
           id: string
           last_active_date: string | null
           level: string
+          name_verified: boolean
           notification_email: boolean
           notification_push: boolean
           notification_whatsapp: boolean
           points: number
+          real_name: string | null
           recovery_email: string | null
           streak: number
           subscription_tier: Database["public"]["Enums"]["subscription_tier"]
@@ -550,10 +552,12 @@ export type Database = {
           id?: string
           last_active_date?: string | null
           level?: string
+          name_verified?: boolean
           notification_email?: boolean
           notification_push?: boolean
           notification_whatsapp?: boolean
           points?: number
+          real_name?: string | null
           recovery_email?: string | null
           streak?: number
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
@@ -575,10 +579,12 @@ export type Database = {
           id?: string
           last_active_date?: string | null
           level?: string
+          name_verified?: boolean
           notification_email?: boolean
           notification_push?: boolean
           notification_whatsapp?: boolean
           points?: number
+          real_name?: string | null
           recovery_email?: string | null
           streak?: number
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
@@ -683,6 +689,7 @@ export type Database = {
           created_at: string | null
           display_name: string | null
           level: string | null
+          name_verified: boolean | null
           points: number | null
           streak: number | null
           subscription_tier:
@@ -698,6 +705,7 @@ export type Database = {
           created_at?: string | null
           display_name?: string | null
           level?: string | null
+          name_verified?: boolean | null
           points?: number | null
           streak?: number | null
           subscription_tier?:
@@ -713,6 +721,7 @@ export type Database = {
           created_at?: string | null
           display_name?: string | null
           level?: string | null
+          name_verified?: boolean | null
           points?: number | null
           streak?: number | null
           subscription_tier?:

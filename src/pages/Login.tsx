@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatCPF, validateCPF, validatePassword } from "@/lib/cpf";
-import { Eye, EyeOff, Shield, Brain, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Shield, Brain, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const [isRegister, setIsRegister] = useState(false);
@@ -16,11 +17,48 @@ const Login = () => {
   const { login, register, user } = useAuth();
   const navigate = useNavigate();
 
+  // CPF lookup state
+  const [lookupName, setLookupName] = useState<string | null>(null);
+  const [lookupLoading, setLookupLoading] = useState(false);
+  const [lookupError, setLookupError] = useState<string | null>(null);
+
   // Redirect if already logged in
   if (user) {
     navigate("/feed", { replace: true });
     return null;
   }
+
+  const handleCpfChange = async (rawValue: string) => {
+    const formatted = formatCPF(rawValue);
+    setCpf(formatted);
+
+    // Auto-lookup when CPF is complete and in register mode
+    const digits = formatted.replace(/\D/g, "");
+    if (isRegister && digits.length === 11 && validateCPF(formatted)) {
+      setLookupLoading(true);
+      setLookupError(null);
+      setLookupName(null);
+      try {
+        const { data, error } = await supabase.functions.invoke("cpf-lookup", {
+          body: { cpf: digits },
+        });
+        if (error) {
+          setLookupError("Não foi possível consultar o CPF");
+        } else if (data?.found && data?.name) {
+          setLookupName(data.name);
+          setName(data.name);
+        } else {
+          setLookupError(data?.error || "CPF não encontrado na base da Receita Federal");
+        }
+      } catch {
+        setLookupError("Erro ao consultar CPF");
+      }
+      setLookupLoading(false);
+    } else {
+      setLookupName(null);
+      setLookupError(null);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,6 +87,19 @@ const Login = () => {
           setErrors([error]);
           setIsLoading(false);
           return;
+        }
+        // Store real_name if found from API
+        if (lookupName) {
+          // Will be saved after profile is created by trigger
+          setTimeout(async () => {
+            const { data: { user: newUser } } = await supabase.auth.getUser();
+            if (newUser) {
+              await supabase.from("profiles").update({
+                real_name: lookupName,
+                name_verified: true,
+              } as any).eq("user_id", newUser.id);
+            }
+          }, 1000);
         }
       } else {
         const { error } = await login(cpf, password);
@@ -150,13 +201,27 @@ const Login = () => {
                 <input
                   type="text"
                   value={cpf}
-                  onChange={(e) => setCpf(formatCPF(e.target.value))}
+                  onChange={(e) => handleCpfChange(e.target.value)}
                   className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                   placeholder="000.000.000-00"
                   maxLength={14}
                 />
-                <Shield className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
+                {lookupLoading ? (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary animate-spin" />
+                ) : (
+                  <Shield className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
+                )}
               </div>
+              {isRegister && lookupName && (
+                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-1.5 text-xs text-green-500 mt-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Nome encontrado: <span className="font-medium">{lookupName}</span>
+                </motion.p>
+              )}
+              {isRegister && lookupError && (
+                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1.5">
+                  <AlertCircle className="w-3.5 h-3.5" /> {lookupError} — digite o nome manualmente
+                </motion.p>
+              )}
             </div>
 
             <div>
