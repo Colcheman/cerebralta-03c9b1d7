@@ -115,6 +115,9 @@ const Aprender = () => {
   const completedCount = missions.filter(m => userMissions.get(m.id) === true).length;
   const totalPoints = missions.filter(m => userMissions.get(m.id) === true).reduce((s, m) => s + m.points, 0);
 
+  // Show onboarding chat for first-time users with no missions
+  const showOnboarding = hasEverHadMissions === false && missions.length === 0 && !generating;
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 pb-32">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -124,6 +127,8 @@ const Aprender = () => {
 
       {loading ? (
         <div className="text-center py-12"><Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" /></div>
+      ) : showOnboarding ? (
+        <OnboardingChat onComplete={loadData} />
       ) : (
         <>
           {/* Daily Stats */}
