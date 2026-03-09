@@ -63,6 +63,11 @@ const Admin = () => {
   const [newPassword, setNewPassword] = useState("");
   const [resettingPassword, setResettingPassword] = useState(false);
 
+  // Delete user
+  const [deleteTarget, setDeleteTarget] = useState<ProfileRow | null>(null);
+  const [deletingUser, setDeletingUser] = useState(false);
+  const [resettingPassword, setResettingPassword] = useState(false);
+
   useEffect(() => {
     if (!user) return;
     supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }).then(({ data }) => setIsAdmin(!!data));
