@@ -35,15 +35,21 @@ const COUNTRIES = [
   { code: "MZ", label: "Moçambique" },
 ];
 
-const TIMEZONES = Intl.supportedValuesOf
-  ? Intl.supportedValuesOf("timeZone")
-  : [
-      "America/Sao_Paulo", "America/New_York", "America/Chicago",
-      "America/Denver", "America/Los_Angeles", "America/Buenos_Aires",
+const getTimezones = (): string[] => {
+  try {
+    return (Intl as any).supportedValuesOf("timeZone");
+  } catch {
+    return [
+      "America/Sao_Paulo", "America/Manaus", "America/Bahia", "America/Fortaleza",
+      "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles",
+      "America/Buenos_Aires", "America/Santiago", "America/Bogota", "America/Mexico_City",
       "Europe/London", "Europe/Lisbon", "Europe/Paris", "Europe/Berlin",
-      "Europe/Madrid", "Europe/Rome", "Asia/Tokyo", "Africa/Luanda",
-      "Africa/Maputo",
+      "Europe/Madrid", "Europe/Rome", "Asia/Tokyo", "Africa/Luanda", "Africa/Maputo",
     ];
+  }
+};
+
+const TIMEZONES = getTimezones();
 
 const LocaleSetup = () => {
   const { user } = useAuth();
