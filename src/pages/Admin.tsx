@@ -246,9 +246,15 @@ const Admin = () => {
                       <td className="px-4 py-3">{p.points}</td>
                       <td className="px-4 py-3 text-streak">{p.streak}🔥</td>
                       <td className="px-4 py-3">
-                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                          p.subscription_tier === "premium" ? "bg-accent/20 text-accent" : "bg-muted text-muted-foreground"
-                        }`}>{p.subscription_tier}</span>
+                        <button
+                          onClick={() => togglePremium(p.user_id, p.subscription_tier)}
+                          className={`text-xs font-medium px-2 py-0.5 rounded-full cursor-pointer hover:opacity-80 transition-opacity ${
+                            p.subscription_tier === "premium" ? "bg-accent/20 text-accent" : "bg-muted text-muted-foreground"
+                          }`}
+                          title={p.subscription_tier === "premium" ? "Clique para remover Premium" : "Clique para ativar Premium"}
+                        >
+                          {p.subscription_tier === "premium" ? "⭐ premium" : "free"}
+                        </button>
                       </td>
                       <td className="px-4 py-3 text-xs text-muted-foreground">{getTimeSince(p.created_at)}</td>
                     </tr>
