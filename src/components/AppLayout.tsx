@@ -1,14 +1,19 @@
+import { useState } from "react";
 import { Outlet, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import Sidebar from "./Sidebar";
 import MobileNav from "./MobileNav";
 import StreakCelebration from "./StreakCelebration";
+import RecoveryEmailPrompt from "./RecoveryEmailPrompt";
 import { useStreakCheck } from "@/hooks/useStreakCheck";
 import { Loader2 } from "lucide-react";
 
 const AppLayout = () => {
   const { user, loading, profile } = useAuth();
   const { celebrateStreak, dismissCelebration } = useStreakCheck(user?.id, profile?.streak ?? 0);
+  const [recoveryDismissed, setRecoveryDismissed] = useState(false);
+
+  const showRecoveryPrompt = profile && !profile.recovery_email && !recoveryDismissed;
 
   if (loading) {
     return (
@@ -20,7 +25,6 @@ const AppLayout = () => {
 
   if (!user) return <Navigate to="/" replace />;
 
-  // Full paywall: free users go to subscription page
   if (profile && profile.subscription_tier === "free") {
     return <Navigate to="/assinatura" replace />;
   }
@@ -34,6 +38,9 @@ const AppLayout = () => {
       </main>
       {celebrateStreak && (
         <StreakCelebration streak={celebrateStreak} onDismiss={dismissCelebration} />
+      )}
+      {showRecoveryPrompt && (
+        <RecoveryEmailPrompt userId={user.id} onDismiss={() => setRecoveryDismissed(true)} />
       )}
     </div>
   );
