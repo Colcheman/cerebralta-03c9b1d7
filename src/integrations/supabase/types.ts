@@ -519,12 +519,15 @@ export type Database = {
           avatar_url: string | null
           banner_url: string | null
           bio: string | null
+          country: string
           cpf: string
           created_at: string
           display_name: string
           id: string
+          language: string
           last_active_date: string | null
           level: string
+          locale_configured: boolean
           name_verified: boolean
           notification_email: boolean
           notification_push: boolean
@@ -535,6 +538,7 @@ export type Database = {
           streak: number
           subscription_tier: Database["public"]["Enums"]["subscription_tier"]
           theme_preference: string
+          timezone: string
           two_factor_enabled: boolean
           updated_at: string
           user_id: string
@@ -546,12 +550,15 @@ export type Database = {
           avatar_url?: string | null
           banner_url?: string | null
           bio?: string | null
+          country?: string
           cpf: string
           created_at?: string
           display_name: string
           id?: string
+          language?: string
           last_active_date?: string | null
           level?: string
+          locale_configured?: boolean
           name_verified?: boolean
           notification_email?: boolean
           notification_push?: boolean
@@ -562,6 +569,7 @@ export type Database = {
           streak?: number
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
           theme_preference?: string
+          timezone?: string
           two_factor_enabled?: boolean
           updated_at?: string
           user_id: string
@@ -573,12 +581,15 @@ export type Database = {
           avatar_url?: string | null
           banner_url?: string | null
           bio?: string | null
+          country?: string
           cpf?: string
           created_at?: string
           display_name?: string
           id?: string
+          language?: string
           last_active_date?: string | null
           level?: string
+          locale_configured?: boolean
           name_verified?: boolean
           notification_email?: boolean
           notification_push?: boolean
@@ -589,6 +600,7 @@ export type Database = {
           streak?: number
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
           theme_preference?: string
+          timezone?: string
           two_factor_enabled?: boolean
           updated_at?: string
           user_id?: string
