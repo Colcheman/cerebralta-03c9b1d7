@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { Brain, ExternalLink, Globe } from "lucide-react";
+import { Brain, ExternalLink, Globe, BookMarked } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Sobre = () => (
   <div className="max-w-2xl mx-auto px-4 py-6">
@@ -37,7 +38,24 @@ const Sobre = () => (
         </p>
       </div>
 
-      {/* Link */}
+      {/* Manual Link */}
+      <Link
+        to="/manual"
+        className="glass rounded-2xl p-5 flex items-center gap-4 hover:border-primary/30 transition-all group"
+      >
+        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+          <BookMarked className="w-5 h-5 text-primary" />
+        </div>
+        <div className="flex-1">
+          <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
+            Manual do Arquiteto Mental
+          </p>
+          <p className="text-xs text-muted-foreground">Como usar a plataforma, regras e descontos</p>
+        </div>
+        <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+      </Link>
+
+      {/* Alluzion Link */}
       <a
         href="https://www.alluzioncorporate.com"
         target="_blank"

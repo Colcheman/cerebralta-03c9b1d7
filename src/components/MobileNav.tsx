@@ -2,7 +2,7 @@ import { NavLink } from "react-router-dom";
 import { Flame, BookOpen, Trophy, MessageCircle, MoreHorizontal } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, UserPlus, Settings, Info, Target } from "lucide-react";
+import { Users, UserPlus, Settings, Info, Target, BookMarked } from "lucide-react";
 
 const mainItems = [
   { to: "/feed", icon: Flame, label: "Feed" },
@@ -15,6 +15,7 @@ const mainItems = [
 const moreItems = [
   { to: "/amigos", icon: UserPlus, label: "Amigos" },
   { to: "/grupos", icon: Users, label: "Grupos" },
+  { to: "/manual", icon: BookMarked, label: "Manual" },
   { to: "/config", icon: Settings, label: "Config" },
   { to: "/sobre", icon: Info, label: "Sobre" },
 ];
