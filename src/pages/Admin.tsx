@@ -250,7 +250,19 @@ const Admin = () => {
                   <tbody>
                     {filteredProfiles.map(p => (
                       <tr key={p.id} className="border-b border-border/50 hover:bg-muted/30">
-                        <td className="px-4 py-3 font-medium text-foreground">{p.display_name}</td>
+                        <td className="px-4 py-3 font-medium text-foreground">
+                          <div className="flex items-center gap-1.5">
+                            {p.display_name}
+                            {p.name_verified ? (
+                              <CheckCircle2 className="w-3.5 h-3.5 text-green-500" title="Nome verificado" />
+                            ) : (
+                              <XCircle className="w-3.5 h-3.5 text-muted-foreground/40" title="Nome não verificado" />
+                            )}
+                          </div>
+                          {p.real_name && p.real_name !== p.display_name && (
+                            <p className="text-xs text-muted-foreground">Real: {p.real_name}</p>
+                          )}
+                        </td>
                         <td className="px-4 py-3 text-accent">{p.level}</td>
                         <td className="px-4 py-3">{p.points}</td>
                         <td className="px-4 py-3 text-streak">{p.streak}🔥</td>
@@ -267,13 +279,27 @@ const Admin = () => {
                         </td>
                         <td className="px-4 py-3 text-xs text-muted-foreground">{getTimeSince(p.created_at)}</td>
                         <td className="px-4 py-3">
-                          <button
-                            onClick={() => { setResetTarget(p); setNewPassword(""); }}
-                            className="text-xs text-primary hover:underline flex items-center gap-1"
-                            title="Redefinir senha"
-                          >
-                            <KeyRound className="w-3.5 h-3.5" /> Senha
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => { setResetTarget(p); setNewPassword(""); }}
+                              className="text-xs text-primary hover:underline flex items-center gap-1"
+                              title="Redefinir senha"
+                            >
+                              <KeyRound className="w-3.5 h-3.5" /> Senha
+                            </button>
+                            <button
+                              onClick={async () => {
+                                const newVal = !p.name_verified;
+                                await supabase.from("profiles").update({ name_verified: newVal } as any).eq("user_id", p.user_id);
+                                setProfiles(prev => prev.map(pr => pr.user_id === p.user_id ? { ...pr, name_verified: newVal } : pr));
+                                toast({ title: newVal ? "✅ Nome verificado" : "Nome desmarcado" });
+                              }}
+                              className={`text-xs hover:underline flex items-center gap-1 ${p.name_verified ? "text-green-500" : "text-muted-foreground"}`}
+                              title={p.name_verified ? "Desmarcar verificação" : "Verificar nome"}
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" /> {p.name_verified ? "Verificado" : "Verificar"}
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
