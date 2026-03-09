@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { Shield, Bell, Palette, Lock, Mail, Loader2, KeyRound } from "lucide-react";
+import { Shield, Bell, Palette, Lock, Mail, Loader2, KeyRound, User, Camera, Check } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,15 @@ const Config = () => {
   const { profile, user } = useAuth();
   const { toast } = useToast();
   const { accentHex, setAccentColor } = useTheme();
+
+  // Profile editing
+  const [displayName, setDisplayName] = useState(profile?.display_name ?? "");
+  const [bio, setBio] = useState((profile as any)?.bio ?? "");
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url ?? null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [recoveryEmail, setRecoveryEmail] = useState(profile?.recovery_email ?? "");
   const [savingEmail, setSavingEmail] = useState(false);
   const [twoFactor, setTwoFactor] = useState(profile?.two_factor_enabled ?? false);
@@ -27,6 +36,7 @@ const Config = () => {
   const [notifEmail, setNotifEmail] = useState(profile?.notification_email ?? true);
   const [whatsappModalOpen, setWhatsappModalOpen] = useState(false);
   const [customHex, setCustomHex] = useState(accentHex);
+
 
   // App Lock PIN
   const [lockEnabled, setLockEnabled] = useState(!!profile?.app_lock_pin);
@@ -40,6 +50,34 @@ const Config = () => {
     await supabase.from("profiles").update({ [field]: value }).eq("user_id", user.id);
   };
 
+  const saveProfileInfo = async () => {
+    if (!user) return;
+    const name = displayName.trim();
+    if (!name || name.length > 60) { toast({ title: "Nome inválido", description: "Entre 1 e 60 caracteres.", variant: "destructive" }); return; }
+    if (bio.length > 300) { toast({ title: "Bio muito longa", description: "Máximo 300 caracteres.", variant: "destructive" }); return; }
+    setSavingProfile(true);
+    await supabase.from("profiles").update({ display_name: name, bio: bio.trim() }).eq("user_id", user.id);
+    toast({ title: "✅ Perfil atualizado!", description: "As pessoas já podem ver suas novas informações." });
+    setSavingProfile(false);
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    if (file.size > 2 * 1024 * 1024) { toast({ title: "Arquivo muito grande", description: "Máximo 2MB.", variant: "destructive" }); return; }
+    setAvatarUploading(true);
+    const ext = file.name.split(".").pop();
+    const path = `${user.id}.${ext}`;
+    const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
+    if (!error) {
+      const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
+      setAvatarUrl(publicUrl);
+      await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("user_id", user.id);
+      toast({ title: "📸 Foto atualizada!" });
+    }
+    setAvatarUploading(false);
+  };
+
   const saveRecoveryEmail = async () => {
     if (!recoveryEmail.trim() || !user) return;
     setSavingEmail(true);
@@ -47,6 +85,8 @@ const Config = () => {
     toast({ title: "Email salvo", description: "Seu email de recuperação foi atualizado." });
     setSavingEmail(false);
   };
+
+
 
   const handleWhatsappToggle = (val: boolean) => {
     if (val) setWhatsappModalOpen(true);
@@ -83,6 +123,71 @@ const Config = () => {
       </motion.div>
 
       <div className="space-y-4">
+        {/* Edit Profile */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="glass rounded-2xl p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <User className="w-5 h-5 text-primary" />
+            <h2 className="text-sm font-semibold text-foreground">Meu Perfil Público</h2>
+          </div>
+
+          {/* Avatar */}
+          <div className="flex items-center gap-4 mb-5">
+            <div className="relative">
+              <div className="w-16 h-16 rounded-full bg-gradient-primary flex items-center justify-center text-lg font-bold text-primary-foreground overflow-hidden">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+                ) : (
+                  (displayName || profile?.display_name || "AM").split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()
+                )}
+              </div>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={avatarUploading}
+                className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:opacity-90 transition-opacity"
+              >
+                {avatarUploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Camera className="w-3 h-3" />}
+              </button>
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-foreground">{profile?.display_name}</p>
+              <p className="text-xs text-muted-foreground">{profile?.level ?? "Iniciante"}</p>
+              <p className="text-xs text-primary mt-0.5 cursor-pointer hover:underline" onClick={() => fileInputRef.current?.click()}>
+                Trocar foto
+              </p>
+            </div>
+          </div>
+
+          {/* Display name */}
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Nome de exibição</label>
+              <input
+                value={displayName}
+                onChange={e => setDisplayName(e.target.value)}
+                maxLength={60}
+                placeholder="Seu nome no app"
+                className="w-full bg-muted border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Bio <span className="text-muted-foreground/50">({bio.length}/300)</span></label>
+              <textarea
+                value={bio}
+                onChange={e => setBio(e.target.value)}
+                maxLength={300}
+                rows={3}
+                placeholder="Fale um pouco sobre você, sua jornada mental..."
+                className="w-full bg-muted border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+              />
+            </div>
+            <Button onClick={saveProfileInfo} disabled={savingProfile || !displayName.trim()} className="w-full gap-2">
+              {savingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+              Salvar Perfil
+            </Button>
+          </div>
+        </motion.div>
+
         {/* Security */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="glass rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-4">
