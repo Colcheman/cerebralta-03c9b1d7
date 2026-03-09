@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import OnboardingChat from "@/components/missions/OnboardingChat";
 
 interface Mission {
   id: string;
@@ -29,6 +30,7 @@ const Aprender = () => {
   const [expandedMission, setExpandedMission] = useState<string | null>(null);
   const [reflections, setReflections] = useState<Map<string, string>>(new Map());
   const [generating, setGenerating] = useState(false);
+  const [hasEverHadMissions, setHasEverHadMissions] = useState<boolean | null>(null);
 
   const loadData = async () => {
     if (!user) return;
@@ -46,8 +48,12 @@ const Aprender = () => {
       .eq("user_id", user.id);
 
     const map = new Map<string, boolean>();
-    (userMissionsData ?? []).forEach((um: UserMission) => map.set(um.mission_id, um.completed));
+    const umList = (userMissionsData ?? []) as UserMission[];
+    umList.forEach((um) => map.set(um.mission_id, um.completed));
     setUserMissions(map);
+
+    // Check if user has ever had missions assigned
+    setHasEverHadMissions(umList.length > 0);
     setLoading(false);
   };
 
@@ -109,6 +115,9 @@ const Aprender = () => {
   const completedCount = missions.filter(m => userMissions.get(m.id) === true).length;
   const totalPoints = missions.filter(m => userMissions.get(m.id) === true).reduce((s, m) => s + m.points, 0);
 
+  // Show onboarding chat for first-time users with no missions
+  const showOnboarding = hasEverHadMissions === false && missions.length === 0 && !generating;
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 pb-32">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -118,6 +127,8 @@ const Aprender = () => {
 
       {loading ? (
         <div className="text-center py-12"><Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" /></div>
+      ) : showOnboarding ? (
+        <OnboardingChat onComplete={loadData} />
       ) : (
         <>
           {/* Daily Stats */}

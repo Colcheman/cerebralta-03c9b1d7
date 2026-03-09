@@ -36,6 +36,24 @@ serve(async (req) => {
     }
 
     const systemPrompts: Record<string, string> = {
+      onboarding_chat: `Você é o mentor pessoal da plataforma Cerebralta - uma rede de desenvolvimento mental masculino.
+${userContext}
+Você está conversando com um novo usuário para entender o que ele quer melhorar na vida.
+REGRAS:
+- Faça UMA pergunta por vez para entender melhor a situação dele (rotina, hábitos, dificuldades)
+- Seja empático mas direto, como um irmão mais velho que se importa
+- Use linguagem casual mas inteligente
+- Após 2-3 trocas de mensagem, quando sentir que tem informação suficiente, responda com EXATAMENTE este formato JSON:
+{"ready": true, "summary": "resumo do que o usuário quer melhorar e sua situação", "missions": [{"title":"...","description":"...","category":"...","points":N,"icon":"emoji"}]}
+- Gere 3-5 missões MUITO específicas e práticas baseadas na conversa
+- Missões devem ser realizáveis em 1 dia
+- Categorias válidas: disciplina, mindset, social, saúde, estratégia
+- Pontos entre 10 e 50 proporcionais à dificuldade
+- Exemplo: se o cara diz que pega o celular ao acordar, dê missão "Deixe o celular em outro cômodo antes de dormir" ou "Faça 2min de respiração Wim Hof ao acordar"
+- NÃO gere missões genéricas. Seja ESPECÍFICO baseado no que ele disse.
+- Se ainda não tem info suficiente, responda apenas texto (sem JSON)
+Escreva em português brasileiro.`,
+
       generate_missions: `Você é o criador de missões da plataforma Cerebralta - uma rede de desenvolvimento mental masculino.
 ${userContext}
 Gere EXATAMENTE 3 missões práticas e desafiadoras para este usuário baseado no nível dele.
@@ -85,7 +103,7 @@ Responda em português brasileiro. Seja útil, conciso e criativo.`,
     const systemPrompt = systemPrompts[mode] || systemPrompts.assistant;
 
     // Non-streaming for structured responses
-    if (["generate_missions", "generate_course", "generate_post"].includes(mode)) {
+    if (["generate_missions", "generate_course", "generate_post", "onboarding_chat"].includes(mode)) {
       const aiMessages = [
         { role: "system", content: systemPrompt },
         ...(messages ?? [{ role: "user", content: context || "Gere o conteúdo agora." }]),
@@ -109,13 +127,39 @@ Responda em português brasileiro. Seja útil, conciso e criativo.`,
       const content = data.choices?.[0]?.message?.content ?? "";
 
       // Auto-save generated content to DB
+      if (mode === "onboarding_chat") {
+        // Check if AI returned ready JSON with missions
+        try {
+          const jsonMatch = content.match(/\{[\s\S]*"ready"\s*:\s*true[\s\S]*\}/);
+          if (jsonMatch) {
+            const parsed = JSON.parse(jsonMatch[0]);
+            if (parsed.missions && Array.isArray(parsed.missions)) {
+              for (const m of parsed.missions) {
+                const { data: inserted } = await supabase.from("missions").insert({
+                  title: m.title,
+                  description: m.description,
+                  category: m.category,
+                  points: m.points || 10,
+                  icon: m.icon || "📝",
+                  is_active: true,
+                  is_premium: false,
+                }).select("id").single();
+                if (inserted) {
+                  await supabase.from("user_missions").insert({ user_id: user.id, mission_id: inserted.id });
+                }
+              }
+            }
+          }
+        } catch (e) { console.error("Failed to save onboarding missions:", e); }
+      }
+
       if (mode === "generate_missions") {
         try {
           const jsonMatch = content.match(/\[[\s\S]*\]/);
           if (jsonMatch) {
             const missions = JSON.parse(jsonMatch[0]);
             for (const m of missions) {
-              await supabase.from("missions").insert({
+              const { data: inserted } = await supabase.from("missions").insert({
                 title: m.title,
                 description: m.description,
                 category: m.category,
@@ -123,13 +167,9 @@ Responda em português brasileiro. Seja útil, conciso e criativo.`,
                 icon: m.icon || "📝",
                 is_active: true,
                 is_premium: false,
-              });
-            }
-            // Auto-assign to user
-            const { data: newMissions } = await supabase.from("missions").select("id").eq("is_active", true).order("created_at", { ascending: false }).limit(missions.length);
-            if (newMissions) {
-              for (const nm of newMissions) {
-                await supabase.from("user_missions").insert({ user_id: user.id, mission_id: nm.id }).maybeSingle();
+              }).select("id").single();
+              if (inserted) {
+                await supabase.from("user_missions").insert({ user_id: user.id, mission_id: inserted.id });
               }
             }
           }
