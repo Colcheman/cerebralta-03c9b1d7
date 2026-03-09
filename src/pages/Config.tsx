@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { Shield, Bell, Palette, Lock, Mail, Loader2, KeyRound, User, Camera, Check } from "lucide-react";
+import { Shield, Bell, Palette, Lock, Mail, Loader2, KeyRound, User, Camera, Check, ImagePlus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
