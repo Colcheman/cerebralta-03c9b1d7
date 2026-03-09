@@ -323,8 +323,8 @@ const Admin = () => {
                  </div>
                </div>
              )}
-          )}
-        </TabsContent>
+           )}
+         </TabsContent>
 
         {/* Courses */}
         <TabsContent value="courses" className="space-y-4">
