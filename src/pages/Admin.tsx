@@ -21,6 +21,8 @@ interface ProfileRow {
   subscription_tier: string;
   created_at: string;
   whatsapp_number?: string | null;
+  real_name?: string | null;
+  name_verified?: boolean;
 }
 
 // Mask CPF: 123.456.789-00 → ***.456.***-**
