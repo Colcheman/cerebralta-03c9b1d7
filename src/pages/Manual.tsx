@@ -166,8 +166,8 @@ const Manual = () => (
           <Percent className="w-5 h-5 text-accent" />
         </div>
         <div>
-          <h2 className="text-sm font-bold text-foreground">Sistema de Desconto</h2>
-          <p className="text-xs text-muted-foreground">Evolua e pague menos na assinatura</p>
+          <h2 className="text-sm font-bold text-foreground">Sistema de Desconto — R$ 52,90/mês</h2>
+          <p className="text-xs text-muted-foreground">Você já começa com 75% de desconto!</p>
         </div>
       </div>
 
