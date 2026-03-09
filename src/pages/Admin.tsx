@@ -66,7 +66,6 @@ const Admin = () => {
   // Delete user
   const [deleteTarget, setDeleteTarget] = useState<ProfileRow | null>(null);
   const [deletingUser, setDeletingUser] = useState(false);
-  const [resettingPassword, setResettingPassword] = useState(false);
 
   useEffect(() => {
     if (!user) return;
