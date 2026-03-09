@@ -174,7 +174,7 @@ const Feed = () => {
             >
               <Search className="w-4 h-4" />
             </button>
-            <div className="flex items-center gap-1.5 text-streak">
+            <div className="flex items-center gap-1.5 text-streak" title="Dias seguidos">
               <Flame className="w-4 h-4" />
               <span className="text-sm font-bold">{profile?.streak ?? 0}</span>
             </div>

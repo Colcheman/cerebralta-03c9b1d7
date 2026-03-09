@@ -245,7 +245,7 @@ const Admin = () => {
                       <th className="px-4 py-3 text-muted-foreground font-medium">Nome</th>
                       <th className="px-4 py-3 text-muted-foreground font-medium">Nível</th>
                       <th className="px-4 py-3 text-muted-foreground font-medium">Pontos</th>
-                      <th className="px-4 py-3 text-muted-foreground font-medium">Streak</th>
+                      <th className="px-4 py-3 text-muted-foreground font-medium">Sequência</th>
                       <th className="px-4 py-3 text-muted-foreground font-medium">Plano</th>
                       <th className="px-4 py-3 text-muted-foreground font-medium"><Clock className="w-3.5 h-3.5 inline" /> Tempo</th>
                       <th className="px-4 py-3 text-muted-foreground font-medium">Ações</th>
@@ -269,7 +269,7 @@ const Admin = () => {
                         </td>
                         <td className="px-4 py-3 text-accent">{p.level}</td>
                         <td className="px-4 py-3">{p.points}</td>
-                        <td className="px-4 py-3 text-streak">{p.streak}🔥</td>
+                        <td className="px-4 py-3 text-streak">{p.streak} dias🔥</td>
                         <td className="px-4 py-3">
                           <button
                             onClick={() => togglePremium(p.user_id, p.subscription_tier)}

@@ -10,7 +10,7 @@ interface StreakCelebrationProps {
 
 const MILESTONES = [
   { days: 7, title: "1 Semana de Fogo! 🔥", message: "Você manteve a disciplina por 7 dias seguidos. A maioria desiste no terceiro dia.", color: "from-orange-500 to-amber-500" },
-  { days: 30, title: "1 Mês Imparável! 💎", message: "30 dias de presença constante. Você já está no top 5% dos usuários.", color: "from-blue-500 to-cyan-500" },
+  { days: 30, title: "1 Mês Imparável! 💎", message: "30 dias de presença constante. Você já está no top 5% dos membros.", color: "from-blue-500 to-cyan-500" },
   { days: 100, title: "Centurião Mental! 👑", message: "100 dias consecutivos. Você provou que disciplina é seu estilo de vida.", color: "from-yellow-500 to-amber-600" },
 ];
 
@@ -97,7 +97,7 @@ const StreakCelebration = ({ streak, onDismiss }: StreakCelebrationProps) => {
             transition={{ delay: 0.6 }}
             className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-accent to-primary"
           >
-            {streak} 🔥
+            {streak} dias 🔥
           </motion.div>
 
           <motion.button

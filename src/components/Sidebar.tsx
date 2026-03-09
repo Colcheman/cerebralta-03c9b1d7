@@ -76,7 +76,7 @@ const Sidebar = () => {
           </div>
           <div className="flex items-center gap-1.5 mt-3">
             <Flame className="w-4 h-4 text-streak" />
-            <span className="text-xs font-semibold text-streak">{streak} dias de streak</span>
+            <span className="text-xs font-semibold text-streak">{streak} dias seguidos</span>
           </div>
         </div>
       </div>

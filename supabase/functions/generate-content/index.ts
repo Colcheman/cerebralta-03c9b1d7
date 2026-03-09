@@ -31,7 +31,7 @@ serve(async (req) => {
     if (mode === "generate_missions" || mode === "generate_tip" || mode === "generate_course" || mode === "generate_post") {
       const { data: profile } = await supabase.from("profiles").select("display_name, level, points, streak").eq("user_id", user.id).single();
       if (profile) {
-        userContext = `\nContexto do usuário: Nome: ${profile.display_name}, Nível: ${profile.level}, Pontos: ${profile.points}, Streak: ${profile.streak} dias.`;
+        userContext = `\nContexto do usuário: Nome: ${profile.display_name}, Nível: ${profile.level}, Pontos: ${profile.points}, Dias seguidos: ${profile.streak} dias.`;
       }
     }
 
