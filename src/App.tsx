@@ -19,6 +19,7 @@ import GroupDetail from "./pages/GroupDetail";
 import Config from "./pages/Config";
 import Sobre from "./pages/Sobre";
 import Manual from "./pages/Manual";
+import LocaleSetup from "./pages/LocaleSetup";
 import Admin from "./pages/Admin";
 import Mensagens from "./pages/Mensagens";
 import Amigos from "./pages/Amigos";
@@ -58,6 +59,7 @@ const App = () => (
             <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Login />} />
+                <Route path="/locale-setup" element={<LocaleSetup />} />
                 <Route path="/assinatura" element={<Assinatura />} />
                 <Route element={<AppLayout />}>
                 <Route path="/feed" element={<Feed />} />
