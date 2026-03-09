@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,156 +10,194 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    // Try GEMINI_API_KEY first (portable), fallback to LOVABLE_API_KEY (Lovable Cloud)
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!LOVABLE_API_KEY && !GEMINI_API_KEY) throw new Error("No AI API key configured");
 
-    const { messages, mode } = await req.json();
+    const authHeader = req.headers.get("Authorization");
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader ?? "" } } }
+    );
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return new Response(JSON.stringify({ error: "Não autorizado" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+    const { mode, messages, context } = await req.json();
+
+    // For user-facing generation, fetch their profile for personalization
+    let userContext = "";
+    if (mode === "generate_missions" || mode === "generate_tip" || mode === "generate_course" || mode === "generate_post") {
+      const { data: profile } = await supabase.from("profiles").select("display_name, level, points, streak").eq("user_id", user.id).single();
+      if (profile) {
+        userContext = `\nContexto do usuário: Nome: ${profile.display_name}, Nível: ${profile.level}, Pontos: ${profile.points}, Streak: ${profile.streak} dias.`;
+      }
+    }
 
     const systemPrompts: Record<string, string> = {
+      generate_missions: `Você é o criador de missões da plataforma Cerebralta - uma rede de desenvolvimento mental masculino.
+${userContext}
+Gere EXATAMENTE 3 missões práticas e desafiadoras para este usuário baseado no nível dele.
+Retorne APENAS um JSON array no formato:
+[{"title":"...","description":"...","category":"...","points":N,"icon":"emoji"}]
+Categorias válidas: disciplina, mindset, social, saúde, estratégia.
+Pontos entre 10 e 50. Missões devem ser realizáveis em 1 dia.
+Cada missão deve exigir ação real, não apenas leitura. Seja criativo e desafiador.
+Escreva em português brasileiro.`,
+
+      generate_tip: `Você é um mentor de desenvolvimento pessoal da plataforma Cerebralta.
+${userContext}
+Gere uma dica personalizada para este usuário baseada no nível e progresso dele.
+A dica deve ser prática, profunda e acionável. Entre 2-4 parágrafos.
+Escreva em português brasileiro. Sem formatação JSON, apenas texto em markdown.`,
+
+      generate_course: `Você é um criador de conteúdo educacional da plataforma Cerebralta.
+${userContext}
+${context ? `Tema solicitado: ${context}` : ""}
+Gere um artigo/módulo educacional completo.
+Retorne EXATAMENTE neste formato JSON:
+{"title":"...","description":"resumo de 1 linha","category":"...","content":"conteúdo completo em markdown"}
+Categorias válidas: geral, estratégia, estoicismo, psicologia, liderança.
+O conteúdo deve ter no mínimo 500 palavras, ser profundo e prático.
+Escreva em português brasileiro.`,
+
+      generate_post: `Você é o perfil oficial "Cerebralta" da plataforma.
+${userContext}
+Gere um post reflexivo/motivacional poderoso para o feed.
+O post deve ter entre 100-300 caracteres, ser impactante e provocativo.
+Retorne EXATAMENTE neste formato JSON:
+{"content":"...","category":"reflexão|estratégia|estoicismo|prática"}
+Escreva em português brasileiro. Sem hashtags, sem emojis excessivos.`,
+
       generate: `Você é um criador de conteúdo educacional para a plataforma Cerebralta. 
 Quando o usuário pedir para gerar um módulo de curso, retorne EXATAMENTE no formato JSON:
 {"title": "...", "description": "...", "category": "...", "content": "..."}
 Categorias válidas: geral, estratégia, estoicismo, psicologia, liderança.
 O campo "content" deve ser o conteúdo completo do módulo em markdown, detalhado e educativo.
 Escreva em português brasileiro. Seja profundo, prático e inspirador.`,
-      
+
       assistant: `Você é um assistente de escrita para a plataforma educacional Cerebralta.
 Ajude o administrador a refinar, melhorar e criar conteúdo educacional.
-Responda em português brasileiro. Seja útil, conciso e criativo.
-Pode sugerir melhorias de texto, gerar ideias, reformular conteúdo, etc.`,
+Responda em português brasileiro. Seja útil, conciso e criativo.`,
     };
 
     const systemPrompt = systemPrompts[mode] || systemPrompts.assistant;
 
-    // Route to Gemini API directly if key available, otherwise use Lovable gateway
-    if (GEMINI_API_KEY) {
-      return await callGeminiDirect(GEMINI_API_KEY, systemPrompt, messages);
-    } else if (LOVABLE_API_KEY) {
-      return await callLovableGateway(LOVABLE_API_KEY, systemPrompt, messages);
-    } else {
-      throw new Error("Nenhuma API key configurada (GEMINI_API_KEY ou LOVABLE_API_KEY)");
+    // Non-streaming for structured responses
+    if (["generate_missions", "generate_course", "generate_post"].includes(mode)) {
+      const aiMessages = [
+        { role: "system", content: systemPrompt },
+        ...(messages ?? [{ role: "user", content: context || "Gere o conteúdo agora." }]),
+      ];
+
+      const apiKey = LOVABLE_API_KEY || GEMINI_API_KEY;
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ model: "google/gemini-3-flash-preview", messages: aiMessages, stream: false }),
+      });
+
+      if (!response.ok) {
+        const status = response.status;
+        if (status === 429) return new Response(JSON.stringify({ error: "Rate limit. Tente novamente em alguns segundos." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        if (status === 402) return new Response(JSON.stringify({ error: "Créditos de IA esgotados." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        throw new Error(`AI error: ${status}`);
+      }
+
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content ?? "";
+
+      // Auto-save generated content to DB
+      if (mode === "generate_missions") {
+        try {
+          const jsonMatch = content.match(/\[[\s\S]*\]/);
+          if (jsonMatch) {
+            const missions = JSON.parse(jsonMatch[0]);
+            for (const m of missions) {
+              await supabase.from("missions").insert({
+                title: m.title,
+                description: m.description,
+                category: m.category,
+                points: m.points || 10,
+                icon: m.icon || "📝",
+                is_active: true,
+                is_premium: false,
+              });
+            }
+            // Auto-assign to user
+            const { data: newMissions } = await supabase.from("missions").select("id").eq("is_active", true).order("created_at", { ascending: false }).limit(missions.length);
+            if (newMissions) {
+              for (const nm of newMissions) {
+                await supabase.from("user_missions").insert({ user_id: user.id, mission_id: nm.id }).maybeSingle();
+              }
+            }
+          }
+        } catch (e) { console.error("Failed to save missions:", e); }
+      }
+
+      if (mode === "generate_post") {
+        try {
+          const jsonMatch = content.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const post = JSON.parse(jsonMatch[0]);
+            await supabase.from("posts").insert({
+              user_id: user.id,
+              content: post.content,
+              category: post.category || "reflexão",
+            });
+          }
+        } catch (e) { console.error("Failed to save post:", e); }
+      }
+
+      if (mode === "generate_course") {
+        try {
+          const jsonMatch = content.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const course = JSON.parse(jsonMatch[0]);
+            await supabase.from("courses").insert({
+              title: course.title,
+              description: course.description || "",
+              category: course.category || "geral",
+              author_id: user.id,
+            });
+          }
+        } catch (e) { console.error("Failed to save course:", e); }
+      }
+
+      return new Response(JSON.stringify({ content }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
+
+    // Streaming for tips and assistant mode
+    const aiMessages = [
+      { role: "system", content: systemPrompt },
+      ...(messages ?? [{ role: "user", content: context || "Gere o conteúdo agora." }]),
+    ];
+
+    const apiKey = LOVABLE_API_KEY || GEMINI_API_KEY;
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "google/gemini-3-flash-preview", messages: aiMessages, stream: true }),
+    });
+
+    if (!response.ok) {
+      const status = response.status;
+      if (status === 429) return new Response(JSON.stringify({ error: "Rate limit. Tente novamente." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      if (status === 402) return new Response(JSON.stringify({ error: "Créditos de IA esgotados." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      throw new Error(`AI error: ${status}`);
+    }
+
+    return new Response(response.body, {
+      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+    });
   } catch (e) {
     console.error("generate-content error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
+    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Erro desconhecido" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
-
-// Google Gemini API directly (portable - works on Cloudflare, Vercel, etc.)
-async function callGeminiDirect(apiKey: string, systemPrompt: string, messages: any[]) {
-  const geminiMessages = [
-    { role: "user", parts: [{ text: systemPrompt }] },
-    { role: "model", parts: [{ text: "Entendido. Estou pronto para ajudar." }] },
-    ...messages.map((m: any) => ({
-      role: m.role === "assistant" ? "model" : "user",
-      parts: [{ text: m.content }],
-    })),
-  ];
-
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?alt=sse&key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: geminiMessages,
-        generationConfig: {
-          temperature: 0.8,
-          maxOutputTokens: 4096,
-        },
-      }),
-    }
-  );
-
-  if (!response.ok) {
-    const errText = await response.text();
-    console.error("Gemini API error:", response.status, errText);
-    if (response.status === 429) {
-      return new Response(JSON.stringify({ error: "Rate limit do Gemini. Tente novamente em alguns segundos." }), {
-        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    return new Response(JSON.stringify({ error: "Erro na API do Gemini" }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-
-  // Transform Gemini SSE to OpenAI-compatible SSE format for the frontend
-  const transformStream = new TransformStream({
-    transform(chunk, controller) {
-      const text = new TextDecoder().decode(chunk);
-      const lines = text.split("\n");
-      
-      for (const line of lines) {
-        if (!line.startsWith("data: ")) continue;
-        const jsonStr = line.slice(6).trim();
-        if (!jsonStr) continue;
-        
-        try {
-          const parsed = JSON.parse(jsonStr);
-          const content = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (content) {
-            // Emit in OpenAI-compatible format
-            const openAIChunk = {
-              choices: [{ delta: { content } }],
-            };
-            controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(openAIChunk)}\n\n`));
-          }
-        } catch { /* partial json */ }
-      }
-    },
-    flush(controller) {
-      controller.enqueue(new TextEncoder().encode("data: [DONE]\n\n"));
-    },
-  });
-
-  const stream = response.body!.pipeThrough(transformStream);
-  return new Response(stream, {
-    headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
-  });
-}
-
-// Lovable AI Gateway (works only inside Lovable Cloud)
-async function callLovableGateway(apiKey: string, systemPrompt: string, messages: any[]) {
-  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "google/gemini-3-flash-preview",
-      messages: [
-        { role: "system", content: systemPrompt },
-        ...messages,
-      ],
-      stream: true,
-    }),
-  });
-
-  if (!response.ok) {
-    if (response.status === 429) {
-      return new Response(JSON.stringify({ error: "Rate limit exceeded. Tente novamente." }), {
-        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    if (response.status === 402) {
-      return new Response(JSON.stringify({ error: "Créditos de IA esgotados." }), {
-        status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const t = await response.text();
-    console.error("AI gateway error:", response.status, t);
-    return new Response(JSON.stringify({ error: "Erro no gateway de IA" }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-
-  return new Response(response.body, {
-    headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
-  });
-}
