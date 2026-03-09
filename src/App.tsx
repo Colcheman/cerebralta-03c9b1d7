@@ -18,6 +18,7 @@ import Grupos from "./pages/Grupos";
 import GroupDetail from "./pages/GroupDetail";
 import Config from "./pages/Config";
 import Sobre from "./pages/Sobre";
+import Manual from "./pages/Manual";
 import Admin from "./pages/Admin";
 import Mensagens from "./pages/Mensagens";
 import Amigos from "./pages/Amigos";
