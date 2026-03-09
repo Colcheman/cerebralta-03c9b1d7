@@ -49,6 +49,12 @@ const Config = () => {
   const [pinStep, setPinStep] = useState<"idle" | "enter" | "confirm">("idle");
   const [savingPin, setSavingPin] = useState(false);
 
+  // Change password
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
+
   const updateProfile = async (field: string, value: any) => {
     if (!user) return;
     await supabase.from("profiles").update({ [field]: value }).eq("user_id", user.id);
@@ -249,6 +255,70 @@ const Config = () => {
               <p className="text-xs text-muted-foreground">Proteja sua conta com verificação dupla</p>
             </div>
             <Toggle on={twoFactor} onToggle={(v) => { setTwoFactor(v); updateProfile("two_factor_enabled", v); }} />
+          </div>
+
+          <div className="border-t border-border pt-4 mt-2 space-y-3">
+            <div className="flex items-center gap-2 mb-2">
+              <KeyRound className="w-4 h-4 text-primary" />
+              <p className="text-sm font-medium text-foreground">Alterar Senha</p>
+            </div>
+            <input
+              type="password"
+              value={currentPassword}
+              onChange={e => setCurrentPassword(e.target.value)}
+              placeholder="Senha atual"
+              className="w-full bg-muted border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+            <input
+              type="password"
+              value={newPassword}
+              onChange={e => setNewPassword(e.target.value)}
+              placeholder="Nova senha (mín. 6 caracteres)"
+              className="w-full bg-muted border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              placeholder="Confirmar nova senha"
+              className="w-full bg-muted border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+            <Button
+              className="w-full gap-2"
+              disabled={changingPassword || newPassword.length < 6 || newPassword !== confirmPassword || !currentPassword}
+              onClick={async () => {
+                if (newPassword !== confirmPassword) {
+                  toast({ title: "Senhas não conferem", variant: "destructive" });
+                  return;
+                }
+                setChangingPassword(true);
+                // Re-authenticate with current password to verify
+                const cpfEmail = user?.email;
+                if (!cpfEmail) { setChangingPassword(false); return; }
+                const { error: signInError } = await supabase.auth.signInWithPassword({
+                  email: cpfEmail,
+                  password: currentPassword,
+                });
+                if (signInError) {
+                  toast({ title: "Senha atual incorreta", description: "Verifique sua senha atual e tente novamente.", variant: "destructive" });
+                  setChangingPassword(false);
+                  return;
+                }
+                const { error } = await supabase.auth.updateUser({ password: newPassword });
+                setChangingPassword(false);
+                if (error) {
+                  toast({ title: "Erro ao alterar senha", description: error.message, variant: "destructive" });
+                } else {
+                  toast({ title: "🔑 Senha alterada!", description: "Sua nova senha está ativa." });
+                  setCurrentPassword("");
+                  setNewPassword("");
+                  setConfirmPassword("");
+                }
+              }}
+            >
+              {changingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />}
+              Alterar Senha
+            </Button>
           </div>
         </motion.div>
 
