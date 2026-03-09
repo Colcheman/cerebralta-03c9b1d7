@@ -201,13 +201,27 @@ const Login = () => {
                 <input
                   type="text"
                   value={cpf}
-                  onChange={(e) => setCpf(formatCPF(e.target.value))}
+                  onChange={(e) => handleCpfChange(e.target.value)}
                   className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                   placeholder="000.000.000-00"
                   maxLength={14}
                 />
-                <Shield className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
+                {lookupLoading ? (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary animate-spin" />
+                ) : (
+                  <Shield className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
+                )}
               </div>
+              {isRegister && lookupName && (
+                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-1.5 text-xs text-green-500 mt-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Nome encontrado: <span className="font-medium">{lookupName}</span>
+                </motion.p>
+              )}
+              {isRegister && lookupError && (
+                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1.5">
+                  <AlertCircle className="w-3.5 h-3.5" /> {lookupError} — digite o nome manualmente
+                </motion.p>
+              )}
             </div>
 
             <div>
