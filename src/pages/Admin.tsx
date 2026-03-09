@@ -239,8 +239,9 @@ const Admin = () => {
                     <th className="px-4 py-3 text-muted-foreground font-medium">Nível</th>
                     <th className="px-4 py-3 text-muted-foreground font-medium">Pontos</th>
                     <th className="px-4 py-3 text-muted-foreground font-medium">Streak</th>
-                    <th className="px-4 py-3 text-muted-foreground font-medium">Plano</th>
-                    <th className="px-4 py-3 text-muted-foreground font-medium"><Clock className="w-3.5 h-3.5 inline" /> Tempo</th>
+                     <th className="px-4 py-3 text-muted-foreground font-medium">Plano</th>
+                     <th className="px-4 py-3 text-muted-foreground font-medium"><Clock className="w-3.5 h-3.5 inline" /> Tempo</th>
+                     <th className="px-4 py-3 text-muted-foreground font-medium">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
