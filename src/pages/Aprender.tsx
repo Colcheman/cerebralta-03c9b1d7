@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Check, Zap, BookOpen, Loader2, AlertTriangle } from "lucide-react";
+import { Check, Zap, BookOpen, Loader2, AlertTriangle, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 
 interface Mission {
   id: string;
@@ -27,30 +28,53 @@ const Aprender = () => {
   const [completing, setCompleting] = useState<string | null>(null);
   const [expandedMission, setExpandedMission] = useState<string | null>(null);
   const [reflections, setReflections] = useState<Map<string, string>>(new Map());
+  const [generating, setGenerating] = useState(false);
 
-  useEffect(() => {
+  const loadData = async () => {
     if (!user) return;
-    const load = async () => {
-      const { data: missionsData } = await supabase
-        .from("missions")
-        .select("*")
-        .eq("is_active", true)
-        .order("created_at", { ascending: false });
+    const { data: missionsData } = await supabase
+      .from("missions")
+      .select("*")
+      .eq("is_active", true)
+      .order("created_at", { ascending: false });
 
-      setMissions((missionsData ?? []) as Mission[]);
+    setMissions((missionsData ?? []) as Mission[]);
 
-      const { data: userMissionsData } = await supabase
-        .from("user_missions")
-        .select("mission_id, completed")
-        .eq("user_id", user.id);
+    const { data: userMissionsData } = await supabase
+      .from("user_missions")
+      .select("mission_id, completed")
+      .eq("user_id", user.id);
 
-      const map = new Map<string, boolean>();
-      (userMissionsData ?? []).forEach((um: UserMission) => map.set(um.mission_id, um.completed));
-      setUserMissions(map);
-      setLoading(false);
-    };
-    load();
-  }, [user]);
+    const map = new Map<string, boolean>();
+    (userMissionsData ?? []).forEach((um: UserMission) => map.set(um.mission_id, um.completed));
+    setUserMissions(map);
+    setLoading(false);
+  };
+
+  useEffect(() => { loadData(); }, [user]);
+
+  const allCompleted = missions.length > 0 && missions.every(m => userMissions.get(m.id) === true);
+
+  const handleGenerateMissions = async () => {
+    if (!user || generating) return;
+    setGenerating(true);
+    toast.info("🧠 Gerando novas missões com IA...");
+
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-content", {
+        body: { mode: "generate_missions", context: `Nível: ${profile?.level}, Pontos: ${profile?.points}` },
+      });
+
+      if (error) throw error;
+      toast.success("✅ Novas missões geradas!");
+      await loadData();
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.message || "Erro ao gerar missões");
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const handleExpand = (missionId: string) => {
     const isCompleted = userMissions.get(missionId) === true;
@@ -68,17 +92,16 @@ const Aprender = () => {
 
     setCompleting(missionId);
 
-    // Assign mission if not yet assigned
     if (!userMissions.has(missionId)) {
       await supabase.from("user_missions").insert({ user_id: user.id, mission_id: missionId });
     }
 
-    // Complete via RPC
     const { data: success } = await supabase.rpc("complete_mission", { _mission_id: missionId });
 
     if (success) {
       setUserMissions(prev => new Map(prev).set(missionId, true));
       setExpandedMission(null);
+      toast.success(`+${missions.find(m => m.id === missionId)?.points ?? 0} pontos!`);
     }
     setCompleting(null);
   };
@@ -134,12 +157,39 @@ const Aprender = () => {
             </div>
           )}
 
+          {/* Generate button - shows when all completed or no missions */}
+          {(allCompleted || missions.length === 0) && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              onClick={handleGenerateMissions}
+              disabled={generating}
+              className="w-full mb-6 p-5 rounded-2xl bg-gradient-to-r from-primary/20 to-accent/20 border border-primary/30 hover:border-primary/50 transition-all group"
+            >
+              <div className="flex items-center justify-center gap-3">
+                {generating ? (
+                  <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                ) : (
+                  <Sparkles className="w-5 h-5 text-primary group-hover:scale-110 transition-transform" />
+                )}
+                <div className="text-left">
+                  <p className="text-sm font-bold text-foreground">
+                    {missions.length === 0 ? "Gerar minhas primeiras missões" : "🎉 Todas completas! Gerar novas missões"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    A IA vai criar desafios personalizados para seu nível
+                  </p>
+                </div>
+              </div>
+            </motion.button>
+          )}
+
           {/* Missions */}
-          {missions.length === 0 ? (
+          {missions.length === 0 && !generating ? (
             <div className="text-center py-12">
               <BookOpen className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">Nenhuma missão disponível no momento.</p>
-              <p className="text-xs text-muted-foreground mt-1">O administrador ainda não publicou missões.</p>
+              <p className="text-sm text-muted-foreground">Nenhuma missão disponível.</p>
+              <p className="text-xs text-muted-foreground mt-1">Clique acima para gerar suas primeiras missões!</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -160,15 +210,10 @@ const Aprender = () => {
                       isCompleted ? "opacity-70" : "hover:border-primary/20"
                     }`}
                   >
-                    <div
-                      onClick={() => handleExpand(mission.id)}
-                      className="p-4 cursor-pointer"
-                    >
+                    <div onClick={() => handleExpand(mission.id)} className="p-4 cursor-pointer">
                       <div className="flex items-start gap-4">
                         <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all ${
-                          isCompleted
-                            ? "bg-success border-success"
-                            : "border-border"
+                          isCompleted ? "bg-success border-success" : "border-border"
                         }`}>
                           {isCompleting ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
@@ -192,7 +237,6 @@ const Aprender = () => {
                       </div>
                     </div>
 
-                    {/* Reflection area */}
                     {isExpanded && !isCompleted && (
                       <motion.div
                         initial={{ height: 0, opacity: 0 }}
@@ -204,9 +248,7 @@ const Aprender = () => {
                         </label>
                         <Textarea
                           value={reflection}
-                          onChange={(e) =>
-                            setReflections(prev => new Map(prev).set(mission.id, e.target.value))
-                          }
+                          onChange={(e) => setReflections(prev => new Map(prev).set(mission.id, e.target.value))}
                           placeholder="Escreva aqui sua reflexão honesta sobre como praticou essa missão... (mínimo 20 caracteres)"
                           className="text-sm min-h-[80px] bg-muted/50 border-border"
                         />
@@ -223,11 +265,7 @@ const Aprender = () => {
                                 : "bg-muted text-muted-foreground cursor-not-allowed"
                             }`}
                           >
-                            {isCompleting ? (
-                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            ) : (
-                              "Concluir Missão"
-                            )}
+                            {isCompleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Concluir Missão"}
                           </button>
                         </div>
                       </motion.div>
