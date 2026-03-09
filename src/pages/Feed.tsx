@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Flame, Send, X } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Flame, X, Search, User } from "lucide-react";
 import { sanitizeText } from "@/lib/sanitize";
 import PostCard from "@/components/PostCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 const categories = ["Todos", "Reflexão", "Estratégia", "Estoicismo", "Prática"];
 
@@ -29,6 +30,14 @@ interface QuoteTarget {
   author: string;
 }
 
+interface SearchResult {
+  type: "user" | "post";
+  id: string;
+  title: string;
+  subtitle?: string;
+  userId?: string;
+}
+
 const Feed = () => {
   const [filter, setFilter] = useState("Todos");
   const [posts, setPosts] = useState<PostWithProfile[]>([]);
@@ -36,14 +45,21 @@ const Feed = () => {
   const [newCategory, setNewCategory] = useState<string>("reflexão");
   const [loading, setLoading] = useState(true);
   const [quoting, setQuoting] = useState<QuoteTarget | null>(null);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { profile, user } = useAuth();
+  const navigate = useNavigate();
 
   const fetchPosts = async () => {
     const { data } = await supabase.from("posts").select("*").order("created_at", { ascending: false }).limit(20);
     if (!data) { setLoading(false); return; }
     const userIds = [...new Set(data.map(p => p.user_id))];
-    const { data: profiles } = await supabase.from("profiles").select("user_id, display_name, level, avatar_url").in("user_id", userIds);
-    const profileMap = new Map(profiles?.map(p => [p.user_id, p]) ?? []);
+    const { data: profiles } = await supabase.from("safe_profiles").select("user_id, display_name, level, avatar_url").in("user_id", userIds);
+    const profileMap = new Map(profiles?.map(p => [p.user_id!, p]) ?? []);
 
     const quotedIds = data.filter(p => p.quoted_post_id).map(p => p.quoted_post_id!);
     let quotedMap = new Map<string, { content: string; user_id: string }>();
@@ -67,6 +83,60 @@ const Feed = () => {
   };
 
   useEffect(() => { fetchPosts(); }, []);
+
+  // Close search on click outside
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowSearch(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const runSearch = useCallback(async (q: string) => {
+    if (!q.trim()) { setSearchResults([]); return; }
+    setSearchLoading(true);
+    const term = q.trim();
+
+    const [{ data: users }, { data: foundPosts }] = await Promise.all([
+      supabase.from("safe_profiles").select("user_id, display_name, level").ilike("display_name", `%${term}%`).limit(5),
+      supabase.from("posts").select("id, content, user_id, category").ilike("content", `%${term}%`).limit(5),
+    ]);
+
+    const postUserIds = [...new Set(foundPosts?.map(p => p.user_id) ?? [])];
+    let postProfileMap = new Map<string, string>();
+    if (postUserIds.length > 0) {
+      const { data: pp } = await supabase.from("safe_profiles").select("user_id, display_name").in("user_id", postUserIds);
+      postProfileMap = new Map(pp?.map(p => [p.user_id!, p.display_name ?? "Arquiteto Mental"]) ?? []);
+    }
+
+    const results: SearchResult[] = [
+      ...(users ?? []).map(u => ({
+        type: "user" as const,
+        id: u.user_id!,
+        title: u.display_name ?? "Arquiteto Mental",
+        subtitle: u.level ?? "Iniciante",
+        userId: u.user_id!,
+      })),
+      ...(foundPosts ?? []).map(p => ({
+        type: "post" as const,
+        id: p.id,
+        title: p.content.slice(0, 80) + (p.content.length > 80 ? "…" : ""),
+        subtitle: postProfileMap.get(p.user_id) ?? "Arquiteto Mental",
+        userId: p.user_id,
+      })),
+    ];
+    setSearchResults(results);
+    setSearchLoading(false);
+  }, []);
+
+  const handleSearchChange = (val: string) => {
+    setSearchQuery(val);
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => runSearch(val), 400);
+  };
 
   const handlePost = async () => {
     if (!newPost.trim() || !user) return;
@@ -96,11 +166,91 @@ const Feed = () => {
       <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="flex items-center justify-between px-4 py-3">
           <h1 className="text-lg font-bold text-foreground">Feed</h1>
-          <div className="flex items-center gap-1.5 text-streak">
-            <Flame className="w-4 h-4" />
-            <span className="text-sm font-bold">{profile?.streak ?? 0}</span>
+          <div className="flex items-center gap-3">
+            {/* Search toggle */}
+            <button
+              onClick={() => { setShowSearch(s => !s); setSearchQuery(""); setSearchResults([]); }}
+              className="p-1.5 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+            >
+              <Search className="w-4 h-4" />
+            </button>
+            <div className="flex items-center gap-1.5 text-streak">
+              <Flame className="w-4 h-4" />
+              <span className="text-sm font-bold">{profile?.streak ?? 0}</span>
+            </div>
           </div>
         </div>
+
+        {/* Search bar */}
+        <AnimatePresence>
+          {showSearch && (
+            <motion.div
+              ref={searchRef}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="relative px-4 pb-3"
+            >
+              <div className="flex items-center gap-2 bg-muted rounded-full px-4 py-2 border border-border">
+                <Search className="w-4 h-4 text-muted-foreground shrink-0" />
+                <input
+                  autoFocus
+                  value={searchQuery}
+                  onChange={e => handleSearchChange(e.target.value)}
+                  placeholder="Pesquisar usuários, ideias, postagens..."
+                  className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
+                />
+                {searchQuery && (
+                  <button onClick={() => { setSearchQuery(""); setSearchResults([]); }} className="text-muted-foreground hover:text-foreground">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Results dropdown */}
+              {(searchLoading || searchResults.length > 0 || (searchQuery && !searchLoading)) && (
+                <div className="absolute left-4 right-4 top-full mt-1 bg-card border border-border rounded-xl shadow-lg z-50 overflow-hidden">
+                  {searchLoading && (
+                    <div className="px-4 py-3 text-xs text-muted-foreground">Pesquisando...</div>
+                  )}
+                  {!searchLoading && searchResults.length === 0 && searchQuery && (
+                    <div className="px-4 py-3 text-xs text-muted-foreground">Nenhum resultado para "{searchQuery}"</div>
+                  )}
+                  {!searchLoading && searchResults.map((r, i) => (
+                    <button
+                      key={r.id + i}
+                      onClick={() => {
+                        if (r.type === "user") navigate(`/perfil/${r.userId}`);
+                        else navigate(`/perfil/${r.userId}`);
+                        setShowSearch(false);
+                        setSearchQuery("");
+                        setSearchResults([]);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors border-b border-border last:border-0 text-left"
+                    >
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                        r.type === "user" ? "bg-gradient-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                      }`}>
+                        {r.type === "user" ? r.title.slice(0, 2).toUpperCase() : <User className="w-3.5 h-3.5" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{r.title}</p>
+                        {r.subtitle && <p className="text-xs text-muted-foreground truncate">{r.type === "user" ? r.subtitle : `por ${r.subtitle}`}</p>}
+                      </div>
+                      {r.type === "user" && (
+                        <span className="text-[10px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full shrink-0">Perfil</span>
+                      )}
+                      {r.type === "post" && (
+                        <span className="text-[10px] font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full shrink-0">Post</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <div className="flex overflow-x-auto scrollbar-hide border-b border-border">
           {categories.map(cat => (
             <button key={cat} onClick={() => setFilter(cat)}
