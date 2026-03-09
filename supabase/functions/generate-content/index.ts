@@ -103,7 +103,7 @@ Responda em português brasileiro. Seja útil, conciso e criativo.`,
     const systemPrompt = systemPrompts[mode] || systemPrompts.assistant;
 
     // Non-streaming for structured responses
-    if (["generate_missions", "generate_course", "generate_post"].includes(mode)) {
+    if (["generate_missions", "generate_course", "generate_post", "onboarding_chat"].includes(mode)) {
       const aiMessages = [
         { role: "system", content: systemPrompt },
         ...(messages ?? [{ role: "user", content: context || "Gere o conteúdo agora." }]),
