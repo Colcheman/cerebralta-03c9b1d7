@@ -82,6 +82,25 @@ const Config = () => {
     setAvatarUploading(false);
   };
 
+  const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    if (file.size > 5 * 1024 * 1024) { toast({ title: "Arquivo muito grande", description: "Máximo 5MB.", variant: "destructive" }); return; }
+    setBannerUploading(true);
+    const ext = file.name.split(".").pop();
+    const path = `${user.id}.${ext}`;
+    const { error } = await supabase.storage.from("banners").upload(path, file, { upsert: true });
+    if (!error) {
+      const { data: { publicUrl } } = supabase.storage.from("banners").getPublicUrl(path);
+      setBannerUrl(publicUrl);
+      await supabase.from("profiles").update({ banner_url: publicUrl }).eq("user_id", user.id);
+      toast({ title: "🖼️ Banner atualizado!" });
+    } else {
+      toast({ title: "Erro ao enviar banner", variant: "destructive" });
+    }
+    setBannerUploading(false);
+  };
+
   const saveRecoveryEmail = async () => {
     if (!recoveryEmail.trim() || !user) return;
     setSavingEmail(true);
