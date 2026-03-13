@@ -25,6 +25,7 @@ import Mensagens from "./pages/Mensagens";
 import Amigos from "./pages/Amigos";
 import NotFound from "./pages/NotFound";
 import Perfil from "./pages/Perfil";
+import Metas from "./pages/Metas";
 
 const queryClient = new QueryClient();
 
