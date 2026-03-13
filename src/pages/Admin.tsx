@@ -85,8 +85,16 @@ const Admin = () => {
         setLoadingProfiles(false);
       });
       // Load webhook URL
-      supabase.from("admin_settings").select("value").eq("key", "whatsapp_webhook_url").single().then(({ data }) => {
-        if (data) setWebhookUrl(data.value);
+      supabase.from("admin_settings").select("*").then(({ data }) => {
+        const settings = data ?? [];
+        const wh = settings.find((s: any) => s.key === "whatsapp_webhook_url");
+        if (wh) setWebhookUrl((wh as any).value);
+        const env = settings.find((s: any) => s.key === "asaas_environment");
+        if (env) setAsaasEnv((env as any).value);
+        const awh = settings.find((s: any) => s.key === "asaas_webhook_url");
+        if (awh) setAsaasWebhook((awh as any).value);
+        const ak = settings.find((s: any) => s.key === "asaas_api_key_configured");
+        setAsaasKeyConfigured(!!ak);
       });
     }
   }, [isAdmin]);
