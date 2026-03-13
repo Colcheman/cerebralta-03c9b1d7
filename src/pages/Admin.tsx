@@ -233,12 +233,13 @@ const Admin = () => {
       </motion.div>
 
       <Tabs defaultValue="users" className="space-y-4">
-        <TabsList className="bg-muted">
+        <TabsList className="bg-muted flex-wrap">
           <TabsTrigger value="users" className="gap-1.5"><Users className="w-4 h-4" /> Arquitetos</TabsTrigger>
           <TabsTrigger value="courses" className="gap-1.5"><BookOpen className="w-4 h-4" /> Cursos</TabsTrigger>
           <TabsTrigger value="ai" className="gap-1.5"><Bot className="w-4 h-4" /> IA</TabsTrigger>
           <TabsTrigger value="news" className="gap-1.5"><Megaphone className="w-4 h-4" /> News</TabsTrigger>
-          <TabsTrigger value="settings" className="gap-1.5"><Settings className="w-4 h-4" /> Webhooks</TabsTrigger>
+          <TabsTrigger value="asaas" className="gap-1.5"><CreditCard className="w-4 h-4" /> Pagamentos</TabsTrigger>
+          <TabsTrigger value="settings" className="gap-1.5"><Settings className="w-4 h-4" /> Sistema</TabsTrigger>
         </TabsList>
 
         {/* Users */}
