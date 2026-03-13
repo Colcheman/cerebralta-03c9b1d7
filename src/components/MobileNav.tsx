@@ -13,6 +13,7 @@ const mainItems = [
 ];
 
 const moreItems = [
+  { to: "/metas", icon: Target, label: "Metas" },
   { to: "/amigos", icon: UserPlus, label: "Amigos" },
   { to: "/grupos", icon: Users, label: "Grupos" },
   { to: "/manual", icon: BookMarked, label: "Manual" },

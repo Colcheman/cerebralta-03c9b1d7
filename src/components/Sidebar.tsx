@@ -10,6 +10,7 @@ const navItems = [
   { to: "/aprender", icon: BookOpen, label: "Missões" },
   { to: "/aprendizado", icon: BookOpen, label: "Aprendizado" },
   { to: "/conquistas", icon: Trophy, label: "Conquistas" },
+  { to: "/metas", icon: Target, label: "Minhas Metas" },
   { to: "/amigos", icon: UserPlus, label: "Amigos" },
   { to: "/grupos", icon: Users, label: "Grupos" },
   { to: "/config", icon: Settings, label: "Configurações" },
