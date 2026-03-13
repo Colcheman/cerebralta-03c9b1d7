@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Users, Megaphone, Search, Loader2, Send, Shield, BookOpen, Plus, Clock, Globe, Settings, Bot, KeyRound, CheckCircle2, XCircle, Trash2 } from "lucide-react";
+import { Users, Megaphone, Search, Loader2, Send, Shield, BookOpen, Plus, Clock, Globe, Settings, Bot, KeyRound, CheckCircle2, XCircle, Trash2, CreditCard, Target } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
@@ -58,6 +58,12 @@ const Admin = () => {
   const [webhookUrl, setWebhookUrl] = useState("");
   const [savingWebhook, setSavingWebhook] = useState(false);
 
+  // ASAAS Config
+  const [asaasEnv, setAsaasEnv] = useState("sandbox");
+  const [asaasWebhook, setAsaasWebhook] = useState("");
+  const [savingAsaas, setSavingAsaas] = useState(false);
+  const [asaasKeyConfigured, setAsaasKeyConfigured] = useState(false);
+
   // Password reset
   const [resetTarget, setResetTarget] = useState<ProfileRow | null>(null);
   const [newPassword, setNewPassword] = useState("");
@@ -79,8 +85,16 @@ const Admin = () => {
         setLoadingProfiles(false);
       });
       // Load webhook URL
-      supabase.from("admin_settings").select("value").eq("key", "whatsapp_webhook_url").single().then(({ data }) => {
-        if (data) setWebhookUrl(data.value);
+      supabase.from("admin_settings").select("*").then(({ data }) => {
+        const settings = data ?? [];
+        const wh = settings.find((s: any) => s.key === "whatsapp_webhook_url");
+        if (wh) setWebhookUrl((wh as any).value);
+        const env = settings.find((s: any) => s.key === "asaas_environment");
+        if (env) setAsaasEnv((env as any).value);
+        const awh = settings.find((s: any) => s.key === "asaas_webhook_url");
+        if (awh) setAsaasWebhook((awh as any).value);
+        const ak = settings.find((s: any) => s.key === "asaas_api_key_configured");
+        setAsaasKeyConfigured(!!ak);
       });
     }
   }, [isAdmin]);
@@ -219,12 +233,13 @@ const Admin = () => {
       </motion.div>
 
       <Tabs defaultValue="users" className="space-y-4">
-        <TabsList className="bg-muted">
+        <TabsList className="bg-muted flex-wrap">
           <TabsTrigger value="users" className="gap-1.5"><Users className="w-4 h-4" /> Arquitetos</TabsTrigger>
           <TabsTrigger value="courses" className="gap-1.5"><BookOpen className="w-4 h-4" /> Cursos</TabsTrigger>
           <TabsTrigger value="ai" className="gap-1.5"><Bot className="w-4 h-4" /> IA</TabsTrigger>
           <TabsTrigger value="news" className="gap-1.5"><Megaphone className="w-4 h-4" /> News</TabsTrigger>
-          <TabsTrigger value="settings" className="gap-1.5"><Settings className="w-4 h-4" /> Webhooks</TabsTrigger>
+          <TabsTrigger value="asaas" className="gap-1.5"><CreditCard className="w-4 h-4" /> Pagamentos</TabsTrigger>
+          <TabsTrigger value="settings" className="gap-1.5"><Settings className="w-4 h-4" /> Sistema</TabsTrigger>
         </TabsList>
 
         {/* Users */}
@@ -462,7 +477,125 @@ const Admin = () => {
           </div>
         </TabsContent>
 
-        {/* Webhook Settings */}
+        {/* ASAAS Payments */}
+        <TabsContent value="asaas" className="space-y-4">
+          <div className="glass rounded-xl p-6 space-y-4">
+            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <CreditCard className="w-4 h-4 text-accent" /> Configurações de Pagamento (ASAAS)
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Configure a integração com o ASAAS para cobranças recorrentes e assinatura premium. 
+              A API Key deve ser configurada como secret no backend para segurança.
+            </p>
+
+            {/* API Key status */}
+            <div className="bg-muted rounded-lg p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-foreground">API Key ASAAS</span>
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${asaasKeyConfigured ? "bg-green-500/20 text-green-400" : "bg-destructive/20 text-destructive"}`}>
+                  {asaasKeyConfigured ? "✅ Configurada" : "❌ Não configurada"}
+                </span>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                {asaasKeyConfigured 
+                  ? "A chave está armazenada com segurança no backend. Para alterar, atualize o secret ASAAS_API_KEY nas configurações do projeto."
+                  : "Acesse Configurações → Cloud → Secrets e adicione o secret ASAAS_API_KEY com sua chave da API ASAAS."}
+              </p>
+            </div>
+
+            {/* Environment */}
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Ambiente</label>
+              <select
+                value={asaasEnv}
+                onChange={e => setAsaasEnv(e.target.value)}
+                className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                <option value="sandbox">🧪 Sandbox (Testes)</option>
+                <option value="production">🚀 Produção (Cobranças reais)</option>
+              </select>
+              <p className="text-[11px] text-muted-foreground mt-1">
+                {asaasEnv === "sandbox" 
+                  ? "Ambiente de testes. Nenhuma cobrança real será feita." 
+                  : "⚠️ Ambiente de produção. Cobranças reais serão geradas!"}
+              </p>
+            </div>
+
+            {/* Webhook URL */}
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">URL Webhook ASAAS</label>
+              <input
+                value={asaasWebhook}
+                onChange={e => setAsaasWebhook(e.target.value)}
+                placeholder="https://sua-api.com/webhook/asaas"
+                maxLength={500}
+                className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary font-mono text-sm"
+              />
+              <p className="text-[11px] text-muted-foreground mt-1">Receba notificações de pagamento do ASAAS nesta URL.</p>
+            </div>
+
+            <Button
+              onClick={async () => {
+                setSavingAsaas(true);
+                // Save environment
+                const { data: envExists } = await supabase.from("admin_settings").select("id").eq("key", "asaas_environment").single();
+                if (envExists) {
+                  await supabase.from("admin_settings").update({ value: asaasEnv }).eq("key", "asaas_environment");
+                } else {
+                  await supabase.from("admin_settings").insert({ key: "asaas_environment", value: asaasEnv } as any);
+                }
+                // Save webhook
+                if (asaasWebhook.trim()) {
+                  const safeUrl = sanitizeUrl(asaasWebhook);
+                  if (safeUrl) {
+                    const { data: whExists } = await supabase.from("admin_settings").select("id").eq("key", "asaas_webhook_url").single();
+                    if (whExists) {
+                      await supabase.from("admin_settings").update({ value: safeUrl }).eq("key", "asaas_webhook_url");
+                    } else {
+                      await supabase.from("admin_settings").insert({ key: "asaas_webhook_url", value: safeUrl } as any);
+                    }
+                  }
+                }
+                setSavingAsaas(false);
+                toast({ title: "💳 Configurações ASAAS salvas!", description: `Ambiente: ${asaasEnv === "sandbox" ? "Sandbox" : "Produção"}` });
+              }}
+              disabled={savingAsaas}
+              className="w-full gap-2"
+            >
+              {savingAsaas ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+              Salvar Configurações de Pagamento
+            </Button>
+          </div>
+
+          {/* Billing Info */}
+          <div className="glass rounded-xl p-6 space-y-3">
+            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <Target className="w-4 h-4" /> Sistema de Desconto por Engajamento
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              O valor base da assinatura é <span className="font-semibold text-accent">R$ 52,90</span>. Descontos são aplicados automaticamente no 1º dia de cada mês baseado nos dias ativos do mês anterior.
+            </p>
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div className="bg-muted rounded-lg p-3">
+                <p className="text-lg font-bold text-accent">75%</p>
+                <p className="text-[10px] text-muted-foreground">30 dias ativos</p>
+                <p className="text-xs font-medium text-foreground">R$ 13,23</p>
+              </div>
+              <div className="bg-muted rounded-lg p-3">
+                <p className="text-lg font-bold text-primary">45%</p>
+                <p className="text-[10px] text-muted-foreground">20 dias ativos</p>
+                <p className="text-xs font-medium text-foreground">R$ 29,10</p>
+              </div>
+              <div className="bg-muted rounded-lg p-3">
+                <p className="text-lg font-bold text-foreground">25%</p>
+                <p className="text-[10px] text-muted-foreground">10 dias ativos</p>
+                <p className="text-xs font-medium text-foreground">R$ 39,68</p>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Webhook / System Settings */}
         <TabsContent value="settings" className="space-y-4">
           <div className="glass rounded-xl p-6 space-y-4">
             <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Globe className="w-4 h-4" /> URL do Webhook de WhatsApp</h3>
