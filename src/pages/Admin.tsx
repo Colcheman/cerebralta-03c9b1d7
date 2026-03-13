@@ -58,6 +58,12 @@ const Admin = () => {
   const [webhookUrl, setWebhookUrl] = useState("");
   const [savingWebhook, setSavingWebhook] = useState(false);
 
+  // ASAAS Config
+  const [asaasEnv, setAsaasEnv] = useState("sandbox");
+  const [asaasWebhook, setAsaasWebhook] = useState("");
+  const [savingAsaas, setSavingAsaas] = useState(false);
+  const [asaasKeyConfigured, setAsaasKeyConfigured] = useState(false);
+
   // Password reset
   const [resetTarget, setResetTarget] = useState<ProfileRow | null>(null);
   const [newPassword, setNewPassword] = useState("");
