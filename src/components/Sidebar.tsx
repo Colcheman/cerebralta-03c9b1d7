@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { Brain, Flame, BookOpen, Trophy, UserPlus, Users, Settings, LogOut, Info, Shield, MessageCircle, BookMarked } from "lucide-react";
+import { Brain, Flame, BookOpen, Trophy, UserPlus, Users, Settings, LogOut, Info, Shield, MessageCircle, BookMarked, Target } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
