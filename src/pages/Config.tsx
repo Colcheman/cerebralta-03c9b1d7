@@ -41,6 +41,9 @@ const Config = () => {
   const [allowMessagesFrom, setAllowMessagesFrom] = useState((profile as any)?.allow_messages_from ?? "everyone");
   const [customHex, setCustomHex] = useState(accentHex);
 
+  // WhatsApp opt-in
+  const [whatsappOptIn, setWhatsappOptIn] = useState((profile as any)?.whatsapp_opt_in ?? false);
+  const [savingOptIn, setSavingOptIn] = useState(false);
 
   // App Lock PIN
   const [lockEnabled, setLockEnabled] = useState(!!profile?.app_lock_pin);
