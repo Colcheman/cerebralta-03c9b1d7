@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Users, Megaphone, Search, Loader2, Send, Shield, BookOpen, Plus, Clock, Globe, Settings, Bot, KeyRound, CheckCircle2, XCircle, Trash2, CreditCard, Target } from "lucide-react";
+import { Users, Megaphone, Search, Loader2, Send, Shield, BookOpen, Plus, Clock, Globe, Settings, Bot, KeyRound, CheckCircle2, XCircle, Trash2, CreditCard, Target, BarChart3, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import AdminAIAssistant from "@/components/admin/AdminAIAssistant";
+import AdminUserDetail from "@/components/admin/AdminUserDetail";
+import AdminStatsPanel from "@/components/admin/AdminStatsPanel";
 import { sanitizeText, sanitizeUrl } from "@/lib/sanitize";
 
 interface ProfileRow {
@@ -72,6 +74,7 @@ const Admin = () => {
   // Delete user
   const [deleteTarget, setDeleteTarget] = useState<ProfileRow | null>(null);
   const [deletingUser, setDeletingUser] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<ProfileRow | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -234,6 +237,7 @@ const Admin = () => {
 
       <Tabs defaultValue="users" className="space-y-4">
         <TabsList className="bg-muted flex-wrap">
+          <TabsTrigger value="stats" className="gap-1.5"><BarChart3 className="w-4 h-4" /> Estatísticas</TabsTrigger>
           <TabsTrigger value="users" className="gap-1.5"><Users className="w-4 h-4" /> Arquitetos</TabsTrigger>
           <TabsTrigger value="courses" className="gap-1.5"><BookOpen className="w-4 h-4" /> Cursos</TabsTrigger>
           <TabsTrigger value="ai" className="gap-1.5"><Bot className="w-4 h-4" /> IA</TabsTrigger>
@@ -242,183 +246,203 @@ const Admin = () => {
           <TabsTrigger value="settings" className="gap-1.5"><Settings className="w-4 h-4" /> Sistema</TabsTrigger>
         </TabsList>
 
+        {/* Stats Dashboard */}
+        <TabsContent value="stats" className="space-y-4">
+          <AdminStatsPanel />
+        </TabsContent>
+
         {/* Users */}
         <TabsContent value="users" className="space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por nome ou CPF..."
-              className="w-full bg-muted border border-border rounded-lg pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary" />
-          </div>
-          {loadingProfiles ? (
-            <div className="text-center py-8"><Loader2 className="w-5 h-5 animate-spin text-primary mx-auto" /></div>
+          {selectedUser ? (
+            <AdminUserDetail profile={selectedUser} onBack={() => setSelectedUser(null)} />
           ) : (
             <>
-              <div className="glass rounded-xl overflow-hidden overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border text-left">
-                      <th className="px-4 py-3 text-muted-foreground font-medium">Nome</th>
-                      <th className="px-4 py-3 text-muted-foreground font-medium">Nível</th>
-                      <th className="px-4 py-3 text-muted-foreground font-medium">Pontos</th>
-                      <th className="px-4 py-3 text-muted-foreground font-medium">Sequência</th>
-                      <th className="px-4 py-3 text-muted-foreground font-medium">Plano</th>
-                      <th className="px-4 py-3 text-muted-foreground font-medium"><Clock className="w-3.5 h-3.5 inline" /> Tempo</th>
-                      <th className="px-4 py-3 text-muted-foreground font-medium">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredProfiles.map(p => (
-                      <tr key={p.id} className="border-b border-border/50 hover:bg-muted/30">
-                        <td className="px-4 py-3 font-medium text-foreground">
-                          <div className="flex items-center gap-1.5">
-                            {p.display_name}
-                            {p.name_verified ? (
-                              <span title="Nome verificado"><CheckCircle2 className="w-3.5 h-3.5 text-green-500" /></span>
-                            ) : (
-                              <span title="Nome não verificado"><XCircle className="w-3.5 h-3.5 text-muted-foreground/40" /></span>
-                            )}
-                          </div>
-                          {p.real_name && p.real_name !== p.display_name && (
-                            <p className="text-xs text-muted-foreground">Real: {p.real_name}</p>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-accent">{p.level}</td>
-                        <td className="px-4 py-3">{p.points}</td>
-                        <td className="px-4 py-3 text-streak">{p.streak} dias🔥</td>
-                        <td className="px-4 py-3">
-                          <button
-                            onClick={() => togglePremium(p.user_id, p.subscription_tier)}
-                            className={`text-xs font-medium px-2 py-0.5 rounded-full cursor-pointer hover:opacity-80 transition-opacity ${
-                              p.subscription_tier === "premium" ? "bg-accent/20 text-accent" : "bg-muted text-muted-foreground"
-                            }`}
-                            title={p.subscription_tier === "premium" ? "Clique para remover Premium" : "Clique para ativar Premium"}
-                          >
-                            {p.subscription_tier === "premium" ? "⭐ premium" : "free"}
-                          </button>
-                        </td>
-                        <td className="px-4 py-3 text-xs text-muted-foreground">{getTimeSince(p.created_at)}</td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => { setResetTarget(p); setNewPassword(""); }}
-                              className="text-xs text-primary hover:underline flex items-center gap-1"
-                              title="Redefinir senha"
-                            >
-                              <KeyRound className="w-3.5 h-3.5" /> Senha
-                            </button>
-                            <button
-                              onClick={async () => {
-                                const newVal = !p.name_verified;
-                                await supabase.from("profiles").update({ name_verified: newVal } as any).eq("user_id", p.user_id);
-                                setProfiles(prev => prev.map(pr => pr.user_id === p.user_id ? { ...pr, name_verified: newVal } : pr));
-                                toast({ title: newVal ? "✅ Nome verificado" : "Nome desmarcado" });
-                              }}
-                              className={`text-xs hover:underline flex items-center gap-1 ${p.name_verified ? "text-green-500" : "text-muted-foreground"}`}
-                              title={p.name_verified ? "Desmarcar verificação" : "Verificar nome"}
-                            >
-                              <CheckCircle2 className="w-3.5 h-3.5" /> {p.name_verified ? "Verificado" : "Verificar"}
-                            </button>
-                            <button
-                              onClick={() => setDeleteTarget(p)}
-                              className="text-xs text-destructive hover:underline flex items-center gap-1"
-                              title="Excluir usuário"
-                              disabled={p.user_id === user?.id}
-                            >
-                              <Trash2 className="w-3.5 h-3.5" /> Excluir
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {filteredProfiles.length === 0 && <p className="text-center py-6 text-sm text-muted-foreground">Nenhum Arquiteto Mental encontrado.</p>}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por nome ou CPF..."
+                  className="w-full bg-muted border border-border rounded-lg pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary" />
               </div>
-
-              {resetTarget && (
-                <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setResetTarget(null)}>
-                  <div className="glass rounded-2xl p-6 w-full max-w-sm space-y-4" onClick={e => e.stopPropagation()}>
-                    <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                      <KeyRound className="w-4 h-4 text-primary" /> Redefinir Senha
-                    </h3>
-                    <p className="text-xs text-muted-foreground">
-                      Definir nova senha para <span className="font-medium text-foreground">{resetTarget.display_name}</span>
-                    </p>
-                    <input
-                      type="text"
-                      value={newPassword}
-                      onChange={e => setNewPassword(e.target.value)}
-                      placeholder="Nova senha (mín. 6 caracteres)"
-                      className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary text-sm"
-                    />
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => setResetTarget(null)} className="flex-1">Cancelar</Button>
-                      <Button
-                        size="sm"
-                        disabled={newPassword.length < 6 || resettingPassword}
-                        className="flex-1 gap-1"
-                        onClick={async () => {
-                          setResettingPassword(true);
-                          const { data, error } = await supabase.functions.invoke("admin-reset-password", {
-                            body: { target_user_id: resetTarget.user_id, new_password: newPassword },
-                          });
-                          setResettingPassword(false);
-                          if (error || data?.error) {
-                            toast({ title: "Erro", description: data?.error || error?.message, variant: "destructive" });
-                          } else {
-                            toast({ title: "🔑 Senha redefinida!", description: `Senha de ${resetTarget.display_name} atualizada.` });
-                            setResetTarget(null);
-                          }
-                        }}
-                      >
-                        {resettingPassword ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <KeyRound className="w-3.5 h-3.5" />}
-                        Salvar
-                      </Button>
-                    </div>
+              {loadingProfiles ? (
+                <div className="text-center py-8"><Loader2 className="w-5 h-5 animate-spin text-primary mx-auto" /></div>
+              ) : (
+                <>
+                  <div className="glass rounded-xl overflow-hidden overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-border text-left">
+                          <th className="px-4 py-3 text-muted-foreground font-medium">Nome</th>
+                          <th className="px-4 py-3 text-muted-foreground font-medium">CPF</th>
+                          <th className="px-4 py-3 text-muted-foreground font-medium">Nível</th>
+                          <th className="px-4 py-3 text-muted-foreground font-medium">Pontos</th>
+                          <th className="px-4 py-3 text-muted-foreground font-medium">Sequência</th>
+                          <th className="px-4 py-3 text-muted-foreground font-medium">Plano</th>
+                          <th className="px-4 py-3 text-muted-foreground font-medium"><Clock className="w-3.5 h-3.5 inline" /> Cadastro</th>
+                          <th className="px-4 py-3 text-muted-foreground font-medium">Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredProfiles.map(p => (
+                          <tr key={p.id} className="border-b border-border/50 hover:bg-muted/30 cursor-pointer" onClick={() => setSelectedUser(p)}>
+                            <td className="px-4 py-3 font-medium text-foreground">
+                              <div className="flex items-center gap-1.5">
+                                {p.display_name}
+                                {p.name_verified ? (
+                                  <span title="Nome verificado"><CheckCircle2 className="w-3.5 h-3.5 text-primary" /></span>
+                                ) : (
+                                  <span title="Nome não verificado"><XCircle className="w-3.5 h-3.5 text-muted-foreground/40" /></span>
+                                )}
+                              </div>
+                              {p.real_name && p.real_name !== p.display_name && (
+                                <p className="text-xs text-muted-foreground">Real: {p.real_name}</p>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-xs text-muted-foreground font-mono">{maskCPF(p.cpf)}</td>
+                            <td className="px-4 py-3 text-accent">{p.level}</td>
+                            <td className="px-4 py-3">{p.points}</td>
+                            <td className="px-4 py-3 text-orange-400">{p.streak} dias🔥</td>
+                            <td className="px-4 py-3">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); togglePremium(p.user_id, p.subscription_tier); }}
+                                className={`text-xs font-medium px-2 py-0.5 rounded-full cursor-pointer hover:opacity-80 transition-opacity ${
+                                  p.subscription_tier === "premium" ? "bg-accent/20 text-accent" : "bg-muted text-muted-foreground"
+                                }`}
+                                title={p.subscription_tier === "premium" ? "Clique para remover Premium" : "Clique para ativar Premium"}
+                              >
+                                {p.subscription_tier === "premium" ? "⭐ premium" : "free"}
+                              </button>
+                            </td>
+                            <td className="px-4 py-3 text-xs text-muted-foreground">{getTimeSince(p.created_at)}</td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                                <button
+                                  onClick={() => setSelectedUser(p)}
+                                  className="text-xs text-primary hover:underline flex items-center gap-1"
+                                  title="Ver perfil completo"
+                                >
+                                  <Eye className="w-3.5 h-3.5" /> Ver
+                                </button>
+                                <button
+                                  onClick={() => { setResetTarget(p); setNewPassword(""); }}
+                                  className="text-xs text-primary hover:underline flex items-center gap-1"
+                                  title="Redefinir senha"
+                                >
+                                  <KeyRound className="w-3.5 h-3.5" /> Senha
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    const newVal = !p.name_verified;
+                                    await supabase.from("profiles").update({ name_verified: newVal } as any).eq("user_id", p.user_id);
+                                    setProfiles(prev => prev.map(pr => pr.user_id === p.user_id ? { ...pr, name_verified: newVal } : pr));
+                                    toast({ title: newVal ? "✅ Nome verificado" : "Nome desmarcado" });
+                                  }}
+                                  className={`text-xs hover:underline flex items-center gap-1 ${p.name_verified ? "text-primary" : "text-muted-foreground"}`}
+                                  title={p.name_verified ? "Desmarcar verificação" : "Verificar nome"}
+                                >
+                                  <CheckCircle2 className="w-3.5 h-3.5" /> {p.name_verified ? "✓" : "Verificar"}
+                                </button>
+                                <button
+                                  onClick={() => setDeleteTarget(p)}
+                                  className="text-xs text-destructive hover:underline flex items-center gap-1"
+                                  title="Excluir usuário"
+                                  disabled={p.user_id === user?.id}
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {filteredProfiles.length === 0 && <p className="text-center py-6 text-sm text-muted-foreground">Nenhum Arquiteto Mental encontrado.</p>}
                   </div>
-                </div>
-              )}
 
-              {deleteTarget && (
-                <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setDeleteTarget(null)}>
-                  <div className="glass rounded-2xl p-6 w-full max-w-sm space-y-4" onClick={e => e.stopPropagation()}>
-                    <h3 className="text-sm font-semibold text-destructive flex items-center gap-2">
-                      <Trash2 className="w-4 h-4" /> Excluir Usuário
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Tem certeza que deseja excluir permanentemente o usuário <span className="font-medium text-foreground">{deleteTarget.display_name}</span>?
-                    </p>
-                    <p className="text-xs text-destructive/80">
-                      Esta ação é irreversível. Todos os dados do usuário serão removidos.
-                    </p>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => setDeleteTarget(null)} className="flex-1">Cancelar</Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        disabled={deletingUser}
-                        className="flex-1 gap-1"
-                        onClick={async () => {
-                          setDeletingUser(true);
-                          const { data, error } = await supabase.functions.invoke("admin-delete-user", {
-                            body: { target_user_id: deleteTarget.user_id },
-                          });
-                          setDeletingUser(false);
-                          if (error || data?.error) {
-                            toast({ title: "Erro", description: data?.error || error?.message, variant: "destructive" });
-                          } else {
-                            setProfiles(prev => prev.filter(p => p.user_id !== deleteTarget.user_id));
-                            toast({ title: "🗑️ Usuário excluído", description: `${deleteTarget.display_name} foi removido do sistema.` });
-                            setDeleteTarget(null);
-                          }
-                        }}
-                      >
-                        {deletingUser ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
-                        Excluir
-                      </Button>
+                  {resetTarget && (
+                    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setResetTarget(null)}>
+                      <div className="glass rounded-2xl p-6 w-full max-w-sm space-y-4" onClick={e => e.stopPropagation()}>
+                        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                          <KeyRound className="w-4 h-4 text-primary" /> Redefinir Senha
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          Definir nova senha para <span className="font-medium text-foreground">{resetTarget.display_name}</span>
+                        </p>
+                        <input
+                          type="text"
+                          value={newPassword}
+                          onChange={e => setNewPassword(e.target.value)}
+                          placeholder="Nova senha (mín. 6 caracteres)"
+                          className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary text-sm"
+                        />
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm" onClick={() => setResetTarget(null)} className="flex-1">Cancelar</Button>
+                          <Button
+                            size="sm"
+                            disabled={newPassword.length < 6 || resettingPassword}
+                            className="flex-1 gap-1"
+                            onClick={async () => {
+                              setResettingPassword(true);
+                              const { data, error } = await supabase.functions.invoke("admin-reset-password", {
+                                body: { target_user_id: resetTarget.user_id, new_password: newPassword },
+                              });
+                              setResettingPassword(false);
+                              if (error || data?.error) {
+                                toast({ title: "Erro", description: data?.error || error?.message, variant: "destructive" });
+                              } else {
+                                toast({ title: "🔑 Senha redefinida!", description: `Senha de ${resetTarget.display_name} atualizada.` });
+                                setResetTarget(null);
+                              }
+                            }}
+                          >
+                            {resettingPassword ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <KeyRound className="w-3.5 h-3.5" />}
+                            Salvar
+                          </Button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  )}
+
+                  {deleteTarget && (
+                    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setDeleteTarget(null)}>
+                      <div className="glass rounded-2xl p-6 w-full max-w-sm space-y-4" onClick={e => e.stopPropagation()}>
+                        <h3 className="text-sm font-semibold text-destructive flex items-center gap-2">
+                          <Trash2 className="w-4 h-4" /> Excluir Usuário
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          Tem certeza que deseja excluir permanentemente o usuário <span className="font-medium text-foreground">{deleteTarget.display_name}</span>?
+                        </p>
+                        <p className="text-xs text-destructive/80">
+                          Esta ação é irreversível. Todos os dados do usuário serão removidos.
+                        </p>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm" onClick={() => setDeleteTarget(null)} className="flex-1">Cancelar</Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            disabled={deletingUser}
+                            className="flex-1 gap-1"
+                            onClick={async () => {
+                              setDeletingUser(true);
+                              const { data, error } = await supabase.functions.invoke("admin-delete-user", {
+                                body: { target_user_id: deleteTarget.user_id },
+                              });
+                              setDeletingUser(false);
+                              if (error || data?.error) {
+                                toast({ title: "Erro", description: data?.error || error?.message, variant: "destructive" });
+                              } else {
+                                setProfiles(prev => prev.filter(p => p.user_id !== deleteTarget.user_id));
+                                toast({ title: "🗑️ Usuário excluído", description: `${deleteTarget.display_name} foi removido do sistema.` });
+                                setDeleteTarget(null);
+                              }
+                            }}
+                          >
+                            {deletingUser ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                            Excluir
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </>
           )}

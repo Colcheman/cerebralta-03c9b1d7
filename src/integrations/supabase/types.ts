@@ -543,6 +543,8 @@ export type Database = {
           updated_at: string
           user_id: string
           whatsapp_number: string | null
+          whatsapp_opt_in: boolean
+          whatsapp_status: string
         }
         Insert: {
           allow_messages_from?: string
@@ -574,6 +576,8 @@ export type Database = {
           updated_at?: string
           user_id: string
           whatsapp_number?: string | null
+          whatsapp_opt_in?: boolean
+          whatsapp_status?: string
         }
         Update: {
           allow_messages_from?: string
@@ -605,6 +609,8 @@ export type Database = {
           updated_at?: string
           user_id?: string
           whatsapp_number?: string | null
+          whatsapp_opt_in?: boolean
+          whatsapp_status?: string
         }
         Relationships: []
       }

@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { Shield, Bell, Palette, Lock, Mail, Loader2, KeyRound, User, Camera, Check, ImagePlus } from "lucide-react";
+import { Shield, Bell, Palette, Lock, Mail, Loader2, KeyRound, User, Camera, Check, ImagePlus, MessageSquare } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,9 @@ const Config = () => {
   const [allowMessagesFrom, setAllowMessagesFrom] = useState((profile as any)?.allow_messages_from ?? "everyone");
   const [customHex, setCustomHex] = useState(accentHex);
 
+  // WhatsApp opt-in
+  const [whatsappOptIn, setWhatsappOptIn] = useState((profile as any)?.whatsapp_opt_in ?? false);
+  const [savingOptIn, setSavingOptIn] = useState(false);
 
   // App Lock PIN
   const [lockEnabled, setLockEnabled] = useState(!!profile?.app_lock_pin);
@@ -356,6 +359,45 @@ const Config = () => {
             <div className="flex items-center justify-between py-2">
               <div><p className="text-sm text-foreground">Email</p><p className="text-xs text-muted-foreground">Resumo semanal por email</p></div>
               <Toggle on={notifEmail} onToggle={(v) => { setNotifEmail(v); updateProfile("notification_email", v); }} />
+            </div>
+          </div>
+
+          {/* WhatsApp Coming Soon */}
+          <div className="mt-4 border border-primary/20 rounded-xl p-4 bg-primary/5">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <MessageSquare className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="text-sm font-semibold text-foreground">Notificações via WhatsApp</h3>
+                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-accent/20 text-accent">🚧 Em breve</span>
+                </div>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Receba missões diárias, lembretes de metas e mensagens motivacionais diretamente no WhatsApp.
+                </p>
+                <Button
+                  size="sm"
+                  variant={whatsappOptIn ? "outline" : "default"}
+                  className="gap-1.5"
+                  disabled={savingOptIn}
+                  onClick={async () => {
+                    if (!user) return;
+                    setSavingOptIn(true);
+                    const newVal = !whatsappOptIn;
+                    await supabase.from("profiles").update({ whatsapp_opt_in: newVal } as any).eq("user_id", user.id);
+                    setWhatsappOptIn(newVal);
+                    setSavingOptIn(false);
+                    toast({
+                      title: newVal ? "🔔 Inscrito!" : "Inscrição removida",
+                      description: newVal ? "Você será notificado quando as notificações WhatsApp forem lançadas." : "Você não receberá aviso do lançamento.",
+                    });
+                  }}
+                >
+                  {savingOptIn ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Bell className="w-3.5 h-3.5" />}
+                  {whatsappOptIn ? "✅ Inscrito para lançamento" : "Receber notificações quando lançar"}
+                </Button>
+              </div>
             </div>
           </div>
         </motion.div>
