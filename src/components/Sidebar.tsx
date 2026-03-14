@@ -4,15 +4,21 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-const navItems = [
+const socialItems = [
   { to: "/feed", icon: Flame, label: "Feed" },
   { to: "/mensagens", icon: MessageCircle, label: "Mensagens" },
-  { to: "/aprender", icon: BookOpen, label: "Missões" },
-  { to: "/aprendizado", icon: BookOpen, label: "Aprendizado" },
-  { to: "/conquistas", icon: Trophy, label: "Conquistas" },
-  { to: "/metas", icon: Target, label: "Minhas Metas" },
   { to: "/amigos", icon: UserPlus, label: "Amigos" },
   { to: "/grupos", icon: Users, label: "Grupos" },
+];
+
+const devItems = [
+  { to: "/aprender", icon: BookOpen, label: "Missões" },
+  { to: "/metas", icon: Target, label: "Minhas Metas" },
+  { to: "/conquistas", icon: Trophy, label: "Conquistas" },
+  { to: "/aprendizado", icon: BookOpen, label: "Aprendizado" },
+];
+
+const otherItems = [
   { to: "/config", icon: Settings, label: "Configurações" },
   { to: "/manual", icon: BookMarked, label: "Manual" },
   { to: "/sobre", icon: Info, label: "Sobre" },
@@ -44,7 +50,7 @@ const Sidebar = () => {
   const progressPercent = nextLevel === prevLevel ? 100 : Math.min(((points - prevLevel) / (nextLevel - prevLevel)) * 100, 100);
   const initials = displayName.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
 
-  const allItems = isAdmin ? [...navItems, { to: "/admin", icon: Shield, label: "Admin" }] : navItems;
+  const adminItem = isAdmin ? [{ to: "/admin", icon: Shield, label: "Admin" }] : [];
 
   return (
     <aside className="hidden lg:flex flex-col w-64 h-screen bg-card border-r border-border fixed left-0 top-0 z-30">
@@ -82,21 +88,36 @@ const Sidebar = () => {
         </div>
       </div>
 
-      <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
-        {allItems.map(({ to, icon: Icon, label }) => (
-          <NavLink
-            key={to}
-            to={to}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              }`
-            }
-          >
-            <Icon className="w-5 h-5" />
-            {label}
-          </NavLink>
-        ))}
+      <nav className="flex-1 px-3 space-y-4 overflow-y-auto">
+        <div>
+          <p className="px-4 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">Rede Social</p>
+          <div className="space-y-1">
+            {socialItems.map(({ to, icon: Icon, label }) => (
+              <NavLink key={to} to={to} className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}>
+                <Icon className="w-5 h-5" />{label}
+              </NavLink>
+            ))}
+          </div>
+        </div>
+        <div>
+          <p className="px-4 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">Desenvolvimento Pessoal</p>
+          <div className="space-y-1">
+            {devItems.map(({ to, icon: Icon, label }) => (
+              <NavLink key={to} to={to} className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}>
+                <Icon className="w-5 h-5" />{label}
+              </NavLink>
+            ))}
+          </div>
+        </div>
+        <div>
+          <div className="space-y-1">
+            {[...otherItems, ...adminItem].map(({ to, icon: Icon, label }) => (
+              <NavLink key={to} to={to} className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}>
+                <Icon className="w-5 h-5" />{label}
+              </NavLink>
+            ))}
+          </div>
+        </div>
       </nav>
 
       <div className="p-4 border-t border-border">
