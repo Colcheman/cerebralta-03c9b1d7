@@ -246,8 +246,17 @@ const Admin = () => {
           <TabsTrigger value="settings" className="gap-1.5"><Settings className="w-4 h-4" /> Sistema</TabsTrigger>
         </TabsList>
 
+        {/* Stats Dashboard */}
+        <TabsContent value="stats" className="space-y-4">
+          <AdminStatsPanel />
+        </TabsContent>
+
         {/* Users */}
         <TabsContent value="users" className="space-y-4">
+          {selectedUser ? (
+            <AdminUserDetail profile={selectedUser} onBack={() => setSelectedUser(null)} />
+          ) : (
+            <>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por nome ou CPF..."
