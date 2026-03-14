@@ -435,7 +435,6 @@ const Admin = () => {
               )}
             </>
           )}
-          )}
         </TabsContent>
 
         {/* Courses */}
