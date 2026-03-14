@@ -50,7 +50,7 @@ const Sidebar = () => {
   const progressPercent = nextLevel === prevLevel ? 100 : Math.min(((points - prevLevel) / (nextLevel - prevLevel)) * 100, 100);
   const initials = displayName.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
 
-  const allItems = isAdmin ? [...navItems, { to: "/admin", icon: Shield, label: "Admin" }] : navItems;
+  const adminItem = isAdmin ? [{ to: "/admin", icon: Shield, label: "Admin" }] : [];
 
   return (
     <aside className="hidden lg:flex flex-col w-64 h-screen bg-card border-r border-border fixed left-0 top-0 z-30">
