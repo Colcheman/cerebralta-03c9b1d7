@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Users, Megaphone, Search, Loader2, Send, Shield, BookOpen, Plus, Clock, Globe, Settings, Bot, KeyRound, CheckCircle2, XCircle, Trash2, CreditCard, Target } from "lucide-react";
+import { Users, Megaphone, Search, Loader2, Send, Shield, BookOpen, Plus, Clock, Globe, Settings, Bot, KeyRound, CheckCircle2, XCircle, Trash2, CreditCard, Target, BarChart3, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import AdminAIAssistant from "@/components/admin/AdminAIAssistant";
+import AdminUserDetail from "@/components/admin/AdminUserDetail";
+import AdminStatsPanel from "@/components/admin/AdminStatsPanel";
 import { sanitizeText, sanitizeUrl } from "@/lib/sanitize";
 
 interface ProfileRow {
