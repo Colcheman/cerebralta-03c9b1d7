@@ -88,21 +88,36 @@ const Sidebar = () => {
         </div>
       </div>
 
-      <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
-        {allItems.map(({ to, icon: Icon, label }) => (
-          <NavLink
-            key={to}
-            to={to}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              }`
-            }
-          >
-            <Icon className="w-5 h-5" />
-            {label}
-          </NavLink>
-        ))}
+      <nav className="flex-1 px-3 space-y-4 overflow-y-auto">
+        <div>
+          <p className="px-4 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">Rede Social</p>
+          <div className="space-y-1">
+            {socialItems.map(({ to, icon: Icon, label }) => (
+              <NavLink key={to} to={to} className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}>
+                <Icon className="w-5 h-5" />{label}
+              </NavLink>
+            ))}
+          </div>
+        </div>
+        <div>
+          <p className="px-4 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">Desenvolvimento Pessoal</p>
+          <div className="space-y-1">
+            {devItems.map(({ to, icon: Icon, label }) => (
+              <NavLink key={to} to={to} className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}>
+                <Icon className="w-5 h-5" />{label}
+              </NavLink>
+            ))}
+          </div>
+        </div>
+        <div>
+          <div className="space-y-1">
+            {[...otherItems, ...adminItem].map(({ to, icon: Icon, label }) => (
+              <NavLink key={to} to={to} className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}>
+                <Icon className="w-5 h-5" />{label}
+              </NavLink>
+            ))}
+          </div>
+        </div>
       </nav>
 
       <div className="p-4 border-t border-border">
