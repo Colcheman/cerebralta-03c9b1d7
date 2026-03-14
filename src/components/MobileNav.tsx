@@ -6,16 +6,16 @@ import { Users, UserPlus, Settings, Info, Target, BookMarked } from "lucide-reac
 
 const mainItems = [
   { to: "/feed", icon: Flame, label: "Feed" },
-  { to: "/mensagens", icon: MessageCircle, label: "Chat" },
   { to: "/aprender", icon: Target, label: "Missões" },
-  { to: "/aprendizado", icon: BookOpen, label: "Estudar" },
+  { to: "/metas", icon: Target, label: "Metas" },
+  { to: "/mensagens", icon: MessageCircle, label: "Chat" },
   { to: "/conquistas", icon: Trophy, label: "Troféus" },
 ];
 
 const moreItems = [
-  { to: "/metas", icon: Target, label: "Metas" },
   { to: "/amigos", icon: UserPlus, label: "Amigos" },
   { to: "/grupos", icon: Users, label: "Grupos" },
+  { to: "/aprendizado", icon: BookOpen, label: "Estudar" },
   { to: "/manual", icon: BookMarked, label: "Manual" },
   { to: "/config", icon: Settings, label: "Config" },
   { to: "/sobre", icon: Info, label: "Sobre" },

@@ -4,15 +4,21 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-const navItems = [
+const socialItems = [
   { to: "/feed", icon: Flame, label: "Feed" },
   { to: "/mensagens", icon: MessageCircle, label: "Mensagens" },
-  { to: "/aprender", icon: BookOpen, label: "Missões" },
-  { to: "/aprendizado", icon: BookOpen, label: "Aprendizado" },
-  { to: "/conquistas", icon: Trophy, label: "Conquistas" },
-  { to: "/metas", icon: Target, label: "Minhas Metas" },
   { to: "/amigos", icon: UserPlus, label: "Amigos" },
   { to: "/grupos", icon: Users, label: "Grupos" },
+];
+
+const devItems = [
+  { to: "/aprender", icon: BookOpen, label: "Missões" },
+  { to: "/metas", icon: Target, label: "Minhas Metas" },
+  { to: "/conquistas", icon: Trophy, label: "Conquistas" },
+  { to: "/aprendizado", icon: BookOpen, label: "Aprendizado" },
+];
+
+const otherItems = [
   { to: "/config", icon: Settings, label: "Configurações" },
   { to: "/manual", icon: BookMarked, label: "Manual" },
   { to: "/sobre", icon: Info, label: "Sobre" },
