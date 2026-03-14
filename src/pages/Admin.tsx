@@ -237,6 +237,7 @@ const Admin = () => {
 
       <Tabs defaultValue="users" className="space-y-4">
         <TabsList className="bg-muted flex-wrap">
+          <TabsTrigger value="stats" className="gap-1.5"><BarChart3 className="w-4 h-4" /> Estatísticas</TabsTrigger>
           <TabsTrigger value="users" className="gap-1.5"><Users className="w-4 h-4" /> Arquitetos</TabsTrigger>
           <TabsTrigger value="courses" className="gap-1.5"><BookOpen className="w-4 h-4" /> Cursos</TabsTrigger>
           <TabsTrigger value="ai" className="gap-1.5"><Bot className="w-4 h-4" /> IA</TabsTrigger>
