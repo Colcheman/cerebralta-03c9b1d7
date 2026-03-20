@@ -514,6 +514,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          accumulated_earnings: number
           allow_messages_from: string
           app_lock_pin: string | null
           avatar_url: string | null
@@ -533,6 +534,7 @@ export type Database = {
           notification_push: boolean
           notification_whatsapp: boolean
           points: number
+          public_id: string
           real_name: string | null
           recovery_email: string | null
           streak: number
@@ -547,6 +549,7 @@ export type Database = {
           whatsapp_status: string
         }
         Insert: {
+          accumulated_earnings?: number
           allow_messages_from?: string
           app_lock_pin?: string | null
           avatar_url?: string | null
@@ -566,6 +569,7 @@ export type Database = {
           notification_push?: boolean
           notification_whatsapp?: boolean
           points?: number
+          public_id?: string
           real_name?: string | null
           recovery_email?: string | null
           streak?: number
@@ -580,6 +584,7 @@ export type Database = {
           whatsapp_status?: string
         }
         Update: {
+          accumulated_earnings?: number
           allow_messages_from?: string
           app_lock_pin?: string | null
           avatar_url?: string | null
@@ -599,6 +604,7 @@ export type Database = {
           notification_push?: boolean
           notification_whatsapp?: boolean
           points?: number
+          public_id?: string
           real_name?: string | null
           recovery_email?: string | null
           streak?: number
@@ -736,6 +742,7 @@ export type Database = {
     Views: {
       safe_profiles: {
         Row: {
+          accumulated_earnings: number | null
           allow_messages_from: string | null
           avatar_url: string | null
           banner_url: string | null
@@ -745,6 +752,7 @@ export type Database = {
           level: string | null
           name_verified: boolean | null
           points: number | null
+          public_id: string | null
           streak: number | null
           subscription_tier:
             | Database["public"]["Enums"]["subscription_tier"]
@@ -752,6 +760,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          accumulated_earnings?: number | null
           allow_messages_from?: string | null
           avatar_url?: string | null
           banner_url?: string | null
@@ -761,6 +770,7 @@ export type Database = {
           level?: string | null
           name_verified?: boolean | null
           points?: number | null
+          public_id?: string | null
           streak?: number | null
           subscription_tier?:
             | Database["public"]["Enums"]["subscription_tier"]
@@ -768,6 +778,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          accumulated_earnings?: number | null
           allow_messages_from?: string | null
           avatar_url?: string | null
           banner_url?: string | null
@@ -777,6 +788,7 @@ export type Database = {
           level?: string | null
           name_verified?: boolean | null
           points?: number | null
+          public_id?: string | null
           streak?: number | null
           subscription_tier?:
             | Database["public"]["Enums"]["subscription_tier"]
