@@ -52,7 +52,7 @@ const getTimezones = (): string[] => {
 const TIMEZONES = getTimezones();
 
 const LocaleSetup = () => {
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [language, setLanguage] = useState("pt-BR");
   const [country, setCountry] = useState("BR");
