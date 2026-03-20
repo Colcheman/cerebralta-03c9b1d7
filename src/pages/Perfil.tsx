@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Flame, Star, Zap, Award, MessageCircle } from "lucide-react";
+import { ArrowLeft, Flame, Star, Zap, Award, MessageCircle, Ban, Flag, DollarSign, Hash } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import PostCard from "@/components/PostCard";
 import FriendControls from "@/components/profile/FriendControls";
 import DiscountPanel from "@/components/profile/DiscountPanel";
+import BlockUserButton from "@/components/BlockUserButton";
+import ReportModal from "@/components/ReportModal";
 
 interface PublicProfile {
   user_id: string;
@@ -18,6 +20,8 @@ interface PublicProfile {
   streak: number | null;
   subscription_tier: string | null;
   bio?: string | null;
+  public_id?: string | null;
+  accumulated_earnings?: number | null;
 }
 
 interface PostWithProfile {
@@ -53,6 +57,7 @@ const Perfil = () => {
   const [posts, setPosts] = useState<PostWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"posts">("posts");
+  const [showReport, setShowReport] = useState(false);
 
   useEffect(() => {
     if (!userId) return;
@@ -191,6 +196,13 @@ const Perfil = () => {
                       <MessageCircle className="w-4 h-4" />
                       Mensagem
                     </button>
+                    <BlockUserButton targetUserId={userId!} targetName={profile?.display_name ?? undefined} onBlocked={() => navigate("/feed")} />
+                    <button
+                      onClick={() => setShowReport(true)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border text-sm text-muted-foreground hover:text-destructive hover:border-destructive/30 transition-colors"
+                    >
+                      <Flag className="w-4 h-4" />
+                    </button>
                   </div>
                 )}
                 {isOwnProfile && (
@@ -213,6 +225,12 @@ const Perfil = () => {
                   <span className="text-[10px] font-bold bg-accent/20 text-accent px-2 py-0.5 rounded-full">PREMIUM</span>
                 )}
               </div>
+              {/* Public ID */}
+              {profile.public_id && (
+                <p className="text-xs text-muted-foreground font-mono flex items-center gap-1 mt-0.5">
+                  <Hash className="w-3 h-3" /> {profile.public_id}
+                </p>
+              )}
               <p className="text-sm text-muted-foreground mb-2">{profile.level ?? "Iniciante"}</p>
 
               {/* Bio */}
@@ -243,6 +261,17 @@ const Perfil = () => {
               </div>
             </div>
           </div>
+
+          {/* Accumulated Earnings - only for own profile */}
+          {isOwnProfile && profile.accumulated_earnings != null && profile.accumulated_earnings > 0 && (
+            <div className="mx-4 mt-3 bg-muted rounded-xl p-4 flex items-center gap-3">
+              <DollarSign className="w-5 h-5 text-accent" />
+              <div>
+                <p className="text-xs text-muted-foreground">Valor acumulado</p>
+                <p className="text-lg font-bold text-accent">R$ {Number(profile.accumulated_earnings).toFixed(2).replace(".", ",")}</p>
+              </div>
+            </div>
+          )}
 
           {/* Discount Panel - only for own profile */}
           {isOwnProfile && userId && <DiscountPanel userId={userId} />}
@@ -285,6 +314,14 @@ const Perfil = () => {
 
           <div className="h-20" />
         </>
+      )}
+      {!isOwnProfile && userId && (
+        <ReportModal
+          open={showReport}
+          onOpenChange={setShowReport}
+          reportedUserId={userId}
+          reportedName={profile?.display_name ?? undefined}
+        />
       )}
     </div>
   );

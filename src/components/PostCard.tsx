@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, MessageCircle, Repeat2, Share, Send, MoreHorizontal, Award } from "lucide-react";
+import { Heart, MessageCircle, Repeat2, Share, Send, MoreHorizontal, Award, Ban, Flag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import ProfileHoverCard from "@/components/ProfileHoverCard";
 import { sanitizeText } from "@/lib/sanitize";
 import { useNavigate } from "react-router-dom";
+import ReportModal from "@/components/ReportModal";
 
 const categoryColors: Record<string, string> = {
   reflexão: "text-primary",
@@ -48,6 +49,10 @@ const PostCard = ({ post, index, onUpdate, onQuote }: { post: PostData; index: n
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
   const [commentCount, setCommentCount] = useState(post.comments);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showReport, setShowReport] = useState(false);
+  const [blocked, setBlocked] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const isElevated = ELEVATED_LEVELS.includes(post.level);
 
@@ -96,6 +101,8 @@ const PostCard = ({ post, index, onUpdate, onQuote }: { post: PostData; index: n
     setShowComments(!showComments);
   };
 
+  if (blocked) return null;
+
   return (
     <motion.article
       initial={{ opacity: 0, y: 6 }}
@@ -129,9 +136,32 @@ const PostCard = ({ post, index, onUpdate, onQuote }: { post: PostData; index: n
             {isElevated && <Award className="w-3.5 h-3.5 text-accent shrink-0" />}
             <span className={`text-xs font-medium ${categoryColors[post.category] ?? "text-muted-foreground"}`}>· {post.category}</span>
             <span className="text-xs text-muted-foreground">· {post.timestamp}</span>
-            <button className="ml-auto text-muted-foreground hover:text-foreground p-1 -m-1">
-              <MoreHorizontal className="w-4 h-4" />
-            </button>
+            <div className="relative" ref={menuRef}>
+              <button onClick={() => setShowMenu(s => !s)} className="ml-auto text-muted-foreground hover:text-foreground p-1 -m-1">
+                <MoreHorizontal className="w-4 h-4" />
+              </button>
+              {showMenu && user && user.id !== post.user_id && (
+                <div className="absolute right-0 top-6 bg-card border border-border rounded-xl shadow-lg z-30 overflow-hidden min-w-[160px]">
+                  <button
+                    onClick={() => { setShowMenu(false); setShowReport(true); }}
+                    className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-foreground hover:bg-muted transition-colors text-left"
+                  >
+                    <Flag className="w-4 h-4 text-destructive" /> Denunciar
+                  </button>
+                  <button
+                    onClick={async () => {
+                      setShowMenu(false);
+                      await (supabase as any).from("user_blocks").insert({ blocker_id: user.id, blocked_id: post.user_id });
+                      setBlocked(true);
+                      onUpdate?.();
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-destructive hover:bg-muted transition-colors text-left"
+                  >
+                    <Ban className="w-4 h-4" /> Bloquear
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {isElevated && (
@@ -195,6 +225,13 @@ const PostCard = ({ post, index, onUpdate, onQuote }: { post: PostData; index: n
           </AnimatePresence>
         </div>
       </div>
+      <ReportModal
+        open={showReport}
+        onOpenChange={setShowReport}
+        reportedUserId={post.user_id}
+        reportedPostId={post.id}
+        reportedName={post.author}
+      />
     </motion.article>
   );
 };
