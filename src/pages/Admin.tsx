@@ -679,6 +679,31 @@ Content-Type: application/json
           </div>
         </TabsContent>
       </Tabs>
+      <AlertDialog open={!!premiumConfirm} onOpenChange={(open) => !open && setPremiumConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar alteração de plano</AlertDialogTitle>
+            <AlertDialogDescription>
+              {premiumConfirm?.currentTier === "premium"
+                ? `Deseja remover o plano Premium de "${premiumConfirm?.name}"? O usuário perderá acesso aos recursos exclusivos.`
+                : `Deseja ativar o plano Premium para "${premiumConfirm?.name}"? O usuário terá acesso a todos os recursos exclusivos.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (premiumConfirm) {
+                  togglePremium(premiumConfirm.userId, premiumConfirm.currentTier);
+                }
+                setPremiumConfirm(null);
+              }}
+            >
+              {premiumConfirm?.currentTier === "premium" ? "Remover Premium" : "Ativar Premium"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
