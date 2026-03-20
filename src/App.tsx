@@ -62,7 +62,8 @@ const App = () => (
           <AppLockGuard>
             <BrowserRouter>
               <Routes>
-                <Route path="/" element={<Login />} />
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/login" element={<Login />} />
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:slug" element={<BlogPost />} />
                 <Route path="/locale-setup" element={<LocaleSetup />} />
