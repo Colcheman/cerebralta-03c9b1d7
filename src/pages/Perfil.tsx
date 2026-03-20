@@ -20,6 +20,8 @@ interface PublicProfile {
   streak: number | null;
   subscription_tier: string | null;
   bio?: string | null;
+  public_id?: string | null;
+  accumulated_earnings?: number | null;
 }
 
 interface PostWithProfile {
