@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import AdminAIAssistant from "@/components/admin/AdminAIAssistant";
 import AdminUserDetail from "@/components/admin/AdminUserDetail";
 import AdminStatsPanel from "@/components/admin/AdminStatsPanel";
+import AdminReportsPanel from "@/components/admin/AdminReportsPanel";
 import { sanitizeText, sanitizeUrl } from "@/lib/sanitize";
 
 interface ProfileRow {
