@@ -319,7 +319,7 @@ const Admin = () => {
                             <td className="px-4 py-3 text-orange-400">{p.streak} dias🔥</td>
                             <td className="px-4 py-3">
                               <button
-                                onClick={(e) => { e.stopPropagation(); togglePremium(p.user_id, p.subscription_tier); }}
+                                onClick={(e) => { e.stopPropagation(); setPremiumConfirm({ userId: p.user_id, currentTier: p.subscription_tier, name: p.display_name }); }}
                                 className={`text-xs font-medium px-2 py-0.5 rounded-full cursor-pointer hover:opacity-80 transition-opacity ${
                                   p.subscription_tier === "premium" ? "bg-accent/20 text-accent" : "bg-muted text-muted-foreground"
                                 }`}
