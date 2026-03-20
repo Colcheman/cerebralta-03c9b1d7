@@ -225,6 +225,13 @@ const PostCard = ({ post, index, onUpdate, onQuote }: { post: PostData; index: n
           </AnimatePresence>
         </div>
       </div>
+      <ReportModal
+        open={showReport}
+        onOpenChange={setShowReport}
+        reportedUserId={post.user_id}
+        reportedPostId={post.id}
+        reportedName={post.author}
+      />
     </motion.article>
   );
 };

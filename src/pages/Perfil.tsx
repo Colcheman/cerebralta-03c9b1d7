@@ -57,6 +57,7 @@ const Perfil = () => {
   const [posts, setPosts] = useState<PostWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"posts">("posts");
+  const [showReport, setShowReport] = useState(false);
 
   useEffect(() => {
     if (!userId) return;

@@ -55,20 +55,31 @@ const Feed = () => {
   const navigate = useNavigate();
 
   const fetchPosts = async () => {
+    // Get blocked user IDs
+    let blockedIds: string[] = [];
+    if (user) {
+      const { data: blocks } = await (supabase as any).from("user_blocks").select("blocked_id").eq("blocker_id", user.id);
+      blockedIds = blocks?.map((b: any) => b.blocked_id) ?? [];
+    }
+
     const { data } = await supabase.from("posts").select("*").order("created_at", { ascending: false }).limit(20);
     if (!data) { setLoading(false); return; }
-    const userIds = [...new Set(data.map(p => p.user_id))];
+
+    // Filter out blocked users
+    const filteredData = blockedIds.length > 0 ? data.filter(p => !blockedIds.includes(p.user_id)) : data;
+
+    const userIds = [...new Set(filteredData.map(p => p.user_id))];
     const { data: profiles } = await supabase.from("safe_profiles").select("user_id, display_name, level, avatar_url").in("user_id", userIds);
     const profileMap = new Map(profiles?.map(p => [p.user_id!, p]) ?? []);
 
-    const quotedIds = data.filter(p => p.quoted_post_id).map(p => p.quoted_post_id!);
+    const quotedIds = filteredData.filter(p => p.quoted_post_id).map(p => p.quoted_post_id!);
     let quotedMap = new Map<string, { content: string; user_id: string }>();
     if (quotedIds.length > 0) {
       const { data: quoted } = await supabase.from("posts").select("id, content, user_id").in("id", quotedIds);
       quotedMap = new Map(quoted?.map(q => [q.id, q]) ?? []);
     }
 
-    const postsWithProfiles = data.map(p => {
+    const postsWithProfiles = filteredData.map(p => {
       const quoted = p.quoted_post_id ? quotedMap.get(p.quoted_post_id) : null;
       const quotedProfile = quoted ? profileMap.get(quoted.user_id) : null;
       return {
