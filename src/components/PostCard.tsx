@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, MessageCircle, Repeat2, Share, Send, MoreHorizontal, Award } from "lucide-react";
+import { Heart, MessageCircle, Repeat2, Share, Send, MoreHorizontal, Award, Ban, Flag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import ProfileHoverCard from "@/components/ProfileHoverCard";
 import { sanitizeText } from "@/lib/sanitize";
 import { useNavigate } from "react-router-dom";
+import ReportModal from "@/components/ReportModal";
 
 const categoryColors: Record<string, string> = {
   reflexão: "text-primary",
