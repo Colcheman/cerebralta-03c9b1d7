@@ -21,10 +21,10 @@ const BlockUserButton = ({ targetUserId, targetName, variant = "button", onBlock
 
   const handleBlock = async () => {
     setBlocking(true);
-    const { error } = await supabase.from("user_blocks").insert({
+    const { error } = await (supabase as any).from("user_blocks").insert({
       blocker_id: user.id,
       blocked_id: targetUserId,
-    } as any);
+    });
     setBlocking(false);
     setShowConfirm(false);
     if (error?.code === "23505") {

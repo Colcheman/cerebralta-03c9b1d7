@@ -62,7 +62,7 @@ const AdminReportsPanel = () => {
   useEffect(() => { fetchReports(); }, []);
 
   const updateStatus = async (reportId: string, newStatus: string) => {
-    await supabase.from("reports").update({ status: newStatus, updated_at: new Date().toISOString() } as any).eq("id", reportId);
+    await (supabase as any).from("reports").update({ status: newStatus, updated_at: new Date().toISOString() }).eq("id", reportId);
     setReports(prev => prev.map(r => r.id === reportId ? { ...r, status: newStatus } : r));
     toast({ title: `Status atualizado: ${statusLabels[newStatus]}` });
   };

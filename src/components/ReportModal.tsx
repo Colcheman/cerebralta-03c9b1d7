@@ -33,13 +33,13 @@ const ReportModal = ({ open, onOpenChange, reportedUserId, reportedPostId, repor
   const handleSubmit = async () => {
     if (!reason || !user) return;
     setSubmitting(true);
-    const { error } = await supabase.from("reports").insert({
+    const { error } = await (supabase as any).from("reports").insert({
       reporter_id: user.id,
       reported_user_id: reportedUserId,
       reported_post_id: reportedPostId ?? null,
       reason,
       description: description.trim(),
-    } as any);
+    });
     setSubmitting(false);
     if (error) {
       toast({ title: "Erro ao denunciar", description: error.message, variant: "destructive" });
