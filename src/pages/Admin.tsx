@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Users, Megaphone, Search, Loader2, Send, Shield, BookOpen, Plus, Clock, Globe, Settings, Bot, KeyRound, CheckCircle2, XCircle, Trash2, CreditCard, Target, BarChart3, Eye, Flag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +12,16 @@ import AdminUserDetail from "@/components/admin/AdminUserDetail";
 import AdminStatsPanel from "@/components/admin/AdminStatsPanel";
 import AdminReportsPanel from "@/components/admin/AdminReportsPanel";
 import { sanitizeText, sanitizeUrl } from "@/lib/sanitize";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface ProfileRow {
   id: string;
@@ -76,6 +86,7 @@ const Admin = () => {
   const [deleteTarget, setDeleteTarget] = useState<ProfileRow | null>(null);
   const [deletingUser, setDeletingUser] = useState(false);
   const [selectedUser, setSelectedUser] = useState<ProfileRow | null>(null);
+  const [premiumConfirm, setPremiumConfirm] = useState<{ userId: string; currentTier: string; name: string } | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -111,6 +122,7 @@ const Admin = () => {
   const filteredProfiles = profiles.filter(p =>
     p.display_name.toLowerCase().includes(search.toLowerCase()) || p.cpf.includes(search.replace(/\D/g, ""))
   );
+
 
   const togglePremium = async (profileUserId: string, currentTier: string) => {
     const newTier = currentTier === "premium" ? "free" : "premium";
@@ -307,7 +319,7 @@ const Admin = () => {
                             <td className="px-4 py-3 text-orange-400">{p.streak} dias🔥</td>
                             <td className="px-4 py-3">
                               <button
-                                onClick={(e) => { e.stopPropagation(); togglePremium(p.user_id, p.subscription_tier); }}
+                                onClick={(e) => { e.stopPropagation(); setPremiumConfirm({ userId: p.user_id, currentTier: p.subscription_tier, name: p.display_name }); }}
                                 className={`text-xs font-medium px-2 py-0.5 rounded-full cursor-pointer hover:opacity-80 transition-opacity ${
                                   p.subscription_tier === "premium" ? "bg-accent/20 text-accent" : "bg-muted text-muted-foreground"
                                 }`}
@@ -667,6 +679,31 @@ Content-Type: application/json
           </div>
         </TabsContent>
       </Tabs>
+      <AlertDialog open={!!premiumConfirm} onOpenChange={(open) => !open && setPremiumConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar alteração de plano</AlertDialogTitle>
+            <AlertDialogDescription>
+              {premiumConfirm?.currentTier === "premium"
+                ? `Deseja remover o plano Premium de "${premiumConfirm?.name}"? O usuário perderá acesso aos recursos exclusivos.`
+                : `Deseja ativar o plano Premium para "${premiumConfirm?.name}"? O usuário terá acesso a todos os recursos exclusivos.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (premiumConfirm) {
+                  togglePremium(premiumConfirm.userId, premiumConfirm.currentTier);
+                }
+                setPremiumConfirm(null);
+              }}
+            >
+              {premiumConfirm?.currentTier === "premium" ? "Remover Premium" : "Ativar Premium"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
