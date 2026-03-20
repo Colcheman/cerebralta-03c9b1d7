@@ -23,6 +23,8 @@ interface PublicProfile {
   bio?: string | null;
   public_id?: string | null;
   accumulated_earnings?: number | null;
+  followers_count?: number | null;
+  following_count?: number | null;
 }
 
 interface PostWithProfile {
