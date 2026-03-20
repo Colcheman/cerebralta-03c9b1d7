@@ -114,9 +114,12 @@ const Admin = () => {
 
   const togglePremium = async (profileUserId: string, currentTier: string) => {
     const newTier = currentTier === "premium" ? "free" : "premium";
-    const { error } = await supabase.from("profiles").update({ subscription_tier: newTier } as any).eq("user_id", profileUserId);
-    if (error) {
-      toast({ title: "Erro ao atualizar", description: error.message, variant: "destructive" });
+    const { data, error } = await supabase.rpc("admin_set_premium", {
+      _target_user_id: profileUserId,
+      _tier: newTier,
+    } as any);
+    if (error || !data) {
+      toast({ title: "Erro ao atualizar", description: error?.message ?? "Sem permissão", variant: "destructive" });
       return;
     }
     setProfiles(prev => prev.map(p => p.user_id === profileUserId ? { ...p, subscription_tier: newTier } : p));

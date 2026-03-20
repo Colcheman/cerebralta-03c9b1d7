@@ -799,6 +799,13 @@ export type Database = {
       }
     }
     Functions: {
+      admin_set_premium: {
+        Args: {
+          _target_user_id: string
+          _tier: Database["public"]["Enums"]["subscription_tier"]
+        }
+        Returns: boolean
+      }
       calculate_billing_amount: {
         Args: { _active_days: number }
         Returns: number
