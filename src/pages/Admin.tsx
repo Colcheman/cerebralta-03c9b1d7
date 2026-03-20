@@ -621,6 +621,11 @@ const Admin = () => {
           </div>
         </TabsContent>
 
+        {/* Reports */}
+        <TabsContent value="reports" className="space-y-4">
+          <AdminReportsPanel />
+        </TabsContent>
+
         {/* Webhook / System Settings */}
         <TabsContent value="settings" className="space-y-4">
           <div className="glass rounded-xl p-6 space-y-4">
