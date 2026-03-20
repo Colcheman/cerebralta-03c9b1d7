@@ -190,7 +190,8 @@ const Perfil = () => {
                   ) : initials}
                 </div>
                 {!isOwnProfile && user && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {userId && <FollowButton targetUserId={userId} />}
                     {userId && <FriendControls targetUserId={userId} />}
                     <button
                       onClick={handleStartConversation}
