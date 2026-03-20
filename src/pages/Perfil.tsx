@@ -225,6 +225,12 @@ const Perfil = () => {
                   <span className="text-[10px] font-bold bg-accent/20 text-accent px-2 py-0.5 rounded-full">PREMIUM</span>
                 )}
               </div>
+              {/* Public ID */}
+              {profile.public_id && (
+                <p className="text-xs text-muted-foreground font-mono flex items-center gap-1 mt-0.5">
+                  <Hash className="w-3 h-3" /> {profile.public_id}
+                </p>
+              )}
               <p className="text-sm text-muted-foreground mb-2">{profile.level ?? "Iniciante"}</p>
 
               {/* Bio */}
