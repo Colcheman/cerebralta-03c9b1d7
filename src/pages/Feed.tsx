@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
 const categories = ["Todos", "Reflexão", "Estratégia", "Estoicismo", "Prática"];
+type FeedMode = "para_voce" | "seguindo";
 
 interface PostWithProfile {
   id: string;
@@ -40,6 +41,7 @@ interface SearchResult {
 
 const Feed = () => {
   const [filter, setFilter] = useState("Todos");
+  const [feedMode, setFeedMode] = useState<FeedMode>("para_voce");
   const [posts, setPosts] = useState<PostWithProfile[]>([]);
   const [newPost, setNewPost] = useState("");
   const [newCategory, setNewCategory] = useState<string>("reflexão");
@@ -49,10 +51,19 @@ const Feed = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [followingIds, setFollowingIds] = useState<string[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { profile, user } = useAuth();
   const navigate = useNavigate();
+
+  // Fetch following IDs once
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("follows").select("following_id").eq("follower_id", user.id).then(({ data }) => {
+      setFollowingIds(data?.map(d => d.following_id) ?? []);
+    });
+  }, [user]);
 
   const fetchPosts = async () => {
     // Get blocked user IDs
@@ -62,7 +73,18 @@ const Feed = () => {
       blockedIds = blocks?.map((b: any) => b.blocked_id) ?? [];
     }
 
-    const { data } = await supabase.from("posts").select("*").order("created_at", { ascending: false }).limit(20);
+    let query = supabase.from("posts").select("*").order("created_at", { ascending: false }).limit(40);
+
+    // If "seguindo" mode, filter by followed users
+    if (feedMode === "seguindo" && followingIds.length > 0) {
+      query = query.in("user_id", followingIds);
+    } else if (feedMode === "seguindo" && followingIds.length === 0) {
+      setPosts([]);
+      setLoading(false);
+      return;
+    }
+
+    const { data } = await query;
     if (!data) { setLoading(false); return; }
 
     // Filter out blocked users
@@ -93,7 +115,7 @@ const Feed = () => {
     setLoading(false);
   };
 
-  useEffect(() => { fetchPosts(); }, []);
+  useEffect(() => { fetchPosts(); }, [feedMode, followingIds]);
 
   // Close search on click outside
   useEffect(() => {
@@ -262,6 +284,24 @@ const Feed = () => {
           )}
         </AnimatePresence>
 
+        {/* Feed mode tabs */}
+        <div className="flex border-b border-border">
+          <button
+            onClick={() => { setFeedMode("para_voce"); setLoading(true); }}
+            className={`flex-1 py-3 text-sm font-medium relative transition-colors ${feedMode === "para_voce" ? "text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/30"}`}
+          >
+            Para Você
+            {feedMode === "para_voce" && <motion.div layoutId="feedmode" className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-1 rounded-full bg-primary" />}
+          </button>
+          <button
+            onClick={() => { setFeedMode("seguindo"); setLoading(true); }}
+            className={`flex-1 py-3 text-sm font-medium relative transition-colors ${feedMode === "seguindo" ? "text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/30"}`}
+          >
+            Seguindo
+            {feedMode === "seguindo" && <motion.div layoutId="feedmode" className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-1 rounded-full bg-primary" />}
+          </button>
+        </div>
+
         <div className="flex overflow-x-auto scrollbar-hide border-b border-border">
           {categories.map(cat => (
             <button key={cat} onClick={() => setFilter(cat)}
@@ -314,7 +354,11 @@ const Feed = () => {
       {loading ? (
         <div className="text-center py-8 text-muted-foreground text-sm">Carregando...</div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground text-sm">Nenhuma reflexão ainda. Seja o primeiro Arquiteto Mental a compartilhar! 🧠</div>
+        <div className="text-center py-12 text-muted-foreground text-sm">
+          {feedMode === "seguindo"
+            ? "Siga outros Arquitetos Mentais para ver seus posts aqui! 👥"
+            : "Nenhuma reflexão ainda. Seja o primeiro Arquiteto Mental a compartilhar! 🧠"}
+        </div>
       ) : (
         filtered.map((post, i) => (
           <PostCard

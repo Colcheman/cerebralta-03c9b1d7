@@ -261,6 +261,27 @@ export type Database = {
           },
         ]
       }
+      follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+          id?: string
+        }
+        Relationships: []
+      }
       friendships: {
         Row: {
           addressee_id: string
@@ -788,6 +809,8 @@ export type Database = {
           bio: string | null
           created_at: string | null
           display_name: string | null
+          followers_count: number | null
+          following_count: number | null
           level: string | null
           name_verified: boolean | null
           points: number | null
@@ -806,6 +829,8 @@ export type Database = {
           bio?: string | null
           created_at?: string | null
           display_name?: string | null
+          followers_count?: never
+          following_count?: never
           level?: string | null
           name_verified?: boolean | null
           points?: number | null
@@ -824,6 +849,8 @@ export type Database = {
           bio?: string | null
           created_at?: string | null
           display_name?: string | null
+          followers_count?: never
+          following_count?: never
           level?: string | null
           name_verified?: boolean | null
           points?: number | null

@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Flame, Star, Zap, Award, MessageCircle, Ban, Flag, DollarSign, Hash } from "lucide-react";
+import { ArrowLeft, Flame, Star, Zap, Award, MessageCircle, Ban, Flag, DollarSign, Hash, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import PostCard from "@/components/PostCard";
 import FriendControls from "@/components/profile/FriendControls";
+import FollowButton from "@/components/FollowButton";
 import DiscountPanel from "@/components/profile/DiscountPanel";
 import BlockUserButton from "@/components/BlockUserButton";
 import ReportModal from "@/components/ReportModal";
@@ -22,6 +23,8 @@ interface PublicProfile {
   bio?: string | null;
   public_id?: string | null;
   accumulated_earnings?: number | null;
+  followers_count?: number | null;
+  following_count?: number | null;
 }
 
 interface PostWithProfile {
@@ -187,7 +190,8 @@ const Perfil = () => {
                   ) : initials}
                 </div>
                 {!isOwnProfile && user && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {userId && <FollowButton targetUserId={userId} />}
                     {userId && <FriendControls targetUserId={userId} />}
                     <button
                       onClick={handleStartConversation}
@@ -242,7 +246,16 @@ const Perfil = () => {
               )}
 
               {/* Stats */}
-              <div className="flex gap-5 mt-1">
+              <div className="flex gap-5 mt-1 flex-wrap">
+                <div className="flex items-center gap-1.5">
+                  <Users className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-bold text-foreground">{profile.followers_count ?? 0}</span>
+                  <span className="text-xs text-muted-foreground">seguidores</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-bold text-foreground">{profile.following_count ?? 0}</span>
+                  <span className="text-xs text-muted-foreground">seguindo</span>
+                </div>
                 <div className="flex items-center gap-1.5">
                   <Zap className="w-4 h-4 text-primary" />
                   <span className="text-sm font-bold text-foreground">{profile.points ?? 0}</span>
