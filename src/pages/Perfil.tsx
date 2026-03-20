@@ -196,6 +196,13 @@ const Perfil = () => {
                       <MessageCircle className="w-4 h-4" />
                       Mensagem
                     </button>
+                    <BlockUserButton targetUserId={userId!} targetName={profile?.display_name ?? undefined} onBlocked={() => navigate("/feed")} />
+                    <button
+                      onClick={() => setShowReport(true)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border text-sm text-muted-foreground hover:text-destructive hover:border-destructive/30 transition-colors"
+                    >
+                      <Flag className="w-4 h-4" />
+                    </button>
                   </div>
                 )}
                 {isOwnProfile && (
