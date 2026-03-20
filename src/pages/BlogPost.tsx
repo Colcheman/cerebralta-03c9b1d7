@@ -58,7 +58,7 @@ const BlogPost = () => {
       updateMeta("og:type", "article");
 
       // JSON-LD
-      let ld = document.getElementById("blog-jsonld");
+      let ld = document.getElementById("blog-jsonld") as HTMLScriptElement | null;
       if (!ld) {
         ld = document.createElement("script");
         ld.id = "blog-jsonld";
