@@ -246,7 +246,16 @@ const Perfil = () => {
               )}
 
               {/* Stats */}
-              <div className="flex gap-5 mt-1">
+              <div className="flex gap-5 mt-1 flex-wrap">
+                <div className="flex items-center gap-1.5">
+                  <Users className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-bold text-foreground">{profile.followers_count ?? 0}</span>
+                  <span className="text-xs text-muted-foreground">seguidores</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-bold text-foreground">{profile.following_count ?? 0}</span>
+                  <span className="text-xs text-muted-foreground">seguindo</span>
+                </div>
                 <div className="flex items-center gap-1.5">
                   <Zap className="w-4 h-4 text-primary" />
                   <span className="text-sm font-bold text-foreground">{profile.points ?? 0}</span>
