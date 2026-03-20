@@ -104,8 +104,9 @@ const LocaleSetup = () => {
         locale_configured: true,
       } as any)
       .eq("user_id", user.id);
+    await refreshProfile();
     setSaving(false);
-    navigate("/feed");
+    navigate("/feed", { replace: true });
   };
 
   return (
