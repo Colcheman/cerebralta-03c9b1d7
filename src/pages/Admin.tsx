@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Users, Megaphone, Search, Loader2, Send, Shield, BookOpen, Plus, Clock, Globe, Settings, Bot, KeyRound, CheckCircle2, XCircle, Trash2, CreditCard, Target, BarChart3, Eye } from "lucide-react";
+import { Users, Megaphone, Search, Loader2, Send, Shield, BookOpen, Plus, Clock, Globe, Settings, Bot, KeyRound, CheckCircle2, XCircle, Trash2, CreditCard, Target, BarChart3, Eye, Flag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
