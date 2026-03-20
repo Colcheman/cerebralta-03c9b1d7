@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
 const categories = ["Todos", "Reflexão", "Estratégia", "Estoicismo", "Prática"];
+type FeedMode = "para_voce" | "seguindo";
 
 interface PostWithProfile {
   id: string;
