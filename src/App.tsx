@@ -26,6 +26,8 @@ import Amigos from "./pages/Amigos";
 import NotFound from "./pages/NotFound";
 import Perfil from "./pages/Perfil";
 import Metas from "./pages/Metas";
+import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
 
 const queryClient = new QueryClient();
 
