@@ -354,7 +354,11 @@ const Feed = () => {
       {loading ? (
         <div className="text-center py-8 text-muted-foreground text-sm">Carregando...</div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground text-sm">Nenhuma reflexão ainda. Seja o primeiro Arquiteto Mental a compartilhar! 🧠</div>
+        <div className="text-center py-12 text-muted-foreground text-sm">
+          {feedMode === "seguindo"
+            ? "Siga outros Arquitetos Mentais para ver seus posts aqui! 👥"
+            : "Nenhuma reflexão ainda. Seja o primeiro Arquiteto Mental a compartilhar! 🧠"}
+        </div>
       ) : (
         filtered.map((post, i) => (
           <PostCard
