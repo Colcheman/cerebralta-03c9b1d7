@@ -262,6 +262,17 @@ const Perfil = () => {
             </div>
           </div>
 
+          {/* Accumulated Earnings - only for own profile */}
+          {isOwnProfile && profile.accumulated_earnings != null && profile.accumulated_earnings > 0 && (
+            <div className="mx-4 mt-3 bg-muted rounded-xl p-4 flex items-center gap-3">
+              <DollarSign className="w-5 h-5 text-accent" />
+              <div>
+                <p className="text-xs text-muted-foreground">Valor acumulado</p>
+                <p className="text-lg font-bold text-accent">R$ {Number(profile.accumulated_earnings).toFixed(2).replace(".", ",")}</p>
+              </div>
+            </div>
+          )}
+
           {/* Discount Panel - only for own profile */}
           {isOwnProfile && userId && <DiscountPanel userId={userId} />}
 
