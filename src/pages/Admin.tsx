@@ -12,6 +12,16 @@ import AdminUserDetail from "@/components/admin/AdminUserDetail";
 import AdminStatsPanel from "@/components/admin/AdminStatsPanel";
 import AdminReportsPanel from "@/components/admin/AdminReportsPanel";
 import { sanitizeText, sanitizeUrl } from "@/lib/sanitize";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface ProfileRow {
   id: string;
