@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Users, Megaphone, Search, Loader2, Send, Shield, BookOpen, Plus, Clock, Globe, Settings, Bot, KeyRound, CheckCircle2, XCircle, Trash2, CreditCard, Target, BarChart3, Eye, Flag } from "lucide-react";
+import { Users, Megaphone, Search, Loader2, Send, Shield, BookOpen, Plus, Clock, Globe, Settings, Bot, KeyRound, CheckCircle2, XCircle, Trash2, CreditCard, Target, BarChart3, Eye, Flag, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
@@ -11,6 +11,7 @@ import AdminAIAssistant from "@/components/admin/AdminAIAssistant";
 import AdminUserDetail from "@/components/admin/AdminUserDetail";
 import AdminStatsPanel from "@/components/admin/AdminStatsPanel";
 import AdminReportsPanel from "@/components/admin/AdminReportsPanel";
+import AdminBlogPanel from "@/components/admin/AdminBlogPanel";
 import { sanitizeText, sanitizeUrl } from "@/lib/sanitize";
 import {
   AlertDialog,
@@ -260,6 +261,7 @@ const Admin = () => {
           <TabsTrigger value="news" className="gap-1.5"><Megaphone className="w-4 h-4" /> News</TabsTrigger>
           <TabsTrigger value="asaas" className="gap-1.5"><CreditCard className="w-4 h-4" /> Pagamentos</TabsTrigger>
           <TabsTrigger value="reports" className="gap-1.5"><Flag className="w-4 h-4" /> Denúncias</TabsTrigger>
+          <TabsTrigger value="blog" className="gap-1.5"><FileText className="w-4 h-4" /> Blog</TabsTrigger>
           <TabsTrigger value="settings" className="gap-1.5"><Settings className="w-4 h-4" /> Sistema</TabsTrigger>
         </TabsList>
 
@@ -639,6 +641,11 @@ const Admin = () => {
         {/* Reports */}
         <TabsContent value="reports" className="space-y-4">
           <AdminReportsPanel />
+        </TabsContent>
+
+        {/* Blog */}
+        <TabsContent value="blog" className="space-y-4">
+          <AdminBlogPanel />
         </TabsContent>
 
         {/* Webhook / System Settings */}
