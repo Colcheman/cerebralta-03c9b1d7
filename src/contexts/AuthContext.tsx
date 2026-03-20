@@ -33,6 +33,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<{ error: string | null }>;
   register: (cpf: string, name: string, password: string) => Promise<{ error: string | null }>;
   logout: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
