@@ -57,6 +57,14 @@ const Feed = () => {
   const { profile, user } = useAuth();
   const navigate = useNavigate();
 
+  // Fetch following IDs once
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("follows").select("following_id").eq("follower_id", user.id).then(({ data }) => {
+      setFollowingIds(data?.map(d => d.following_id) ?? []);
+    });
+  }, [user]);
+
   const fetchPosts = async () => {
     // Get blocked user IDs
     let blockedIds: string[] = [];
@@ -65,7 +73,18 @@ const Feed = () => {
       blockedIds = blocks?.map((b: any) => b.blocked_id) ?? [];
     }
 
-    const { data } = await supabase.from("posts").select("*").order("created_at", { ascending: false }).limit(20);
+    let query = supabase.from("posts").select("*").order("created_at", { ascending: false }).limit(40);
+
+    // If "seguindo" mode, filter by followed users
+    if (feedMode === "seguindo" && followingIds.length > 0) {
+      query = query.in("user_id", followingIds);
+    } else if (feedMode === "seguindo" && followingIds.length === 0) {
+      setPosts([]);
+      setLoading(false);
+      return;
+    }
+
+    const { data } = await query;
     if (!data) { setLoading(false); return; }
 
     // Filter out blocked users
@@ -96,7 +115,7 @@ const Feed = () => {
     setLoading(false);
   };
 
-  useEffect(() => { fetchPosts(); }, []);
+  useEffect(() => { fetchPosts(); }, [feedMode, followingIds]);
 
   // Close search on click outside
   useEffect(() => {
