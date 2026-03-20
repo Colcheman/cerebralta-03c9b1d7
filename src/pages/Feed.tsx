@@ -284,6 +284,24 @@ const Feed = () => {
           )}
         </AnimatePresence>
 
+        {/* Feed mode tabs */}
+        <div className="flex border-b border-border">
+          <button
+            onClick={() => { setFeedMode("para_voce"); setLoading(true); }}
+            className={`flex-1 py-3 text-sm font-medium relative transition-colors ${feedMode === "para_voce" ? "text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/30"}`}
+          >
+            Para Você
+            {feedMode === "para_voce" && <motion.div layoutId="feedmode" className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-1 rounded-full bg-primary" />}
+          </button>
+          <button
+            onClick={() => { setFeedMode("seguindo"); setLoading(true); }}
+            className={`flex-1 py-3 text-sm font-medium relative transition-colors ${feedMode === "seguindo" ? "text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/30"}`}
+          >
+            Seguindo
+            {feedMode === "seguindo" && <motion.div layoutId="feedmode" className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-1 rounded-full bg-primary" />}
+          </button>
+        </div>
+
         <div className="flex overflow-x-auto scrollbar-hide border-b border-border">
           {categories.map(cat => (
             <button key={cat} onClick={() => setFilter(cat)}
