@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import AppLockScreen from "@/components/AppLockScreen";
 import Login from "./pages/Login";
+import LandingPage from "./pages/LandingPage";
 import Assinatura from "./pages/Assinatura";
 import AppLayout from "./components/AppLayout";
 import Feed from "./pages/Feed";
