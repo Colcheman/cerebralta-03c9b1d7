@@ -49,6 +49,10 @@ const PostCard = ({ post, index, onUpdate, onQuote }: { post: PostData; index: n
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
   const [commentCount, setCommentCount] = useState(post.comments);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showReport, setShowReport] = useState(false);
+  const [blocked, setBlocked] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const isElevated = ELEVATED_LEVELS.includes(post.level);
 
