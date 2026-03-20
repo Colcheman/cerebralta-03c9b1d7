@@ -73,8 +73,11 @@ Deno.serve(async (req) => {
     });
 
     if (error) {
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
+      const msg = error.message.toLowerCase().includes("weak")
+        ? "Senha muito fraca ou já vazada em bancos de dados públicos. Escolha uma senha mais forte e única."
+        : error.message;
+      return new Response(JSON.stringify({ error: msg }), {
+        status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
