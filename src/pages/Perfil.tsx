@@ -315,6 +315,14 @@ const Perfil = () => {
           <div className="h-20" />
         </>
       )}
+      {!isOwnProfile && userId && (
+        <ReportModal
+          open={showReport}
+          onOpenChange={setShowReport}
+          reportedUserId={userId}
+          reportedName={profile?.display_name ?? undefined}
+        />
+      )}
     </div>
   );
 };

@@ -244,6 +244,7 @@ const Admin = () => {
           <TabsTrigger value="ai" className="gap-1.5"><Bot className="w-4 h-4" /> IA</TabsTrigger>
           <TabsTrigger value="news" className="gap-1.5"><Megaphone className="w-4 h-4" /> News</TabsTrigger>
           <TabsTrigger value="asaas" className="gap-1.5"><CreditCard className="w-4 h-4" /> Pagamentos</TabsTrigger>
+          <TabsTrigger value="reports" className="gap-1.5"><Flag className="w-4 h-4" /> Denúncias</TabsTrigger>
           <TabsTrigger value="settings" className="gap-1.5"><Settings className="w-4 h-4" /> Sistema</TabsTrigger>
         </TabsList>
 
