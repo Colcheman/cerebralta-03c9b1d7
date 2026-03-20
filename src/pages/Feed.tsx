@@ -41,6 +41,7 @@ interface SearchResult {
 
 const Feed = () => {
   const [filter, setFilter] = useState("Todos");
+  const [feedMode, setFeedMode] = useState<FeedMode>("para_voce");
   const [posts, setPosts] = useState<PostWithProfile[]>([]);
   const [newPost, setNewPost] = useState("");
   const [newCategory, setNewCategory] = useState<string>("reflexão");
@@ -50,6 +51,7 @@ const Feed = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [followingIds, setFollowingIds] = useState<string[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { profile, user } = useAuth();
