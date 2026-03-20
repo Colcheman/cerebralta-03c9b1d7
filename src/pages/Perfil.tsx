@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Flame, Star, Zap, Award, MessageCircle } from "lucide-react";
+import { ArrowLeft, Flame, Star, Zap, Award, MessageCircle, Ban, Flag, DollarSign, Hash } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import PostCard from "@/components/PostCard";
 import FriendControls from "@/components/profile/FriendControls";
 import DiscountPanel from "@/components/profile/DiscountPanel";
+import BlockUserButton from "@/components/BlockUserButton";
+import ReportModal from "@/components/ReportModal";
 
 interface PublicProfile {
   user_id: string;
