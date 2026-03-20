@@ -101,6 +101,8 @@ const PostCard = ({ post, index, onUpdate, onQuote }: { post: PostData; index: n
     setShowComments(!showComments);
   };
 
+  if (blocked) return null;
+
   return (
     <motion.article
       initial={{ opacity: 0, y: 6 }}
