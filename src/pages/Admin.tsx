@@ -122,6 +122,8 @@ const Admin = () => {
     p.display_name.toLowerCase().includes(search.toLowerCase()) || p.cpf.includes(search.replace(/\D/g, ""))
   );
 
+  const [premiumConfirm, setPremiumConfirm] = useState<{ userId: string; currentTier: string; name: string } | null>(null);
+
   const togglePremium = async (profileUserId: string, currentTier: string) => {
     const newTier = currentTier === "premium" ? "free" : "premium";
     const { data, error } = await supabase.rpc("admin_set_premium", {
