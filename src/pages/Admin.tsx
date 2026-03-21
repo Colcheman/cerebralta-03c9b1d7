@@ -261,7 +261,8 @@ const Admin = () => {
           <TabsTrigger value="news" className="gap-1.5"><Megaphone className="w-4 h-4" /> News</TabsTrigger>
           <TabsTrigger value="asaas" className="gap-1.5"><CreditCard className="w-4 h-4" /> Pagamentos</TabsTrigger>
           <TabsTrigger value="reports" className="gap-1.5"><Flag className="w-4 h-4" /> Denúncias</TabsTrigger>
-          <TabsTrigger value="blog" className="gap-1.5"><FileText className="w-4 h-4" /> Blog</TabsTrigger>
+           <TabsTrigger value="blog" className="gap-1.5"><FileText className="w-4 h-4" /> Blog</TabsTrigger>
+           <TabsTrigger value="verification" className="gap-1.5"><Shield className="w-4 h-4" /> Verificação</TabsTrigger>
           <TabsTrigger value="settings" className="gap-1.5"><Settings className="w-4 h-4" /> Sistema</TabsTrigger>
         </TabsList>
 
