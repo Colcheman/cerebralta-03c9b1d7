@@ -650,6 +650,10 @@ const Admin = () => {
           <AdminBlogPanel />
         </TabsContent>
 
+        <TabsContent value="verification" className="space-y-4">
+          <AdminVerificationsPanel />
+        </TabsContent>
+
         {/* Webhook / System Settings */}
         <TabsContent value="settings" className="space-y-4">
           <div className="glass rounded-xl p-6 space-y-4">
