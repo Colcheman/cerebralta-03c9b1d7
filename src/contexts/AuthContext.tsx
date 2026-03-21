@@ -23,6 +23,7 @@ interface Profile {
   country: string;
   timezone: string;
   locale_configured: boolean;
+  birth_date: string | null;
 }
 
 interface AuthContextType {
@@ -31,7 +32,7 @@ interface AuthContextType {
   profile: Profile | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<{ error: string | null }>;
-  register: (cpf: string, name: string, password: string) => Promise<{ error: string | null }>;
+  register: (email: string, name: string, password: string, birthDate: string) => Promise<{ error: string | null }>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -42,12 +43,6 @@ export const useAuth = () => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be inside AuthProvider");
   return ctx;
-};
-
-// Convert CPF to a fake email for Supabase auth (CPF-only login)
-const cpfToEmail = (cpf: string) => {
-  const digits = cpf.replace(/\D/g, "");
-  return `${digits}@cerebralta.app`;
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -66,13 +61,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          // Use setTimeout to avoid Supabase client deadlock
           setTimeout(() => fetchProfile(session.user.id), 0);
         } else {
           setProfile(null);
@@ -81,7 +74,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
-    // THEN check existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -94,20 +86,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const login = async (cpf: string, password: string) => {
+  const login = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
-      email: cpfToEmail(cpf),
+      email,
       password,
     });
     return { error: error?.message ?? null };
   };
 
-  const register = async (cpf: string, name: string, password: string) => {
+  const register = async (email: string, name: string, password: string, birthDate: string) => {
     const { error } = await supabase.auth.signUp({
-      email: cpfToEmail(cpf),
+      email,
       password,
       options: {
-        data: { cpf: cpf.replace(/\D/g, ""), display_name: name },
+        data: { display_name: name, birth_date: birthDate },
       },
     });
     return { error: error?.message ?? null };
