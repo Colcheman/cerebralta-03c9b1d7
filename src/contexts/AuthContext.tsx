@@ -24,6 +24,7 @@ interface Profile {
   timezone: string;
   locale_configured: boolean;
   birth_date: string | null;
+  verification_status: string;
 }
 
 interface AuthContextType {

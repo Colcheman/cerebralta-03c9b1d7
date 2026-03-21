@@ -605,6 +605,7 @@ export type Database = {
           two_factor_enabled: boolean
           updated_at: string
           user_id: string
+          verification_status: string
           whatsapp_number: string | null
           whatsapp_opt_in: boolean
           whatsapp_status: string
@@ -641,6 +642,7 @@ export type Database = {
           two_factor_enabled?: boolean
           updated_at?: string
           user_id: string
+          verification_status?: string
           whatsapp_number?: string | null
           whatsapp_opt_in?: boolean
           whatsapp_status?: string
@@ -677,6 +679,7 @@ export type Database = {
           two_factor_enabled?: boolean
           updated_at?: string
           user_id?: string
+          verification_status?: string
           whatsapp_number?: string | null
           whatsapp_opt_in?: boolean
           whatsapp_status?: string
@@ -797,6 +800,36 @@ export type Database = {
         Update: {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      verification_requests: {
+        Row: {
+          id: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          submitted_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_at?: string
           user_id?: string
         }
         Relationships: []

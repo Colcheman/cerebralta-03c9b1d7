@@ -29,6 +29,7 @@ import Perfil from "./pages/Perfil";
 import Metas from "./pages/Metas";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
+import VerificacaoIdentidade from "./pages/VerificacaoIdentidade";
 
 const queryClient = new QueryClient();
 
@@ -67,6 +68,7 @@ const App = () => (
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:slug" element={<BlogPost />} />
                 <Route path="/locale-setup" element={<LocaleSetup />} />
+                <Route path="/verificacao" element={<VerificacaoIdentidade />} />
                 <Route path="/assinatura" element={<Assinatura />} />
                 <Route element={<AppLayout />}>
                 <Route path="/feed" element={<Feed />} />

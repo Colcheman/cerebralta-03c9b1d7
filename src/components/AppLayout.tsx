@@ -33,6 +33,10 @@ const AppLayout = () => {
     return <Navigate to="/locale-setup" replace />;
   }
 
+  if (profile && (profile as any).verification_status === "unverified") {
+    return <Navigate to="/verificacao" replace />;
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
