@@ -580,6 +580,7 @@ export type Database = {
           avatar_url: string | null
           banner_url: string | null
           bio: string | null
+          birth_date: string | null
           country: string
           cpf: string
           created_at: string
@@ -615,8 +616,9 @@ export type Database = {
           avatar_url?: string | null
           banner_url?: string | null
           bio?: string | null
+          birth_date?: string | null
           country?: string
-          cpf: string
+          cpf?: string
           created_at?: string
           display_name: string
           id?: string
@@ -650,6 +652,7 @@ export type Database = {
           avatar_url?: string | null
           banner_url?: string | null
           bio?: string | null
+          birth_date?: string | null
           country?: string
           cpf?: string
           created_at?: string
