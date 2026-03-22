@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, User, Target, Trophy, MessageSquare, Heart, Calendar, Shield, Flame, Star, FileText } from "lucide-react";
+import { ArrowLeft, User, Target, Trophy, MessageSquare, Heart, Calendar, Shield, Flame, Star, FileText, Pencil, Loader2, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProfileRow {
   id: string;
