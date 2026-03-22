@@ -272,13 +272,6 @@ const VerificacaoIdentidade = () => {
               )}
             </button>
 
-            {/* Skip for now */}
-            <button
-              onClick={() => navigate("/feed")}
-              className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition"
-            >
-              Pular por agora
-            </button>
           </>
         )}
       </motion.div>
