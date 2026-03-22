@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Shield, Upload, Camera, FileCheck, AlertTriangle, Loader2, ChevronDown } from "lucide-react";
+import { Shield, Upload, Camera, FileCheck, AlertTriangle, Loader2, ChevronDown, LogOut } from "lucide-react";
 import { toast } from "sonner";
 
 const DOCUMENT_TYPES: Record<string, { label: string; docs: string[] }> = {
@@ -14,7 +14,7 @@ const DOCUMENT_TYPES: Record<string, { label: string; docs: string[] }> = {
 };
 
 const VerificacaoIdentidade = () => {
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile, logout } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -128,16 +128,27 @@ const VerificacaoIdentidade = () => {
             <p className="text-muted-foreground text-xs">
               Esse processo geralmente leva até 24 horas úteis.
             </p>
-            <button
-              onClick={async () => {
-                await refreshProfile();
-                // Profile state will update via re-render, redirect handled by the check at top
-                toast.info("Status verificado. Aguarde a aprovação.");
-              }}
-              className="px-6 py-2 bg-muted text-foreground rounded-lg font-medium hover:opacity-90 transition text-sm"
-            >
-              Verificar status
-            </button>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={async () => {
+                  await refreshProfile();
+                  toast.info("Status verificado. Aguarde a aprovação.");
+                }}
+                className="px-6 py-2 bg-muted text-foreground rounded-lg font-medium hover:opacity-90 transition text-sm"
+              >
+                Verificar status
+              </button>
+              <button
+                onClick={async () => {
+                  await logout();
+                  navigate("/login", { replace: true });
+                }}
+                className="px-6 py-2 text-muted-foreground rounded-lg font-medium hover:text-foreground transition text-sm flex items-center justify-center gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                Sair da conta
+              </button>
+            </div>
           </div>
         ) : isRejected ? (
           <div className="bg-card border border-destructive/30 rounded-xl p-6 text-center space-y-4">
