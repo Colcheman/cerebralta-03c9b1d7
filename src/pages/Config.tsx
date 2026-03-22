@@ -543,6 +543,9 @@ const Config = () => {
           )}
         </motion.div>
 
+        {/* Billing History */}
+        <BillingHistory />
+
         {/* Privacy */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="glass rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-4">
