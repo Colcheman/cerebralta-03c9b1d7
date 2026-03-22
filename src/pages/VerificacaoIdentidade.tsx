@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Shield, Upload, Camera, FileCheck, AlertTriangle, Loader2, ChevronDown } from "lucide-react";
+import { Shield, Upload, Camera, FileCheck, AlertTriangle, Loader2, ChevronDown, LogOut } from "lucide-react";
 import { toast } from "sonner";
 
 const DOCUMENT_TYPES: Record<string, { label: string; docs: string[] }> = {
