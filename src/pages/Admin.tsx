@@ -29,7 +29,6 @@ interface ProfileRow {
   id: string;
   user_id: string;
   display_name: string;
-  cpf: string;
   level: string;
   points: number;
   streak: number;
@@ -39,13 +38,6 @@ interface ProfileRow {
   real_name?: string | null;
   name_verified?: boolean;
 }
-
-// Mask CPF: 123.456.789-00 → ***.456.***-**
-const maskCPF = (cpf: string) => {
-  const digits = cpf.replace(/\D/g, "");
-  if (digits.length !== 11) return "***.***.***-**";
-  return `***.${digits.slice(3, 6)}.***-**`;
-};
 
 const Admin = () => {
   const { user } = useAuth();

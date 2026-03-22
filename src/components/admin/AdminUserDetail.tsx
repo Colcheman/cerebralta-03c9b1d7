@@ -10,7 +10,6 @@ interface ProfileRow {
   id: string;
   user_id: string;
   display_name: string;
-  cpf: string;
   level: string;
   points: number;
   streak: number;
@@ -27,11 +26,6 @@ interface AdminUserDetailProps {
   onBack: () => void;
 }
 
-const maskCPF = (cpf: string) => {
-  const digits = cpf.replace(/\D/g, "");
-  if (digits.length !== 11) return "***.***.***-**";
-  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
-};
 
 const AdminUserDetail = ({ profile, onBack }: AdminUserDetailProps) => {
   const [missions, setMissions] = useState<{ total: number; completed: number }>({ total: 0, completed: 0 });

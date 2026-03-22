@@ -13,7 +13,7 @@ const features = [
   { icon: Users, title: "Rede Social de Elite", desc: "Conecte-se com Arquitetos Mentais comprometidos com crescimento real." },
   { icon: Trophy, title: "Conquistas & Ranking", desc: "Desbloqueie conquistas e suba de nível conforme evolui na plataforma." },
   { icon: BookOpen, title: "Aprendizado Curado", desc: "Conteúdo exclusivo sobre estratégia, estoicismo e desenvolvimento pessoal." },
-  { icon: Shield, title: "Privacidade Total", desc: "Seus dados protegidos com criptografia. Login via CPF, sem e-mail exposto." },
+  { icon: Shield, title: "Privacidade Total", desc: "Seus dados protegidos com criptografia e verificação de identidade segura." },
 ];
 
 const levels = [
