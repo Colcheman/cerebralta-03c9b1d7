@@ -81,7 +81,6 @@ const VerificacaoIdentidade = () => {
 
       await refreshProfile();
       toast.success("Documento enviado! Sua verificação está em análise.");
-      navigate("/feed");
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || "Erro ao enviar documento.");
@@ -97,6 +96,7 @@ const VerificacaoIdentidade = () => {
   }
 
   const isPending = profile?.verification_status === "pending";
+  const isRejected = profile?.verification_status === "rejected";
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -119,15 +119,44 @@ const VerificacaoIdentidade = () => {
         {isPending ? (
           <div className="bg-card border border-border rounded-xl p-6 text-center space-y-4">
             <FileCheck className="w-12 h-12 text-primary mx-auto" />
-            <h2 className="text-lg font-semibold text-foreground">Verificação em análise</h2>
+            <h2 className="text-lg font-semibold text-foreground">Cadastro em análise</h2>
             <p className="text-muted-foreground text-sm">
-              Seu documento foi enviado e está sendo analisado. Você será notificado quando a verificação for concluída.
+              Seu documento foi enviado e está sendo analisado pela nossa equipe. Você receberá um e-mail quando sua verificação for aprovada.
+            </p>
+            <p className="text-muted-foreground text-xs">
+              Esse processo geralmente leva até 24 horas úteis.
             </p>
             <button
-              onClick={() => navigate("/feed")}
+              onClick={async () => {
+                await refreshProfile();
+                if (profile?.verification_status === "approved") {
+                  navigate("/feed", { replace: true });
+                }
+              }}
+              className="px-6 py-2 bg-muted text-foreground rounded-lg font-medium hover:opacity-90 transition text-sm"
+            >
+              Verificar status
+            </button>
+          </div>
+        ) : isRejected ? (
+          <div className="bg-card border border-destructive/30 rounded-xl p-6 text-center space-y-4">
+            <AlertTriangle className="w-12 h-12 text-destructive mx-auto" />
+            <h2 className="text-lg font-semibold text-foreground">Verificação não aprovada</h2>
+            <p className="text-muted-foreground text-sm">
+              Infelizmente sua verificação não foi aprovada. Você pode enviar um novo documento abaixo.
+            </p>
+            <button
+              onClick={async () => {
+                // Reset status to unverified so form shows
+                await supabase
+                  .from("profiles")
+                  .update({ verification_status: "unverified" } as any)
+                  .eq("user_id", user?.id);
+                await refreshProfile();
+              }}
               className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 transition"
             >
-              Continuar para a plataforma
+              Enviar novo documento
             </button>
           </div>
         ) : (
@@ -276,13 +305,6 @@ const VerificacaoIdentidade = () => {
               )}
             </button>
 
-            {/* Skip for now */}
-            <button
-              onClick={() => navigate("/feed")}
-              className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition"
-            >
-              Pular por agora
-            </button>
           </>
         )}
       </motion.div>

@@ -33,7 +33,7 @@ const AppLayout = () => {
     return <Navigate to="/locale-setup" replace />;
   }
 
-  if (profile && (profile as any).verification_status === "unverified") {
+  if (profile && (profile as any).verification_status !== "approved") {
     return <Navigate to="/verificacao" replace />;
   }
 
