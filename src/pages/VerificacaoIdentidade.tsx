@@ -90,10 +90,12 @@ const VerificacaoIdentidade = () => {
   };
 
   // If already verified or pending, redirect
-  if (profile?.verification_status === "approved") {
-    navigate("/feed", { replace: true });
-    return null;
-  }
+  useEffect(() => {
+    if (profile?.verification_status === "approved") {
+      navigate("/feed", { replace: true });
+    }
+  }, [profile?.verification_status, navigate]);
+
 
   const isPending = profile?.verification_status === "pending";
   const isRejected = profile?.verification_status === "rejected";
