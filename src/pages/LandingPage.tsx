@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   Brain, Flame, Target, Users, Trophy, BookOpen, Shield, Zap,
   ArrowRight, MessageCircle, Mail, Phone, Instagram, Building2,
-  ChevronRight, Star, Sparkles,
+  ChevronRight, Star, Sparkles, Lock, EyeOff, ShieldCheck, ServerOff,
 } from "lucide-react";
 
 const features = [
@@ -224,6 +224,79 @@ const LandingPage = () => {
               </motion.div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Trust Block */}
+      <section className="py-24 px-6 bg-card/30 border-y border-border relative overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }} />
+        <div className="max-w-4xl mx-auto relative">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-14"
+          >
+            <div className="inline-flex items-center gap-2 bg-destructive/10 text-destructive px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider mb-6">
+              <Lock className="w-3.5 h-3.5" />
+              Anti Big-Tech
+            </div>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold mb-5">
+              Se não temos seus dados,<br />
+              <span className="text-primary">não existe o que vazar.</span>
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              Inacreditavelmente simples. Extremamente seguro. Diferente de tudo que você já viu.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-14">
+            {[
+              {
+                icon: ServerOff,
+                title: "Documentos apagados",
+                desc: "Após a verificação de identidade, seu documento é permanentemente deletado dos nossos servidores. Não armazenamos o que não precisamos.",
+              },
+              {
+                icon: EyeOff,
+                title: "Dados não vendidos",
+                desc: "Não vendemos, compartilhamos ou utilizamos seus dados pessoais para publicidade, manipulação ou qualquer fim comercial. Ponto final.",
+              },
+              {
+                icon: ShieldCheck,
+                title: "Sem manipulação",
+                desc: "Sem algoritmos viciantes. Sem notificações manipulativas. O Cerebralta foi construído para te desenvolver, não para te prender.",
+              },
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.12 }}
+                className="glass rounded-2xl p-6 border-destructive/10 hover:border-destructive/30 transition-all"
+              >
+                <div className="w-11 h-11 rounded-xl bg-destructive/10 flex items-center justify-center mb-4">
+                  <item.icon className="w-5 h-5 text-destructive" />
+                </div>
+                <h3 className="text-base font-semibold text-foreground mb-2">{item.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="glass rounded-2xl p-8 text-center border-primary/20"
+          >
+            <p className="text-base text-muted-foreground leading-relaxed max-w-2xl mx-auto">
+              A <strong className="text-foreground">Alluzion Corporate</strong> acredita que privacidade não é um recurso premium — 
+              é um direito fundamental. Por isso, construímos o Cerebralta com a filosofia de <strong className="text-foreground">dados mínimos</strong>: 
+              coletamos apenas o essencial e descartamos o que não precisamos mais.
+            </p>
+          </motion.div>
         </div>
       </section>
 
