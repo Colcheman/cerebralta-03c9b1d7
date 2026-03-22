@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Users, Megaphone, Search, Loader2, Send, Shield, BookOpen, Plus, Clock, Globe, Settings, Bot, KeyRound, CheckCircle2, XCircle, Trash2, CreditCard, Target, BarChart3, Eye, Flag, FileText } from "lucide-react";
+import { Users, Megaphone, Search, Loader2, Send, Shield, BookOpen, Plus, Clock, Globe, Settings, Bot, KeyRound, CheckCircle2, XCircle, Trash2, CreditCard, Target, BarChart3, Eye, Flag, FileText, Play, Video } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
@@ -60,6 +60,16 @@ const Admin = () => {
   const [coursePdf, setCoursePdf] = useState("");
   const [courseIsPremium, setCourseIsPremium] = useState(false);
   const [publishingCourse, setPublishingCourse] = useState(false);
+
+  // Missions
+  const [missionTitle, setMissionTitle] = useState("");
+  const [missionDesc, setMissionDesc] = useState("");
+  const [missionCategory, setMissionCategory] = useState("disciplina");
+  const [missionPoints, setMissionPoints] = useState("20");
+  const [missionIcon, setMissionIcon] = useState("📝");
+  const [missionVideo, setMissionVideo] = useState("");
+  const [missionIsPremium, setMissionIsPremium] = useState(false);
+  const [publishingMission, setPublishingMission] = useState(false);
 
   // Webhook URL
   const [webhookUrl, setWebhookUrl] = useState("");
@@ -233,6 +243,29 @@ const Admin = () => {
     toast({ title: "Módulo publicado!", description: "O conteúdo está disponível na área de Aprendizado." });
   };
 
+  const publishMission = async () => {
+    if (!missionTitle.trim() || !missionDesc.trim() || !user) return;
+    setPublishingMission(true);
+    await supabase.from("missions").insert({
+      title: sanitizeText(missionTitle, 200),
+      description: sanitizeText(missionDesc, 2000),
+      category: missionCategory,
+      points: parseInt(missionPoints) || 20,
+      icon: missionIcon || "📝",
+      video_url: sanitizeUrl(missionVideo) || null,
+      is_premium: missionIsPremium,
+      is_active: true,
+    } as any);
+    setMissionTitle("");
+    setMissionDesc("");
+    setMissionVideo("");
+    setMissionIsPremium(false);
+    setMissionPoints("20");
+    setMissionIcon("📝");
+    setPublishingMission(false);
+    toast({ title: "Missão criada!", description: "A missão está disponível para os usuários." });
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -251,6 +284,7 @@ const Admin = () => {
             <TabsTrigger value="stats" className="gap-1.5 text-xs"><BarChart3 className="w-3.5 h-3.5" /> Estatísticas</TabsTrigger>
             <TabsTrigger value="users" className="gap-1.5 text-xs"><Users className="w-3.5 h-3.5" /> Arquitetos</TabsTrigger>
             <TabsTrigger value="courses" className="gap-1.5 text-xs"><BookOpen className="w-3.5 h-3.5" /> Cursos</TabsTrigger>
+            <TabsTrigger value="missions" className="gap-1.5 text-xs"><Target className="w-3.5 h-3.5" /> Missões</TabsTrigger>
             <TabsTrigger value="ai" className="gap-1.5 text-xs"><Bot className="w-3.5 h-3.5" /> IA</TabsTrigger>
             <TabsTrigger value="news" className="gap-1.5 text-xs"><Megaphone className="w-3.5 h-3.5" /> News</TabsTrigger>
             <TabsTrigger value="asaas" className="gap-1.5 text-xs"><CreditCard className="w-3.5 h-3.5" /> Pagamentos</TabsTrigger>
@@ -496,7 +530,44 @@ const Admin = () => {
           </div>
         </TabsContent>
 
-        {/* AI Assistant */}
+        {/* Missions */}
+        <TabsContent value="missions" className="space-y-4">
+          <div className="glass rounded-xl p-6 space-y-4">
+            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Plus className="w-4 h-4" /> Criar Missão</h3>
+            <input value={missionTitle} onChange={e => setMissionTitle(e.target.value)} placeholder="Título da missão" maxLength={200}
+              className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary" />
+            <textarea value={missionDesc} onChange={e => setMissionDesc(e.target.value)} placeholder="Descrição da missão..." maxLength={2000}
+              className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary resize-none min-h-[80px]" />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <select value={missionCategory} onChange={e => setMissionCategory(e.target.value)}
+                className="bg-muted border border-border rounded-lg px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
+                <option value="disciplina">Disciplina</option>
+                <option value="mindset">Mindset</option>
+                <option value="social">Social</option>
+                <option value="saúde">Saúde</option>
+                <option value="estratégia">Estratégia</option>
+              </select>
+              <input value={missionPoints} onChange={e => setMissionPoints(e.target.value)} placeholder="Pontos" type="number" min="1" max="100"
+                className="bg-muted border border-border rounded-lg px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
+              <input value={missionIcon} onChange={e => setMissionIcon(e.target.value)} placeholder="Emoji ícone" maxLength={4}
+                className="bg-muted border border-border rounded-lg px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
+              <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                <input type="checkbox" checked={missionIsPremium} onChange={e => setMissionIsPremium(e.target.checked)} className="accent-primary" />
+                Premium
+              </label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Video className="w-4 h-4 text-muted-foreground" />
+              <input value={missionVideo} onChange={e => setMissionVideo(e.target.value)} placeholder="URL do vídeo (YouTube) - opcional" maxLength={500}
+                className="flex-1 bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary" />
+            </div>
+            <Button onClick={publishMission} disabled={!missionTitle.trim() || !missionDesc.trim() || publishingMission} className="gap-2">
+              {publishingMission ? <Loader2 className="w-4 h-4 animate-spin" /> : <Target className="w-4 h-4" />}
+              Criar Missão
+            </Button>
+          </div>
+        </TabsContent>
+
         <TabsContent value="ai" className="space-y-4">
           <AdminAIAssistant />
         </TabsContent>
