@@ -128,16 +128,27 @@ const VerificacaoIdentidade = () => {
             <p className="text-muted-foreground text-xs">
               Esse processo geralmente leva até 24 horas úteis.
             </p>
-            <button
-              onClick={async () => {
-                await refreshProfile();
-                // Profile state will update via re-render, redirect handled by the check at top
-                toast.info("Status verificado. Aguarde a aprovação.");
-              }}
-              className="px-6 py-2 bg-muted text-foreground rounded-lg font-medium hover:opacity-90 transition text-sm"
-            >
-              Verificar status
-            </button>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={async () => {
+                  await refreshProfile();
+                  toast.info("Status verificado. Aguarde a aprovação.");
+                }}
+                className="px-6 py-2 bg-muted text-foreground rounded-lg font-medium hover:opacity-90 transition text-sm"
+              >
+                Verificar status
+              </button>
+              <button
+                onClick={async () => {
+                  await logout();
+                  navigate("/login", { replace: true });
+                }}
+                className="px-6 py-2 text-muted-foreground rounded-lg font-medium hover:text-foreground transition text-sm flex items-center justify-center gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                Sair da conta
+              </button>
+            </div>
           </div>
         ) : isRejected ? (
           <div className="bg-card border border-destructive/30 rounded-xl p-6 text-center space-y-4">
