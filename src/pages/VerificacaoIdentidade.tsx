@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
@@ -90,10 +90,12 @@ const VerificacaoIdentidade = () => {
   };
 
   // If already verified or pending, redirect
-  if (profile?.verification_status === "approved") {
-    navigate("/feed", { replace: true });
-    return null;
-  }
+  useEffect(() => {
+    if (profile?.verification_status === "approved") {
+      navigate("/feed", { replace: true });
+    }
+  }, [profile?.verification_status, navigate]);
+
 
   const isPending = profile?.verification_status === "pending";
   const isRejected = profile?.verification_status === "rejected";
@@ -129,9 +131,8 @@ const VerificacaoIdentidade = () => {
             <button
               onClick={async () => {
                 await refreshProfile();
-                if (profile?.verification_status === "approved") {
-                  navigate("/feed", { replace: true });
-                }
+                // Profile state will update via re-render, redirect handled by the check at top
+                toast.info("Status verificado. Aguarde a aprovação.");
               }}
               className="px-6 py-2 bg-muted text-foreground rounded-lg font-medium hover:opacity-90 transition text-sm"
             >
