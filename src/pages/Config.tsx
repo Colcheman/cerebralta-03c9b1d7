@@ -222,11 +222,14 @@ const Config = () => {
               <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Nome de exibição</label>
               <input
                 value={displayName}
-                onChange={e => setDisplayName(e.target.value)}
+                disabled
                 maxLength={60}
                 placeholder="Seu nome no app"
-                className="w-full bg-muted border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full bg-muted/50 border border-border rounded-lg px-3 py-2.5 text-sm text-foreground/60 cursor-not-allowed"
               />
+              <p className="text-[11px] text-muted-foreground mt-1.5 flex items-center gap-1">
+                <Lock className="w-3 h-3" /> Para alterar seu nome, entre em contato com o administrador.
+              </p>
             </div>
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Bio <span className="text-muted-foreground/50">({bio.length}/300)</span></label>
