@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Check, Zap, BookOpen, Loader2, AlertTriangle, Sparkles } from "lucide-react";
+import { Check, Zap, BookOpen, Loader2, AlertTriangle, Sparkles, Play, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +14,7 @@ interface Mission {
   category: string;
   points: number;
   icon: string;
+  video_url?: string | null;
 }
 
 interface UserMission {
@@ -31,6 +32,7 @@ const Aprender = () => {
   const [reflections, setReflections] = useState<Map<string, string>>(new Map());
   const [generating, setGenerating] = useState(false);
   const [hasEverHadMissions, setHasEverHadMissions] = useState<boolean | null>(null);
+  const [videoMission, setVideoMission] = useState<Mission | null>(null);
 
   const loadData = async () => {
     if (!user) return;
@@ -51,8 +53,6 @@ const Aprender = () => {
     const umList = (userMissionsData ?? []) as UserMission[];
     umList.forEach((um) => map.set(um.mission_id, um.completed));
     setUserMissions(map);
-
-    // Check if user has ever had missions assigned
     setHasEverHadMissions(umList.length > 0);
     setLoading(false);
   };
@@ -65,12 +65,10 @@ const Aprender = () => {
     if (!user || generating) return;
     setGenerating(true);
     toast.info("🧠 Gerando novas missões com IA...");
-
     try {
       const { data, error } = await supabase.functions.invoke("generate-content", {
         body: { mode: "generate_missions", context: `Nível: ${profile?.level}, Pontos: ${profile?.points}` },
       });
-
       if (error) throw error;
       toast.success("✅ Novas missões geradas!");
       await loadData();
@@ -90,8 +88,7 @@ const Aprender = () => {
 
   const handleComplete = async (missionId: string) => {
     if (!user || completing) return;
-    const alreadyCompleted = userMissions.get(missionId);
-    if (alreadyCompleted) return;
+    if (userMissions.get(missionId)) return;
 
     const reflection = reflections.get(missionId)?.trim();
     if (!reflection || reflection.length < 20) return;
@@ -114,12 +111,32 @@ const Aprender = () => {
 
   const completedCount = missions.filter(m => userMissions.get(m.id) === true).length;
   const totalPoints = missions.filter(m => userMissions.get(m.id) === true).reduce((s, m) => s + m.points, 0);
-
-  // Show onboarding chat for first-time users with no missions
   const showOnboarding = hasEverHadMissions === false && missions.length === 0 && !generating;
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 pb-32">
+      {/* Video modal */}
+      {videoMission && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={() => setVideoMission(null)}>
+          <div className="w-full max-w-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-bold text-white">{videoMission.title}</p>
+              <button onClick={() => setVideoMission(null)} className="text-white/70 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="aspect-video rounded-xl overflow-hidden bg-black">
+              <iframe
+                src={videoMission.video_url!.replace("watch?v=", "embed/")}
+                className="w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <h1 className="font-display text-2xl font-bold text-foreground mb-1">Missões</h1>
         <p className="text-sm text-muted-foreground mb-6">Pratique, reflita e evolua de verdade</p>
@@ -131,7 +148,7 @@ const Aprender = () => {
         <OnboardingChat onComplete={loadData} />
       ) : (
         <>
-          {/* Daily Stats */}
+          {/* Stats */}
           <div className="grid grid-cols-3 gap-3 mb-6">
             <div className="glass rounded-xl p-4 text-center">
               <Zap className="w-5 h-5 text-accent mx-auto mb-1" />
@@ -139,7 +156,7 @@ const Aprender = () => {
               <p className="text-xs text-muted-foreground">Pontos ganhos</p>
             </div>
             <div className="glass rounded-xl p-4 text-center">
-              <Check className="w-5 h-5 text-success mx-auto mb-1" />
+              <Check className="w-5 h-5 text-green-500 mx-auto mb-1" />
               <p className="text-lg font-bold text-foreground">{completedCount}/{missions.length}</p>
               <p className="text-xs text-muted-foreground">Completas</p>
             </div>
@@ -150,7 +167,7 @@ const Aprender = () => {
             </div>
           </div>
 
-          {/* Progress bar */}
+          {/* Progress */}
           {missions.length > 0 && (
             <div className="glass rounded-xl p-4 mb-6">
               <div className="flex justify-between text-sm mb-2">
@@ -159,7 +176,7 @@ const Aprender = () => {
               </div>
               <div className="h-2 bg-border rounded-full overflow-hidden">
                 <motion.div
-                  className="h-full bg-gradient-gold rounded-full"
+                  className="h-full bg-gradient-to-r from-primary to-accent rounded-full"
                   initial={{ width: 0 }}
                   animate={{ width: `${(completedCount / missions.length) * 100}%` }}
                   transition={{ duration: 0.6, ease: "easeOut" }}
@@ -168,7 +185,7 @@ const Aprender = () => {
             </div>
           )}
 
-          {/* Generate button - shows when all completed or no missions */}
+          {/* Generate button */}
           {(allCompleted || missions.length === 0) && (
             <motion.button
               initial={{ opacity: 0, scale: 0.95 }}
@@ -187,20 +204,17 @@ const Aprender = () => {
                   <p className="text-sm font-bold text-foreground">
                     {missions.length === 0 ? "Gerar minhas primeiras missões" : "🎉 Todas completas! Gerar novas missões"}
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    A IA vai criar desafios personalizados para seu nível
-                  </p>
+                  <p className="text-xs text-muted-foreground">A IA vai criar desafios personalizados</p>
                 </div>
               </div>
             </motion.button>
           )}
 
-          {/* Missions */}
+          {/* Mission cards */}
           {missions.length === 0 && !generating ? (
             <div className="text-center py-12">
               <BookOpen className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
               <p className="text-sm text-muted-foreground">Nenhuma missão disponível.</p>
-              <p className="text-xs text-muted-foreground mt-1">Clique acima para gerar suas primeiras missões!</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -217,19 +231,17 @@ const Aprender = () => {
                     initial={{ opacity: 0, x: -12 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.08 }}
-                    className={`glass rounded-xl overflow-hidden transition-all ${
-                      isCompleted ? "opacity-70" : "hover:border-primary/20"
-                    }`}
+                    className={`glass rounded-xl overflow-hidden transition-all ${isCompleted ? "opacity-70" : "hover:border-primary/20"}`}
                   >
                     <div onClick={() => handleExpand(mission.id)} className="p-4 cursor-pointer">
                       <div className="flex items-start gap-4">
                         <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all ${
-                          isCompleted ? "bg-success border-success" : "border-border"
+                          isCompleted ? "bg-green-500 border-green-500" : "border-border"
                         }`}>
                           {isCompleting ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
                           ) : isCompleted ? (
-                            <Check className="w-3.5 h-3.5 text-foreground" />
+                            <Check className="w-3.5 h-3.5 text-white" />
                           ) : null}
                         </div>
                         <div className="flex-1">
@@ -241,9 +253,22 @@ const Aprender = () => {
                             <span className="ml-auto text-xs font-medium text-accent">+{mission.points} pts</span>
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">{mission.description}</p>
-                          <span className="inline-block mt-2 text-xs bg-muted rounded-full px-2.5 py-0.5 text-muted-foreground">
-                            {mission.category}
-                          </span>
+                          <div className="flex items-center gap-2 mt-2">
+                            <span className="text-xs bg-muted rounded-full px-2.5 py-0.5 text-muted-foreground">
+                              {mission.category}
+                            </span>
+                            {mission.video_url && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setVideoMission(mission);
+                                }}
+                                className="text-xs bg-primary/10 text-primary rounded-full px-2.5 py-0.5 flex items-center gap-1 hover:bg-primary/20 transition-colors"
+                              >
+                                <Play className="w-3 h-3" /> Vídeo
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -260,11 +285,11 @@ const Aprender = () => {
                         <Textarea
                           value={reflection}
                           onChange={(e) => setReflections(prev => new Map(prev).set(mission.id, e.target.value))}
-                          placeholder="Escreva aqui sua reflexão honesta sobre como praticou essa missão... (mínimo 20 caracteres)"
+                          placeholder="Escreva aqui sua reflexão honesta... (mínimo 20 caracteres)"
                           className="text-sm min-h-[80px] bg-muted/50 border-border"
                         />
                         <div className="flex items-center justify-between mt-3">
-                          <span className={`text-xs ${canSubmit ? "text-success" : "text-muted-foreground"}`}>
+                          <span className={`text-xs ${canSubmit ? "text-green-500" : "text-muted-foreground"}`}>
                             {reflection.trim().length}/20 caracteres mín.
                           </span>
                           <button
@@ -300,9 +325,8 @@ const Aprender = () => {
                 <div>
                   <p className="text-xs font-semibold text-destructive mb-1">Aviso sobre honestidade</p>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Você pode até escrever qualquer coisa para ganhar pontos e conseguir mais conteúdo para estudar, 
+                    Você pode até escrever qualquer coisa para ganhar pontos, 
                     mas você não estará enganando ninguém a não ser <span className="font-bold text-foreground">você mesmo</span>. 
-                    Esse espaço existe para que você <span className="italic">realmente</span> pratique e reflita. 
                     Evolução exige verdade.
                   </p>
                 </div>
