@@ -243,7 +243,29 @@ const Admin = () => {
     toast({ title: "Módulo publicado!", description: "O conteúdo está disponível na área de Aprendizado." });
   };
 
-  return (
+  const publishMission = async () => {
+    if (!missionTitle.trim() || !missionDesc.trim() || !user) return;
+    setPublishingMission(true);
+    await supabase.from("missions").insert({
+      title: sanitizeText(missionTitle, 200),
+      description: sanitizeText(missionDesc, 2000),
+      category: missionCategory,
+      points: parseInt(missionPoints) || 20,
+      icon: missionIcon || "📝",
+      video_url: sanitizeUrl(missionVideo) || null,
+      is_premium: missionIsPremium,
+      is_active: true,
+    } as any);
+    setMissionTitle("");
+    setMissionDesc("");
+    setMissionVideo("");
+    setMissionIsPremium(false);
+    setMissionPoints("20");
+    setMissionIcon("📝");
+    setPublishingMission(false);
+    toast({ title: "Missão criada!", description: "A missão está disponível para os usuários." });
+  };
+
     <div className="max-w-6xl mx-auto px-4 py-6">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <div className="flex items-center gap-3 mb-6">
