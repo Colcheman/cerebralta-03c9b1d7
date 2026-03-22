@@ -17,6 +17,14 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+    if (!RESEND_API_KEY) {
+      return new Response(
+        JSON.stringify({ error: "RESEND_API_KEY not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { userId, status } = await req.json();
 
     if (!userId || !status) {
@@ -26,7 +34,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Get user email from auth
     const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.getUserById(userId);
     if (authError || !authUser?.user?.email) {
       return new Response(
@@ -37,7 +44,6 @@ Deno.serve(async (req) => {
 
     const email = authUser.user.email;
 
-    // Get profile for display name
     const { data: profile } = await supabaseAdmin
       .from("profiles")
       .select("display_name")
@@ -103,29 +109,33 @@ Deno.serve(async (req) => {
       `;
     }
 
-    // Use Lovable AI to send email via Supabase's built-in email
-    // We'll use the admin API to send a custom email
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    
-    // Send email using fetch to a simple SMTP relay or use Supabase's inbuilt
-    // For now, we use the admin auth API to send a magic link as workaround
-    // OR we directly use the Resend-style approach via Lovable
+    // Send email via Resend
+    const resendRes = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "Cerebralta <suporte@cerebralta.com>",
+        to: [email],
+        subject,
+        html: body,
+      }),
+    });
 
-    // Actually, let's use a simpler approach - use Supabase's auth.admin API
-    // to send a notification. We'll use the edge function to call an external email API.
-    
-    // Since we have LOVABLE_API_KEY, let's use the Lovable AI gateway to compose
-    // But for email sending, we need an actual email service.
-    // Let's use Supabase's built-in email sending via auth hooks.
-    
-    // Simplest approach: store the notification and let the admin know it was processed
-    // For actual email, we need an email provider. Let's log it for now and 
-    // notify via the platform.
+    const resendData = await resendRes.json();
 
-    console.log(`Email would be sent to ${email}: ${subject}`);
+    if (!resendRes.ok) {
+      console.error("Resend error:", resendData);
+      return new Response(
+        JSON.stringify({ error: "Failed to send email", details: resendData }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     return new Response(
-      JSON.stringify({ success: true, email, subject }),
+      JSON.stringify({ success: true, email, subject, resend_id: resendData.id }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
