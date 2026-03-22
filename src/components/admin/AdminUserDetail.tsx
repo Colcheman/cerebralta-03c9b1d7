@@ -10,7 +10,6 @@ interface ProfileRow {
   id: string;
   user_id: string;
   display_name: string;
-  cpf: string;
   level: string;
   points: number;
   streak: number;
@@ -27,11 +26,6 @@ interface AdminUserDetailProps {
   onBack: () => void;
 }
 
-const maskCPF = (cpf: string) => {
-  const digits = cpf.replace(/\D/g, "");
-  if (digits.length !== 11) return "***.***.***-**";
-  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
-};
 
 const AdminUserDetail = ({ profile, onBack }: AdminUserDetailProps) => {
   const [missions, setMissions] = useState<{ total: number; completed: number }>({ total: 0, completed: 0 });
@@ -124,7 +118,7 @@ const AdminUserDetail = ({ profile, onBack }: AdminUserDetailProps) => {
               </span>
             </div>
             {profile.real_name && <p className="text-sm text-muted-foreground">Nome real: {profile.real_name}</p>}
-            <p className="text-xs text-muted-foreground font-mono mt-1">CPF: {maskCPF(profile.cpf)}</p>
+            {profile.real_name && profile.real_name !== profile.display_name && <p className="text-xs text-muted-foreground mt-1">Nome real: {profile.real_name}</p>}
             <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
               <span className="flex items-center gap-1"><Shield className="w-3 h-3" /> {profile.level}</span>
               <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {new Date(profile.created_at).toLocaleDateString("pt-BR")}</span>

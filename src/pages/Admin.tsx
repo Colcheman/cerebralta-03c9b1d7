@@ -29,7 +29,6 @@ interface ProfileRow {
   id: string;
   user_id: string;
   display_name: string;
-  cpf: string;
   level: string;
   points: number;
   streak: number;
@@ -39,13 +38,6 @@ interface ProfileRow {
   real_name?: string | null;
   name_verified?: boolean;
 }
-
-// Mask CPF: 123.456.789-00 → ***.456.***-**
-const maskCPF = (cpf: string) => {
-  const digits = cpf.replace(/\D/g, "");
-  if (digits.length !== 11) return "***.***.***-**";
-  return `***.${digits.slice(3, 6)}.***-**`;
-};
 
 const Admin = () => {
   const { user } = useAuth();
@@ -122,7 +114,7 @@ const Admin = () => {
   if (!isAdmin) return <Navigate to="/feed" replace />;
 
   const filteredProfiles = profiles.filter(p =>
-    p.display_name.toLowerCase().includes(search.toLowerCase()) || p.cpf.includes(search.replace(/\D/g, ""))
+    p.display_name.toLowerCase().includes(search.toLowerCase())
   );
 
 
@@ -280,7 +272,7 @@ const Admin = () => {
             <>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por nome ou CPF..."
+                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por nome..."
                   className="w-full bg-muted border border-border rounded-lg pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary" />
               </div>
               {loadingProfiles ? (
@@ -292,7 +284,7 @@ const Admin = () => {
                       <thead>
                         <tr className="border-b border-border text-left">
                           <th className="px-4 py-3 text-muted-foreground font-medium">Nome</th>
-                          <th className="px-4 py-3 text-muted-foreground font-medium">CPF</th>
+                          <th className="px-4 py-3 text-muted-foreground font-medium">ID</th>
                           <th className="px-4 py-3 text-muted-foreground font-medium">Nível</th>
                           <th className="px-4 py-3 text-muted-foreground font-medium">Pontos</th>
                           <th className="px-4 py-3 text-muted-foreground font-medium">Sequência</th>
@@ -317,7 +309,7 @@ const Admin = () => {
                                 <p className="text-xs text-muted-foreground">Real: {p.real_name}</p>
                               )}
                             </td>
-                            <td className="px-4 py-3 text-xs text-muted-foreground font-mono">{maskCPF(p.cpf)}</td>
+                            <td className="px-4 py-3 text-xs text-muted-foreground font-mono">{(p as any).public_id || p.user_id.slice(0, 8)}</td>
                             <td className="px-4 py-3 text-accent">{p.level}</td>
                             <td className="px-4 py-3">{p.points}</td>
                             <td className="px-4 py-3 text-orange-400">{p.streak} dias🔥</td>

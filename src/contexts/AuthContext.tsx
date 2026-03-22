@@ -5,7 +5,6 @@ import type { User, Session } from "@supabase/supabase-js";
 interface Profile {
   id: string;
   user_id: string;
-  cpf: string;
   display_name: string;
   avatar_url: string | null;
   level: string;
