@@ -81,7 +81,6 @@ const VerificacaoIdentidade = () => {
 
       await refreshProfile();
       toast.success("Documento enviado! Sua verificação está em análise.");
-      navigate("/feed");
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || "Erro ao enviar documento.");
