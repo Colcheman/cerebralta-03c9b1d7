@@ -266,6 +266,7 @@ const Admin = () => {
     toast({ title: "Missão criada!", description: "A missão está disponível para os usuários." });
   };
 
+  return (
     <div className="max-w-6xl mx-auto px-4 py-6">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <div className="flex items-center gap-3 mb-6">
