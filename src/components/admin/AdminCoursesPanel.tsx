@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { sanitizeText, sanitizeUrl } from "@/lib/sanitize";
-import { Plus, BookOpen, Loader2, Trash2, Pencil, Video, FileText, Star, X, Check } from "lucide-react";
+import { Plus, Loader2, Trash2, Pencil, Video, FileText, X, Check } from "lucide-react";
 
 interface Course {
   id: string;
@@ -12,7 +12,6 @@ interface Course {
   category: string;
   video_url: string | null;
   pdf_url: string | null;
-  is_premium: boolean;
   created_at: string;
 }
 
@@ -23,13 +22,11 @@ const AdminCoursesPanel = ({ userId }: { userId: string }) => {
   const [showForm, setShowForm] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
 
-  // Form
   const [courseTitle, setCourseTitle] = useState("");
   const [courseDesc, setCourseDesc] = useState("");
   const [courseCat, setCourseCat] = useState("geral");
   const [courseVideo, setCourseVideo] = useState("");
   const [coursePdf, setCoursePdf] = useState("");
-  const [courseIsPremium, setCourseIsPremium] = useState(false);
   const [publishing, setPublishing] = useState(false);
 
   const fetchCourses = async () => {
@@ -46,7 +43,6 @@ const AdminCoursesPanel = ({ userId }: { userId: string }) => {
     setCourseCat("geral");
     setCourseVideo("");
     setCoursePdf("");
-    setCourseIsPremium(false);
     setEditingCourse(null);
     setShowForm(false);
   };
@@ -58,7 +54,6 @@ const AdminCoursesPanel = ({ userId }: { userId: string }) => {
     setCourseCat(c.category);
     setCourseVideo(c.video_url ?? "");
     setCoursePdf(c.pdf_url ?? "");
-    setCourseIsPremium(c.is_premium);
     setShowForm(true);
   };
 
@@ -72,7 +67,6 @@ const AdminCoursesPanel = ({ userId }: { userId: string }) => {
       category: courseCat,
       video_url: sanitizeUrl(courseVideo) || null,
       pdf_url: sanitizeUrl(coursePdf) || null,
-      is_premium: courseIsPremium,
     };
 
     if (editingCourse) {
@@ -96,7 +90,6 @@ const AdminCoursesPanel = ({ userId }: { userId: string }) => {
 
   return (
     <div className="space-y-4">
-      {/* Add / Edit Form */}
       {showForm ? (
         <div className="glass rounded-xl p-6 space-y-4">
           <div className="flex items-center justify-between">
@@ -110,20 +103,14 @@ const AdminCoursesPanel = ({ userId }: { userId: string }) => {
             className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary" />
           <textarea value={courseDesc} onChange={e => setCourseDesc(e.target.value)} placeholder="Descrição do conteúdo..." maxLength={5000}
             className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary resize-none min-h-[100px]" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <select value={courseCat} onChange={e => setCourseCat(e.target.value)}
-              className="bg-muted border border-border rounded-lg px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
-              <option value="geral">Geral</option>
-              <option value="estratégia">Estratégia</option>
-              <option value="estoicismo">Estoicismo</option>
-              <option value="psicologia">Psicologia</option>
-              <option value="liderança">Liderança</option>
-            </select>
-            <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
-              <input type="checkbox" checked={courseIsPremium} onChange={e => setCourseIsPremium(e.target.checked)} className="accent-primary" />
-              Conteúdo Premium
-            </label>
-          </div>
+          <select value={courseCat} onChange={e => setCourseCat(e.target.value)}
+            className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
+            <option value="geral">Geral</option>
+            <option value="estratégia">Estratégia</option>
+            <option value="estoicismo">Estoicismo</option>
+            <option value="psicologia">Psicologia</option>
+            <option value="liderança">Liderança</option>
+          </select>
           <input value={courseVideo} onChange={e => setCourseVideo(e.target.value)} placeholder="URL do vídeo (YouTube/Vimeo)" maxLength={500}
             className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary" />
           <input value={coursePdf} onChange={e => setCoursePdf(e.target.value)} placeholder="URL do PDF de apoio" maxLength={500}
@@ -139,7 +126,6 @@ const AdminCoursesPanel = ({ userId }: { userId: string }) => {
         </Button>
       )}
 
-      {/* Course List */}
       {loading ? (
         <div className="text-center py-8"><Loader2 className="w-5 h-5 animate-spin text-primary mx-auto" /></div>
       ) : courses.length === 0 ? (
@@ -152,7 +138,6 @@ const AdminCoursesPanel = ({ userId }: { userId: string }) => {
                 <th className="px-4 py-3 text-muted-foreground font-medium">Título</th>
                 <th className="px-4 py-3 text-muted-foreground font-medium">Categoria</th>
                 <th className="px-4 py-3 text-muted-foreground font-medium">Tipo</th>
-                <th className="px-4 py-3 text-muted-foreground font-medium">Plano</th>
                 <th className="px-4 py-3 text-muted-foreground font-medium">Data</th>
                 <th className="px-4 py-3 text-muted-foreground font-medium">Ações</th>
               </tr>
@@ -167,13 +152,6 @@ const AdminCoursesPanel = ({ userId }: { userId: string }) => {
                       <span className="flex items-center gap-1 text-xs text-primary"><Video className="w-3 h-3" /> Vídeo</span>
                     ) : (
                       <span className="flex items-center gap-1 text-xs text-muted-foreground"><FileText className="w-3 h-3" /> Artigo</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    {c.is_premium ? (
-                      <span className="text-xs text-accent flex items-center gap-1"><Star className="w-3 h-3" /> Premium</span>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">Free</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(c.created_at).toLocaleDateString("pt-BR")}</td>
