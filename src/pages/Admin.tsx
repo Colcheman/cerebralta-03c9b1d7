@@ -284,7 +284,7 @@ const Admin = () => {
                       <thead>
                         <tr className="border-b border-border text-left">
                           <th className="px-4 py-3 text-muted-foreground font-medium">Nome</th>
-                          <th className="px-4 py-3 text-muted-foreground font-medium">CPF</th>
+                          <th className="px-4 py-3 text-muted-foreground font-medium">ID</th>
                           <th className="px-4 py-3 text-muted-foreground font-medium">Nível</th>
                           <th className="px-4 py-3 text-muted-foreground font-medium">Pontos</th>
                           <th className="px-4 py-3 text-muted-foreground font-medium">Sequência</th>
