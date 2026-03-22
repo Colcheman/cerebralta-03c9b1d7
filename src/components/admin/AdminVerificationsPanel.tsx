@@ -102,7 +102,6 @@ const AdminVerificationsPanel = () => {
         .update({ verification_status: "rejected" } as any)
         .eq("user_id", userId);
 
-      // Delete the uploaded document
       const { data: files } = await supabase.storage
         .from("verification-docs")
         .list(userId);
@@ -111,12 +110,17 @@ const AdminVerificationsPanel = () => {
           .from("verification-docs")
           .remove(files.map(f => `${userId}/${f.name}`));
       }
+
+      // Send rejection email
+      await supabase.functions.invoke("send-verification-email", {
+        body: { userId, status: "rejected" },
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-verifications"] });
       setRejectTarget(null);
       setRejectReason("");
-      toast.success("Verificação rejeitada. Documento apagado.");
+      toast.success("Verificação rejeitada. E-mail enviado ao usuário.");
     },
   });
 
