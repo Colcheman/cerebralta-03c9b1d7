@@ -13,6 +13,7 @@ import AdminStatsPanel from "@/components/admin/AdminStatsPanel";
 import AdminReportsPanel from "@/components/admin/AdminReportsPanel";
 import AdminBlogPanel from "@/components/admin/AdminBlogPanel";
 import AdminVerificationsPanel from "@/components/admin/AdminVerificationsPanel";
+import AdminCoursesPanel from "@/components/admin/AdminCoursesPanel";
 import { sanitizeText, sanitizeUrl } from "@/lib/sanitize";
 import {
   AlertDialog,
