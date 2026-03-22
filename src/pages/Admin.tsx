@@ -272,7 +272,7 @@ const Admin = () => {
             <>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por nome ou CPF..."
+                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por nome..."
                   className="w-full bg-muted border border-border rounded-lg pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary" />
               </div>
               {loadingProfiles ? (
