@@ -118,7 +118,7 @@ const AdminUserDetail = ({ profile, onBack }: AdminUserDetailProps) => {
               </span>
             </div>
             {profile.real_name && <p className="text-sm text-muted-foreground">Nome real: {profile.real_name}</p>}
-            <p className="text-xs text-muted-foreground font-mono mt-1">CPF: {maskCPF(profile.cpf)}</p>
+            {profile.real_name && profile.real_name !== profile.display_name && <p className="text-xs text-muted-foreground mt-1">Nome real: {profile.real_name}</p>}
             <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
               <span className="flex items-center gap-1"><Shield className="w-3 h-3" /> {profile.level}</span>
               <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {new Date(profile.created_at).toLocaleDateString("pt-BR")}</span>

@@ -203,7 +203,7 @@ const LandingPage = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { step: "01", title: "Cadastre-se", desc: "Crie sua conta usando apenas seu CPF. Seguro e sem e-mail exposto.", icon: Shield },
+              { step: "01", title: "Cadastre-se", desc: "Crie sua conta com email e senha. Rápido, seguro e verificado.", icon: Shield },
               { step: "02", title: "Complete Missões", desc: "Receba missões diárias que desenvolvem foco, disciplina e pensamento estratégico.", icon: Zap },
               { step: "03", title: "Evolua", desc: "Suba de nível, desbloqueie conquistas e conecte-se com Arquitetos Mentais.", icon: Trophy },
             ].map((s, i) => (

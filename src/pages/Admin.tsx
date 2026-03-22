@@ -309,7 +309,7 @@ const Admin = () => {
                                 <p className="text-xs text-muted-foreground">Real: {p.real_name}</p>
                               )}
                             </td>
-                            <td className="px-4 py-3 text-xs text-muted-foreground font-mono">{maskCPF(p.cpf)}</td>
+                            <td className="px-4 py-3 text-xs text-muted-foreground font-mono">{(p as any).public_id || p.user_id.slice(0, 8)}</td>
                             <td className="px-4 py-3 text-accent">{p.level}</td>
                             <td className="px-4 py-3">{p.points}</td>
                             <td className="px-4 py-3 text-orange-400">{p.streak} dias🔥</td>
