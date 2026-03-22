@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { Brain, Flame, BookOpen, Trophy, UserPlus, Users, Settings, LogOut, Info, Shield, MessageCircle, BookMarked, Target } from "lucide-react";
+import { Brain, Flame, BookOpen, Trophy, UserPlus, Users, Settings, LogOut, Info, Shield, MessageCircle, BookMarked, Target, TrendingDown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -84,6 +84,50 @@ const Sidebar = () => {
           <div className="flex items-center gap-1.5 mt-3">
             <Flame className="w-4 h-4 text-streak" />
             <span className="text-xs font-semibold text-streak">{streak} dias seguidos</span>
+          </div>
+
+          {/* Discount info */}
+          <div className="mt-3 pt-3 border-t border-border/50 space-y-2">
+            <div className="flex items-center gap-1.5">
+              <TrendingDown className="w-3.5 h-3.5 text-primary" />
+              <span className="text-[11px] font-semibold text-foreground">Seu desconto</span>
+            </div>
+            {(() => {
+              const discount = streak >= 30 ? 75 : streak >= 20 ? 45 : streak >= 10 ? 25 : 0;
+              const price = +(52.90 * (1 - discount / 100)).toFixed(2);
+              const nextTier = streak < 10 ? { days: 10, disc: 25 } : streak < 20 ? { days: 20, disc: 45 } : streak < 30 ? { days: 30, disc: 75 } : null;
+              return (
+                <>
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-lg font-black text-primary">{discount}%</span>
+                    <span className="text-xs text-muted-foreground">
+                      R$ {price.toFixed(2).replace(".", ",")}/mês
+                    </span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-border overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${
+                        discount >= 75 ? "bg-gradient-to-r from-primary to-accent" : discount >= 45 ? "bg-primary" : discount >= 25 ? "bg-primary/70" : "bg-muted-foreground/40"
+                      }`}
+                      style={{ width: `${Math.min((streak / 30) * 100, 100)}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-[9px] text-muted-foreground">
+                    <span>10d=25%</span>
+                    <span>20d=45%</span>
+                    <span>30d=75%</span>
+                  </div>
+                  {nextTier && (
+                    <p className="text-[10px] text-muted-foreground">
+                      Faltam <span className="font-bold text-foreground">{nextTier.days - streak}d</span> para {nextTier.disc}%
+                    </p>
+                  )}
+                  {discount >= 75 && (
+                    <p className="text-[10px] text-accent font-medium">🎉 Desconto máximo!</p>
+                  )}
+                </>
+              );
+            })()}
           </div>
         </div>
       </div>
