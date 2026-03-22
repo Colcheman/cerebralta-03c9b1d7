@@ -118,16 +118,13 @@ const VerificacaoIdentidade = () => {
         {isPending ? (
           <div className="bg-card border border-border rounded-xl p-6 text-center space-y-4">
             <FileCheck className="w-12 h-12 text-primary mx-auto" />
-            <h2 className="text-lg font-semibold text-foreground">Verificação em análise</h2>
+            <h2 className="text-lg font-semibold text-foreground">Cadastro em análise</h2>
             <p className="text-muted-foreground text-sm">
-              Seu documento foi enviado e está sendo analisado. Você será notificado quando a verificação for concluída.
+              Seu documento foi enviado e está sendo analisado pela nossa equipe. Você receberá um e-mail quando sua verificação for aprovada.
             </p>
-            <button
-              onClick={() => navigate("/feed")}
-              className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 transition"
-            >
-              Continuar para a plataforma
-            </button>
+            <p className="text-muted-foreground text-xs">
+              Esse processo geralmente leva até 24 horas úteis.
+            </p>
           </div>
         ) : (
           <>
