@@ -530,7 +530,44 @@ const Admin = () => {
           </div>
         </TabsContent>
 
-        {/* AI Assistant */}
+        {/* Missions */}
+        <TabsContent value="missions" className="space-y-4">
+          <div className="glass rounded-xl p-6 space-y-4">
+            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Plus className="w-4 h-4" /> Criar Missão</h3>
+            <input value={missionTitle} onChange={e => setMissionTitle(e.target.value)} placeholder="Título da missão" maxLength={200}
+              className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary" />
+            <textarea value={missionDesc} onChange={e => setMissionDesc(e.target.value)} placeholder="Descrição da missão..." maxLength={2000}
+              className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary resize-none min-h-[80px]" />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <select value={missionCategory} onChange={e => setMissionCategory(e.target.value)}
+                className="bg-muted border border-border rounded-lg px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
+                <option value="disciplina">Disciplina</option>
+                <option value="mindset">Mindset</option>
+                <option value="social">Social</option>
+                <option value="saúde">Saúde</option>
+                <option value="estratégia">Estratégia</option>
+              </select>
+              <input value={missionPoints} onChange={e => setMissionPoints(e.target.value)} placeholder="Pontos" type="number" min="1" max="100"
+                className="bg-muted border border-border rounded-lg px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
+              <input value={missionIcon} onChange={e => setMissionIcon(e.target.value)} placeholder="Emoji ícone" maxLength={4}
+                className="bg-muted border border-border rounded-lg px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
+              <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                <input type="checkbox" checked={missionIsPremium} onChange={e => setMissionIsPremium(e.target.checked)} className="accent-primary" />
+                Premium
+              </label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Video className="w-4 h-4 text-muted-foreground" />
+              <input value={missionVideo} onChange={e => setMissionVideo(e.target.value)} placeholder="URL do vídeo (YouTube) - opcional" maxLength={500}
+                className="flex-1 bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary" />
+            </div>
+            <Button onClick={publishMission} disabled={!missionTitle.trim() || !missionDesc.trim() || publishingMission} className="gap-2">
+              {publishingMission ? <Loader2 className="w-4 h-4 animate-spin" /> : <Target className="w-4 h-4" />}
+              Criar Missão
+            </Button>
+          </div>
+        </TabsContent>
+
         <TabsContent value="ai" className="space-y-4">
           <AdminAIAssistant />
         </TabsContent>
