@@ -411,6 +411,7 @@ export type Database = {
           is_premium: boolean
           points: number
           title: string
+          video_url: string | null
         }
         Insert: {
           category: string
@@ -422,6 +423,7 @@ export type Database = {
           is_premium?: boolean
           points?: number
           title: string
+          video_url?: string | null
         }
         Update: {
           category?: string
@@ -433,6 +435,7 @@ export type Database = {
           is_premium?: boolean
           points?: number
           title?: string
+          video_url?: string | null
         }
         Relationships: []
       }
