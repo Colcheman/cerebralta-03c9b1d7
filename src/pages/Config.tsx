@@ -65,11 +65,9 @@ const Config = () => {
 
   const saveProfileInfo = async () => {
     if (!user) return;
-    const name = displayName.trim();
-    if (!name || name.length > 60) { toast({ title: "Nome inválido", description: "Entre 1 e 60 caracteres.", variant: "destructive" }); return; }
     if (bio.length > 300) { toast({ title: "Bio muito longa", description: "Máximo 300 caracteres.", variant: "destructive" }); return; }
     setSavingProfile(true);
-    await supabase.from("profiles").update({ display_name: name, bio: bio.trim() }).eq("user_id", user.id);
+    await supabase.from("profiles").update({ bio: bio.trim() }).eq("user_id", user.id);
     toast({ title: "✅ Perfil atualizado!", description: "As pessoas já podem ver suas novas informações." });
     setSavingProfile(false);
   };
