@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Shield, CheckCircle2, XCircle, Loader2, Trash2, Eye } from "lucide-react";
+import { Shield, CheckCircle2, XCircle, Loader2, Eye, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
@@ -24,17 +24,27 @@ interface VerificationRequest {
   rejection_reason: string | null;
 }
 
+interface ProfileInfo {
+  display_name: string;
+  public_id: string;
+  birth_date: string | null;
+  cpf: string;
+  country: string;
+  created_at: string;
+}
+
 const AdminVerificationsPanel = () => {
   const queryClient = useQueryClient();
   const [rejectTarget, setRejectTarget] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [viewingDoc, setViewingDoc] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
 
   const { data: requests = [], isLoading } = useQuery({
     queryKey: ["admin-verifications"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("verification_requests" as any)
+        .from("verification_requests")
         .select("*")
         .order("submitted_at", { ascending: false });
       if (error) throw error;
@@ -49,9 +59,9 @@ const AdminVerificationsPanel = () => {
       const userIds = requests.map(r => r.user_id);
       const { data } = await supabase
         .from("profiles")
-        .select("user_id, display_name, public_id")
+        .select("user_id, display_name, public_id, birth_date, cpf, country, created_at")
         .in("user_id", userIds);
-      const map: Record<string, { display_name: string; public_id: string }> = {};
+      const map: Record<string, ProfileInfo> = {};
       (data || []).forEach((p: any) => { map[p.user_id] = p; });
       return map;
     },
@@ -61,15 +71,16 @@ const AdminVerificationsPanel = () => {
   const approveMutation = useMutation({
     mutationFn: async (userId: string) => {
       await supabase
-        .from("verification_requests" as any)
+        .from("verification_requests")
         .update({ status: "approved", reviewed_at: new Date().toISOString() } as any)
         .eq("user_id", userId);
-      
+
       await supabase
         .from("profiles")
         .update({ verification_status: "approved" } as any)
         .eq("user_id", userId);
 
+      // Delete docs after approval
       const { data: files } = await supabase.storage
         .from("verification-docs")
         .list(userId);
@@ -79,24 +90,25 @@ const AdminVerificationsPanel = () => {
           .remove(files.map(f => `${userId}/${f.name}`));
       }
 
-      // Send approval email
       await supabase.functions.invoke("send-verification-email", {
         body: { userId, status: "approved" },
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-verifications"] });
+      setSelectedUser(null);
       toast.success("Verificação aprovada! E-mail enviado ao usuário.");
     },
+    onError: (err: any) => toast.error(err.message || "Erro ao aprovar."),
   });
 
   const rejectMutation = useMutation({
     mutationFn: async ({ userId, reason }: { userId: string; reason: string }) => {
       await supabase
-        .from("verification_requests" as any)
+        .from("verification_requests")
         .update({ status: "rejected", reviewed_at: new Date().toISOString(), rejection_reason: reason } as any)
         .eq("user_id", userId);
-      
+
       await supabase
         .from("profiles")
         .update({ verification_status: "rejected" } as any)
@@ -111,7 +123,6 @@ const AdminVerificationsPanel = () => {
           .remove(files.map(f => `${userId}/${f.name}`));
       }
 
-      // Send rejection email
       await supabase.functions.invoke("send-verification-email", {
         body: { userId, status: "rejected" },
       });
@@ -120,8 +131,10 @@ const AdminVerificationsPanel = () => {
       queryClient.invalidateQueries({ queryKey: ["admin-verifications"] });
       setRejectTarget(null);
       setRejectReason("");
+      setSelectedUser(null);
       toast.success("Verificação rejeitada. E-mail enviado ao usuário.");
     },
+    onError: (err: any) => toast.error(err.message || "Erro ao rejeitar."),
   });
 
   const viewDocument = async (userId: string) => {
@@ -155,11 +168,16 @@ const AdminVerificationsPanel = () => {
       rejected: "Rejeitado",
     };
     return (
-      <span className={`text-xs px-2 py-0.5 rounded-full border ${styles[status] || ""}`}>
+      <span className={`text-xs px-2 py-1 rounded-full border font-medium ${styles[status] || ""}`}>
         {labels[status] || status}
       </span>
     );
   };
+
+  const pendingRequests = requests.filter(r => r.status === "pending");
+  const processedRequests = requests.filter(r => r.status !== "pending");
+  const selected = selectedUser ? requests.find(r => r.user_id === selectedUser) : null;
+  const selectedProfile = selectedUser ? profilesMap[selectedUser] : null;
 
   if (isLoading) {
     return (
@@ -170,82 +188,197 @@ const AdminVerificationsPanel = () => {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="glass rounded-xl p-6">
-        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-4">
-          <Shield className="w-4 h-4" /> Verificações de Identidade
-        </h3>
-
-        {requests.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">
-            Nenhuma solicitação de verificação.
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {requests.map((req) => {
-              const profile = profilesMap[req.user_id];
-              return (
-                <div key={req.id} className="bg-muted/50 rounded-lg p-4 flex items-center justify-between gap-4">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">
-                      {profile?.display_name || "Usuário"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {profile?.public_id || req.user_id.slice(0, 8)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Enviado: {new Date(req.submitted_at).toLocaleDateString("pt-BR")}
-                    </p>
-                    {req.rejection_reason && (
-                      <p className="text-xs text-destructive mt-1">Motivo: {req.rejection_reason}</p>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    {statusBadge(req.status)}
-
-                    {req.status === "pending" && (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => viewDocument(req.user_id)}
-                          className="gap-1"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => approveMutation.mutate(req.user_id)}
-                          disabled={approveMutation.isPending}
-                          className="text-green-600 hover:text-green-700 gap-1"
-                        >
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => setRejectTarget(req.user_id)}
-                          className="text-destructive hover:text-destructive gap-1"
-                        >
-                          <XCircle className="w-3.5 h-3.5" />
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+    <div className="space-y-6">
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="bg-card border border-border rounded-xl p-4 text-center">
+          <p className="text-2xl font-bold text-yellow-600">{pendingRequests.length}</p>
+          <p className="text-xs text-muted-foreground">Pendentes</p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-4 text-center">
+          <p className="text-2xl font-bold text-green-600">{requests.filter(r => r.status === "approved").length}</p>
+          <p className="text-xs text-muted-foreground">Aprovados</p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-4 text-center">
+          <p className="text-2xl font-bold text-destructive">{requests.filter(r => r.status === "rejected").length}</p>
+          <p className="text-xs text-muted-foreground">Rejeitados</p>
+        </div>
       </div>
 
-      {/* Document viewer modal */}
+      <div className="grid lg:grid-cols-2 gap-6">
+        {/* List */}
+        <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Shield className="w-4 h-4" /> Solicitações de Verificação
+          </h3>
+
+          {requests.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">
+              Nenhuma solicitação de verificação.
+            </p>
+          ) : (
+            <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
+              {pendingRequests.length > 0 && (
+                <p className="text-xs font-semibold text-yellow-600 uppercase tracking-wider">Pendentes</p>
+              )}
+              {pendingRequests.map((req) => {
+                const profile = profilesMap[req.user_id];
+                return (
+                  <button
+                    key={req.id}
+                    onClick={() => setSelectedUser(req.user_id)}
+                    className={`w-full text-left p-3 rounded-lg border transition hover:bg-muted/50 ${
+                      selectedUser === req.user_id ? "border-primary bg-primary/5" : "border-border"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">
+                          {profile?.display_name || "Usuário"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {profile?.public_id} · {new Date(req.submitted_at).toLocaleDateString("pt-BR")}
+                        </p>
+                      </div>
+                      {statusBadge(req.status)}
+                    </div>
+                  </button>
+                );
+              })}
+
+              {processedRequests.length > 0 && (
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mt-4">Processados</p>
+              )}
+              {processedRequests.map((req) => {
+                const profile = profilesMap[req.user_id];
+                return (
+                  <button
+                    key={req.id}
+                    onClick={() => setSelectedUser(req.user_id)}
+                    className={`w-full text-left p-3 rounded-lg border transition hover:bg-muted/50 ${
+                      selectedUser === req.user_id ? "border-primary bg-primary/5" : "border-border"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">
+                          {profile?.display_name || "Usuário"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {profile?.public_id} · {new Date(req.submitted_at).toLocaleDateString("pt-BR")}
+                        </p>
+                      </div>
+                      {statusBadge(req.status)}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Detail panel */}
+        <div className="bg-card border border-border rounded-xl p-6">
+          {selected && selectedProfile ? (
+            <div className="space-y-5">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <User className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">{selectedProfile.display_name}</h3>
+                  <p className="text-xs text-muted-foreground">{selectedProfile.public_id}</p>
+                </div>
+                <div className="ml-auto">{statusBadge(selected.status)}</div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground">Data de Nascimento</p>
+                  <p className="text-sm font-medium text-foreground">
+                    {selectedProfile.birth_date
+                      ? new Date(selectedProfile.birth_date + "T00:00:00").toLocaleDateString("pt-BR")
+                      : "Não informada"}
+                  </p>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground">País</p>
+                  <p className="text-sm font-medium text-foreground">{selectedProfile.country}</p>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground">Cadastro</p>
+                  <p className="text-sm font-medium text-foreground">
+                    {new Date(selectedProfile.created_at).toLocaleDateString("pt-BR")}
+                  </p>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground">Enviado em</p>
+                  <p className="text-sm font-medium text-foreground">
+                    {new Date(selected.submitted_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                </div>
+              </div>
+
+              {selected.rejection_reason && (
+                <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground">Motivo da rejeição</p>
+                  <p className="text-sm text-destructive">{selected.rejection_reason}</p>
+                </div>
+              )}
+
+              {selected.status === "pending" && (
+                <div className="space-y-3">
+                  <Button
+                    variant="outline"
+                    className="w-full gap-2"
+                    onClick={() => viewDocument(selected.user_id)}
+                  >
+                    <Eye className="w-4 h-4" />
+                    Visualizar documento
+                  </Button>
+
+                  <div className="flex gap-3">
+                    <Button
+                      className="flex-1 gap-2 bg-green-600 hover:bg-green-700 text-white"
+                      onClick={() => approveMutation.mutate(selected.user_id)}
+                      disabled={approveMutation.isPending}
+                    >
+                      {approveMutation.isPending ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <CheckCircle2 className="w-4 h-4" />
+                      )}
+                      Aprovar
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      className="flex-1 gap-2"
+                      onClick={() => setRejectTarget(selected.user_id)}
+                    >
+                      <XCircle className="w-4 h-4" />
+                      Rejeitar
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full py-12 text-muted-foreground">
+              <Shield className="w-10 h-10 mb-3 opacity-30" />
+              <p className="text-sm">Selecione uma solicitação para ver detalhes</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Document viewer */}
       <AlertDialog open={!!viewingDoc} onOpenChange={(open) => !open && setViewingDoc(null)}>
         <AlertDialogContent className="max-w-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle>Documento de verificação</AlertDialogTitle>
+            <AlertDialogDescription>
+              Este documento é exibido temporariamente e não é armazenado após a verificação.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           {viewingDoc && (
             <img src={viewingDoc} alt="Documento" className="w-full max-h-[60vh] object-contain rounded-lg" />
@@ -256,13 +389,13 @@ const AdminVerificationsPanel = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Reject reason dialog */}
+      {/* Reject reason */}
       <AlertDialog open={!!rejectTarget} onOpenChange={(open) => !open && setRejectTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Rejeitar verificação</AlertDialogTitle>
             <AlertDialogDescription>
-              Informe o motivo da rejeição. O usuário poderá enviar novamente.
+              Informe o motivo da rejeição. O usuário será notificado por e-mail.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <textarea
@@ -281,6 +414,7 @@ const AdminVerificationsPanel = () => {
                 }
               }}
               disabled={!rejectReason.trim()}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Rejeitar
             </AlertDialogAction>
