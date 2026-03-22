@@ -234,7 +234,7 @@ const Admin = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6">
+    <div className="max-w-6xl mx-auto px-4 py-6">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <div className="flex items-center gap-3 mb-6">
           <Shield className="w-6 h-6 text-primary" />
@@ -246,18 +246,20 @@ const Admin = () => {
       </motion.div>
 
       <Tabs defaultValue="users" className="space-y-4">
-        <TabsList className="bg-muted flex-wrap">
-          <TabsTrigger value="stats" className="gap-1.5"><BarChart3 className="w-4 h-4" /> Estatísticas</TabsTrigger>
-          <TabsTrigger value="users" className="gap-1.5"><Users className="w-4 h-4" /> Arquitetos</TabsTrigger>
-          <TabsTrigger value="courses" className="gap-1.5"><BookOpen className="w-4 h-4" /> Cursos</TabsTrigger>
-          <TabsTrigger value="ai" className="gap-1.5"><Bot className="w-4 h-4" /> IA</TabsTrigger>
-          <TabsTrigger value="news" className="gap-1.5"><Megaphone className="w-4 h-4" /> News</TabsTrigger>
-          <TabsTrigger value="asaas" className="gap-1.5"><CreditCard className="w-4 h-4" /> Pagamentos</TabsTrigger>
-          <TabsTrigger value="reports" className="gap-1.5"><Flag className="w-4 h-4" /> Denúncias</TabsTrigger>
-           <TabsTrigger value="blog" className="gap-1.5"><FileText className="w-4 h-4" /> Blog</TabsTrigger>
-           <TabsTrigger value="verification" className="gap-1.5"><Shield className="w-4 h-4" /> Verificação</TabsTrigger>
-          <TabsTrigger value="settings" className="gap-1.5"><Settings className="w-4 h-4" /> Sistema</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto -mx-4 px-4">
+          <TabsList className="bg-muted inline-flex w-auto min-w-max">
+            <TabsTrigger value="stats" className="gap-1.5 text-xs"><BarChart3 className="w-3.5 h-3.5" /> Estatísticas</TabsTrigger>
+            <TabsTrigger value="users" className="gap-1.5 text-xs"><Users className="w-3.5 h-3.5" /> Arquitetos</TabsTrigger>
+            <TabsTrigger value="courses" className="gap-1.5 text-xs"><BookOpen className="w-3.5 h-3.5" /> Cursos</TabsTrigger>
+            <TabsTrigger value="ai" className="gap-1.5 text-xs"><Bot className="w-3.5 h-3.5" /> IA</TabsTrigger>
+            <TabsTrigger value="news" className="gap-1.5 text-xs"><Megaphone className="w-3.5 h-3.5" /> News</TabsTrigger>
+            <TabsTrigger value="asaas" className="gap-1.5 text-xs"><CreditCard className="w-3.5 h-3.5" /> Pagamentos</TabsTrigger>
+            <TabsTrigger value="reports" className="gap-1.5 text-xs"><Flag className="w-3.5 h-3.5" /> Denúncias</TabsTrigger>
+            <TabsTrigger value="blog" className="gap-1.5 text-xs"><FileText className="w-3.5 h-3.5" /> Blog</TabsTrigger>
+            <TabsTrigger value="verification" className="gap-1.5 text-xs"><Shield className="w-3.5 h-3.5" /> Verificação</TabsTrigger>
+            <TabsTrigger value="settings" className="gap-1.5 text-xs"><Settings className="w-3.5 h-3.5" /> Sistema</TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Stats Dashboard */}
         <TabsContent value="stats" className="space-y-4">
