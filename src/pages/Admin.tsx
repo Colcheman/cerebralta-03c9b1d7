@@ -61,6 +61,16 @@ const Admin = () => {
   const [courseIsPremium, setCourseIsPremium] = useState(false);
   const [publishingCourse, setPublishingCourse] = useState(false);
 
+  // Missions
+  const [missionTitle, setMissionTitle] = useState("");
+  const [missionDesc, setMissionDesc] = useState("");
+  const [missionCategory, setMissionCategory] = useState("disciplina");
+  const [missionPoints, setMissionPoints] = useState("20");
+  const [missionIcon, setMissionIcon] = useState("📝");
+  const [missionVideo, setMissionVideo] = useState("");
+  const [missionIsPremium, setMissionIsPremium] = useState(false);
+  const [publishingMission, setPublishingMission] = useState(false);
+
   // Webhook URL
   const [webhookUrl, setWebhookUrl] = useState("");
   const [savingWebhook, setSavingWebhook] = useState(false);
