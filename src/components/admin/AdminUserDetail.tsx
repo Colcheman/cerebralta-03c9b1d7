@@ -29,8 +29,12 @@ interface AdminUserDetailProps {
 
 
 const AdminUserDetail = ({ profile, onBack }: AdminUserDetailProps) => {
+  const { toast } = useToast();
   const [missions, setMissions] = useState<{ total: number; completed: number }>({ total: 0, completed: 0 });
   const [goals, setGoals] = useState<{ total: number; completed: number }>({ total: 0, completed: 0 });
+  const [editingName, setEditingName] = useState(false);
+  const [newName, setNewName] = useState(profile.display_name);
+  const [savingName, setSavingName] = useState(false);
   const [achievements, setAchievements] = useState<number>(0);
   const [posts, setPosts] = useState<number>(0);
   const [comments, setComments] = useState<number>(0);
