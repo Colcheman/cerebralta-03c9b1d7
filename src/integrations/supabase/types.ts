@@ -92,6 +92,51 @@ export type Database = {
         }
         Relationships: []
       }
+      billing_history: {
+        Row: {
+          active_days: number
+          asaas_payment_id: string | null
+          base_amount: number
+          created_at: string
+          discount_percent: number
+          final_amount: number
+          id: string
+          month: number
+          paid_at: string | null
+          status: string
+          user_id: string
+          year: number
+        }
+        Insert: {
+          active_days?: number
+          asaas_payment_id?: string | null
+          base_amount?: number
+          created_at?: string
+          discount_percent?: number
+          final_amount?: number
+          id?: string
+          month: number
+          paid_at?: string | null
+          status?: string
+          user_id: string
+          year: number
+        }
+        Update: {
+          active_days?: number
+          asaas_payment_id?: string | null
+          base_amount?: number
+          created_at?: string
+          discount_percent?: number
+          final_amount?: number
+          id?: string
+          month?: number
+          paid_at?: string | null
+          status?: string
+          user_id?: string
+          year?: number
+        }
+        Relationships: []
+      }
       blog_posts: {
         Row: {
           author_id: string
