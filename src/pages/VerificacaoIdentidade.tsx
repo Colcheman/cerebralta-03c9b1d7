@@ -96,6 +96,7 @@ const VerificacaoIdentidade = () => {
   }
 
   const isPending = profile?.verification_status === "pending";
+  const isRejected = profile?.verification_status === "rejected";
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
