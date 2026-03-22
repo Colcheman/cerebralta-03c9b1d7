@@ -1,0 +1,1 @@
+UPDATE profiles SET verification_status = 'approved' WHERE user_id = '525ac172-aa4e-430a-bbb1-4f6c47685bfa';
