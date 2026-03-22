@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, User, Target, Trophy, MessageSquare, Heart, Calendar, Shield, Flame, Star, FileText } from "lucide-react";
+import { ArrowLeft, User, Target, Trophy, MessageSquare, Heart, Calendar, Shield, Flame, Star, FileText, Pencil, Loader2, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProfileRow {
   id: string;
@@ -28,8 +29,12 @@ interface AdminUserDetailProps {
 
 
 const AdminUserDetail = ({ profile, onBack }: AdminUserDetailProps) => {
+  const { toast } = useToast();
   const [missions, setMissions] = useState<{ total: number; completed: number }>({ total: 0, completed: 0 });
   const [goals, setGoals] = useState<{ total: number; completed: number }>({ total: 0, completed: 0 });
+  const [editingName, setEditingName] = useState(false);
+  const [newName, setNewName] = useState(profile.display_name);
+  const [savingName, setSavingName] = useState(false);
   const [achievements, setAchievements] = useState<number>(0);
   const [posts, setPosts] = useState<number>(0);
   const [comments, setComments] = useState<number>(0);
@@ -109,7 +114,40 @@ const AdminUserDetail = ({ profile, onBack }: AdminUserDetailProps) => {
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-lg font-bold text-foreground">{profile.display_name}</h2>
+              {editingName ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    value={newName}
+                    onChange={e => setNewName(e.target.value)}
+                    maxLength={60}
+                    className="bg-muted border border-border rounded-lg px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    autoFocus
+                  />
+                  <Button
+                    size="sm"
+                    disabled={!newName.trim() || savingName}
+                    onClick={async () => {
+                      setSavingName(true);
+                      await supabase.from("profiles").update({ display_name: newName.trim() }).eq("user_id", profile.user_id);
+                      profile.display_name = newName.trim();
+                      setSavingName(false);
+                      setEditingName(false);
+                      toast({ title: "✅ Nome atualizado!" });
+                    }}
+                    className="gap-1 h-8"
+                  >
+                    {savingName ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => { setEditingName(false); setNewName(profile.display_name); }} className="h-8">✕</Button>
+                </div>
+              ) : (
+                <>
+                  <h2 className="text-lg font-bold text-foreground">{profile.display_name}</h2>
+                  <button onClick={() => setEditingName(true)} className="text-muted-foreground hover:text-primary transition-colors" title="Editar nome">
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                </>
+              )}
               {profile.name_verified && <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">✅ Verificado</span>}
               <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                 profile.subscription_tier === "premium" ? "bg-accent/20 text-accent" : "bg-muted text-muted-foreground"

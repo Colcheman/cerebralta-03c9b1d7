@@ -65,11 +65,9 @@ const Config = () => {
 
   const saveProfileInfo = async () => {
     if (!user) return;
-    const name = displayName.trim();
-    if (!name || name.length > 60) { toast({ title: "Nome inválido", description: "Entre 1 e 60 caracteres.", variant: "destructive" }); return; }
     if (bio.length > 300) { toast({ title: "Bio muito longa", description: "Máximo 300 caracteres.", variant: "destructive" }); return; }
     setSavingProfile(true);
-    await supabase.from("profiles").update({ display_name: name, bio: bio.trim() }).eq("user_id", user.id);
+    await supabase.from("profiles").update({ bio: bio.trim() }).eq("user_id", user.id);
     toast({ title: "✅ Perfil atualizado!", description: "As pessoas já podem ver suas novas informações." });
     setSavingProfile(false);
   };
@@ -222,11 +220,14 @@ const Config = () => {
               <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Nome de exibição</label>
               <input
                 value={displayName}
-                onChange={e => setDisplayName(e.target.value)}
+                disabled
                 maxLength={60}
                 placeholder="Seu nome no app"
-                className="w-full bg-muted border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full bg-muted/50 border border-border rounded-lg px-3 py-2.5 text-sm text-foreground/60 cursor-not-allowed"
               />
+              <p className="text-[11px] text-muted-foreground mt-1.5 flex items-center gap-1">
+                <Lock className="w-3 h-3" /> Para alterar seu nome, entre em contato com o administrador.
+              </p>
             </div>
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Bio <span className="text-muted-foreground/50">({bio.length}/300)</span></label>
@@ -239,7 +240,7 @@ const Config = () => {
                 className="w-full bg-muted border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary resize-none"
               />
             </div>
-            <Button onClick={saveProfileInfo} disabled={savingProfile || !displayName.trim()} className="w-full gap-2">
+            <Button onClick={saveProfileInfo} disabled={savingProfile} className="w-full gap-2">
               {savingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
               Salvar Perfil
             </Button>

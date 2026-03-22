@@ -13,6 +13,7 @@ import AdminStatsPanel from "@/components/admin/AdminStatsPanel";
 import AdminReportsPanel from "@/components/admin/AdminReportsPanel";
 import AdminBlogPanel from "@/components/admin/AdminBlogPanel";
 import AdminVerificationsPanel from "@/components/admin/AdminVerificationsPanel";
+import AdminCoursesPanel from "@/components/admin/AdminCoursesPanel";
 import { sanitizeText, sanitizeUrl } from "@/lib/sanitize";
 import {
   AlertDialog,
@@ -52,14 +53,6 @@ const Admin = () => {
   const [newsContent, setNewsContent] = useState("");
   const [publishingNews, setPublishingNews] = useState(false);
 
-  // Course
-  const [courseTitle, setCourseTitle] = useState("");
-  const [courseDesc, setCourseDesc] = useState("");
-  const [courseCat, setCourseCat] = useState("geral");
-  const [courseVideo, setCourseVideo] = useState("");
-  const [coursePdf, setCoursePdf] = useState("");
-  const [courseIsPremium, setCourseIsPremium] = useState(false);
-  const [publishingCourse, setPublishingCourse] = useState(false);
 
   // Missions
   const [missionTitle, setMissionTitle] = useState("");
@@ -222,26 +215,6 @@ const Admin = () => {
     toast({ title: "News publicada!", description: "Todos os Arquitetos Mentais podem ver a atualização." });
   };
 
-  const publishCourse = async () => {
-    if (!courseTitle.trim() || !courseDesc.trim() || !user) return;
-    setPublishingCourse(true);
-    await supabase.from("courses").insert({
-      title: sanitizeText(courseTitle, 200),
-      description: sanitizeText(courseDesc, 5000),
-      category: courseCat,
-      video_url: sanitizeUrl(courseVideo) || null,
-      pdf_url: sanitizeUrl(coursePdf) || null,
-      is_premium: courseIsPremium,
-      author_id: user.id,
-    } as any);
-    setCourseTitle("");
-    setCourseDesc("");
-    setCourseVideo("");
-    setCoursePdf("");
-    setCourseIsPremium(false);
-    setPublishingCourse(false);
-    toast({ title: "Módulo publicado!", description: "O conteúdo está disponível na área de Aprendizado." });
-  };
 
   const publishMission = async () => {
     if (!missionTitle.trim() || !missionDesc.trim() || !user) return;
@@ -499,35 +472,7 @@ const Admin = () => {
 
         {/* Courses */}
         <TabsContent value="courses" className="space-y-4">
-          <div className="glass rounded-xl p-6 space-y-4">
-            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Plus className="w-4 h-4" /> Publicar Módulo de Curso</h3>
-            <input value={courseTitle} onChange={e => setCourseTitle(e.target.value)} placeholder="Título do módulo" maxLength={200}
-              className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary" />
-            <textarea value={courseDesc} onChange={e => setCourseDesc(e.target.value)} placeholder="Descrição do conteúdo..." maxLength={5000}
-              className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary resize-none min-h-[100px]" />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <select value={courseCat} onChange={e => setCourseCat(e.target.value)}
-                className="bg-muted border border-border rounded-lg px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
-                <option value="geral">Geral</option>
-                <option value="estratégia">Estratégia</option>
-                <option value="estoicismo">Estoicismo</option>
-                <option value="psicologia">Psicologia</option>
-                <option value="liderança">Liderança</option>
-              </select>
-              <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
-                <input type="checkbox" checked={courseIsPremium} onChange={e => setCourseIsPremium(e.target.checked)} className="accent-primary" />
-                Conteúdo Premium
-              </label>
-            </div>
-            <input value={courseVideo} onChange={e => setCourseVideo(e.target.value)} placeholder="URL do vídeo (YouTube/Vimeo)" maxLength={500}
-              className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary" />
-            <input value={coursePdf} onChange={e => setCoursePdf(e.target.value)} placeholder="URL do PDF de apoio" maxLength={500}
-              className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary" />
-            <Button onClick={publishCourse} disabled={!courseTitle.trim() || !courseDesc.trim() || publishingCourse} className="gap-2">
-              {publishingCourse ? <Loader2 className="w-4 h-4 animate-spin" /> : <BookOpen className="w-4 h-4" />}
-              Publicar Módulo
-            </Button>
-          </div>
+          <AdminCoursesPanel userId={user?.id ?? ""} />
         </TabsContent>
 
         {/* Missions */}
