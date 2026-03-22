@@ -129,9 +129,8 @@ const VerificacaoIdentidade = () => {
             <button
               onClick={async () => {
                 await refreshProfile();
-                if (profile?.verification_status === "approved") {
-                  navigate("/feed", { replace: true });
-                }
+                // Profile state will update via re-render, redirect handled by the check at top
+                toast.info("Status verificado. Aguarde a aprovação.");
               }}
               className="px-6 py-2 bg-muted text-foreground rounded-lg font-medium hover:opacity-90 transition text-sm"
             >
