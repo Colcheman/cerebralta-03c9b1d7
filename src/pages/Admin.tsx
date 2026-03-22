@@ -215,26 +215,6 @@ const Admin = () => {
     toast({ title: "News publicada!", description: "Todos os Arquitetos Mentais podem ver a atualização." });
   };
 
-  const publishCourse = async () => {
-    if (!courseTitle.trim() || !courseDesc.trim() || !user) return;
-    setPublishingCourse(true);
-    await supabase.from("courses").insert({
-      title: sanitizeText(courseTitle, 200),
-      description: sanitizeText(courseDesc, 5000),
-      category: courseCat,
-      video_url: sanitizeUrl(courseVideo) || null,
-      pdf_url: sanitizeUrl(coursePdf) || null,
-      is_premium: courseIsPremium,
-      author_id: user.id,
-    } as any);
-    setCourseTitle("");
-    setCourseDesc("");
-    setCourseVideo("");
-    setCoursePdf("");
-    setCourseIsPremium(false);
-    setPublishingCourse(false);
-    toast({ title: "Módulo publicado!", description: "O conteúdo está disponível na área de Aprendizado." });
-  };
 
   const publishMission = async () => {
     if (!missionTitle.trim() || !missionDesc.trim() || !user) return;
