@@ -284,6 +284,7 @@ const Admin = () => {
             <TabsTrigger value="stats" className="gap-1.5 text-xs"><BarChart3 className="w-3.5 h-3.5" /> Estatísticas</TabsTrigger>
             <TabsTrigger value="users" className="gap-1.5 text-xs"><Users className="w-3.5 h-3.5" /> Arquitetos</TabsTrigger>
             <TabsTrigger value="courses" className="gap-1.5 text-xs"><BookOpen className="w-3.5 h-3.5" /> Cursos</TabsTrigger>
+            <TabsTrigger value="missions" className="gap-1.5 text-xs"><Target className="w-3.5 h-3.5" /> Missões</TabsTrigger>
             <TabsTrigger value="ai" className="gap-1.5 text-xs"><Bot className="w-3.5 h-3.5" /> IA</TabsTrigger>
             <TabsTrigger value="news" className="gap-1.5 text-xs"><Megaphone className="w-3.5 h-3.5" /> News</TabsTrigger>
             <TabsTrigger value="asaas" className="gap-1.5 text-xs"><CreditCard className="w-3.5 h-3.5" /> Pagamentos</TabsTrigger>
