@@ -60,19 +60,16 @@ const AdminVerificationsPanel = () => {
 
   const approveMutation = useMutation({
     mutationFn: async (userId: string) => {
-      // Update verification request
       await supabase
         .from("verification_requests" as any)
         .update({ status: "approved", reviewed_at: new Date().toISOString() } as any)
         .eq("user_id", userId);
       
-      // Update profile
       await supabase
         .from("profiles")
         .update({ verification_status: "approved" } as any)
         .eq("user_id", userId);
 
-      // Delete the uploaded document
       const { data: files } = await supabase.storage
         .from("verification-docs")
         .list(userId);
@@ -81,10 +78,15 @@ const AdminVerificationsPanel = () => {
           .from("verification-docs")
           .remove(files.map(f => `${userId}/${f.name}`));
       }
+
+      // Send approval email
+      await supabase.functions.invoke("send-verification-email", {
+        body: { userId, status: "approved" },
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-verifications"] });
-      toast.success("Verificação aprovada! Documento apagado do servidor.");
+      toast.success("Verificação aprovada! E-mail enviado ao usuário.");
     },
   });
 
