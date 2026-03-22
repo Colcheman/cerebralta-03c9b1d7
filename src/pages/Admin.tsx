@@ -53,14 +53,6 @@ const Admin = () => {
   const [newsContent, setNewsContent] = useState("");
   const [publishingNews, setPublishingNews] = useState(false);
 
-  // Course
-  const [courseTitle, setCourseTitle] = useState("");
-  const [courseDesc, setCourseDesc] = useState("");
-  const [courseCat, setCourseCat] = useState("geral");
-  const [courseVideo, setCourseVideo] = useState("");
-  const [coursePdf, setCoursePdf] = useState("");
-  const [courseIsPremium, setCourseIsPremium] = useState(false);
-  const [publishingCourse, setPublishingCourse] = useState(false);
 
   // Missions
   const [missionTitle, setMissionTitle] = useState("");
