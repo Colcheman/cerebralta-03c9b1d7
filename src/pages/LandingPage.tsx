@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   Brain, Flame, Target, Users, Trophy, BookOpen, Shield, Zap,
   ArrowRight, MessageCircle, Mail, Phone, Instagram, Building2,
-  ChevronRight, Star, Sparkles,
+  ChevronRight, Star, Sparkles, Lock, EyeOff, ShieldCheck, ServerOff,
 } from "lucide-react";
 
 const features = [
