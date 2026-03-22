@@ -114,7 +114,7 @@ const Admin = () => {
   if (!isAdmin) return <Navigate to="/feed" replace />;
 
   const filteredProfiles = profiles.filter(p =>
-    p.display_name.toLowerCase().includes(search.toLowerCase()) || p.cpf.includes(search.replace(/\D/g, ""))
+    p.display_name.toLowerCase().includes(search.toLowerCase())
   );
 
 
