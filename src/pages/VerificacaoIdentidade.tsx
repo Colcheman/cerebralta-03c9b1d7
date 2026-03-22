@@ -14,7 +14,7 @@ const DOCUMENT_TYPES: Record<string, { label: string; docs: string[] }> = {
 };
 
 const VerificacaoIdentidade = () => {
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile, logout } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
