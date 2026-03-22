@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, Play, FileText, Lock, Loader2, Sparkles, Lightbulb, X, Clock, ChevronRight, Star, GraduationCap, Video, Search, TrendingUp, Eye, ThumbsUp } from "lucide-react";
+import { BookOpen, Play, FileText, Loader2, Lightbulb, X, Clock, ChevronRight, GraduationCap, Video, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -13,7 +13,6 @@ interface Course {
   category: string;
   video_url: string | null;
   pdf_url: string | null;
-  is_premium: boolean;
   created_at: string;
 }
 
@@ -33,7 +32,6 @@ const categoryIcons: Record<string, string> = {
   liderança: "👑",
 };
 
-// Extract YouTube video ID
 const getYouTubeId = (url: string): string | null => {
   const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?\s]+)/);
   return match?.[1] ?? null;
@@ -54,7 +52,6 @@ const Aprendizado = () => {
   const [tip, setTip] = useState("");
   const [loadingTip, setLoadingTip] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   const categories = ["Todos", "geral", "estratégia", "estoicismo", "psicologia", "liderança"];
 
@@ -128,7 +125,6 @@ const Aprendizado = () => {
     }
   };
 
-  // Filter and search
   const filtered = courses.filter(c => {
     const matchCategory = filter === "Todos" || c.category === filter;
     const matchSearch = !searchQuery || c.title.toLowerCase().includes(searchQuery.toLowerCase()) || c.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -147,24 +143,18 @@ const Aprendizado = () => {
     return `${months} ${months === 1 ? "mês" : "meses"} atrás`;
   };
 
-  // Course detail view
   if (selectedCourse) {
     const relatedCourses = courses.filter(c => c.id !== selectedCourse.id && c.category === selectedCourse.category).slice(0, 4);
 
     return (
       <div className="max-w-5xl mx-auto px-4 py-6 pb-32">
-        <button
-          onClick={() => setSelectedCourse(null)}
-          className="text-sm text-muted-foreground hover:text-foreground mb-4 flex items-center gap-1"
-        >
+        <button onClick={() => setSelectedCourse(null)} className="text-sm text-muted-foreground hover:text-foreground mb-4 flex items-center gap-1">
           ← Voltar
         </button>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main content */}
           <div className="lg:col-span-2">
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-              {/* Video Player */}
               {selectedCourse.video_url ? (
                 <div className="aspect-video bg-black rounded-xl overflow-hidden mb-4 shadow-lg">
                   <iframe
@@ -183,23 +173,16 @@ const Aprendizado = () => {
                 </div>
               )}
 
-              {/* Title & Info */}
               <h1 className="text-xl font-bold text-foreground mb-2">{selectedCourse.title}</h1>
               <div className="flex items-center gap-3 mb-4 flex-wrap">
                 <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${categoryColors[selectedCourse.category] || "bg-muted text-muted-foreground"}`}>
                   {categoryIcons[selectedCourse.category] || "📚"} {selectedCourse.category}
                 </span>
-                {selectedCourse.is_premium && (
-                  <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-accent/15 text-accent flex items-center gap-1">
-                    <Star className="w-3 h-3" /> Premium
-                  </span>
-                )}
                 <span className="text-xs text-muted-foreground flex items-center gap-1">
                   <Clock className="w-3 h-3" /> {timeSince(selectedCourse.created_at)}
                 </span>
               </div>
 
-              {/* Description */}
               <div className="glass rounded-xl p-5">
                 <h3 className="text-sm font-semibold text-foreground mb-3">Sobre este conteúdo</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{selectedCourse.description}</p>
@@ -213,7 +196,6 @@ const Aprendizado = () => {
             </motion.div>
           </div>
 
-          {/* Sidebar - related */}
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Relacionados</h3>
             {relatedCourses.length === 0 ? (
@@ -257,13 +239,11 @@ const Aprendizado = () => {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6 pb-32">
-      {/* Header */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-6">
         <h1 className="font-display text-2xl font-bold text-foreground mb-1">Aprendizado</h1>
         <p className="text-sm text-muted-foreground">Sua plataforma de conhecimento</p>
       </motion.div>
 
-      {/* Search Bar */}
       <div className="relative mb-6">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <input
@@ -274,7 +254,6 @@ const Aprendizado = () => {
         />
       </div>
 
-      {/* AI Tip Quick Action */}
       <motion.button
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -292,7 +271,6 @@ const Aprendizado = () => {
         <ChevronRight className="w-4 h-4 text-muted-foreground" />
       </motion.button>
 
-      {/* Personalized Tip Modal */}
       <AnimatePresence>
         {showTip && (
           <motion.div
@@ -321,7 +299,6 @@ const Aprendizado = () => {
         )}
       </AnimatePresence>
 
-      {/* Category filter */}
       <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-none">
         {categories.map(cat => (
           <button
@@ -348,7 +325,6 @@ const Aprendizado = () => {
         </div>
       ) : (
         <div className="space-y-8">
-          {/* Video Section */}
           {videoCourses.length > 0 && (
             <section>
               <div className="flex items-center gap-2 mb-4">
@@ -368,7 +344,6 @@ const Aprendizado = () => {
                       onClick={() => setSelectedCourse(course)}
                       className="text-left group"
                     >
-                      {/* Thumbnail */}
                       <div className="relative aspect-video rounded-xl overflow-hidden bg-muted mb-3">
                         {thumb ? (
                           <img src={thumb} alt={course.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
@@ -377,19 +352,12 @@ const Aprendizado = () => {
                             <Play className="w-10 h-10 text-primary/40" />
                           </div>
                         )}
-                        {/* Play overlay */}
                         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
                           <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center shadow-lg">
                             <Play className="w-5 h-5 text-primary-foreground ml-0.5" />
                           </div>
                         </div>
-                        {course.is_premium && (
-                          <div className="absolute top-2 right-2 bg-accent/90 text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                            <Star className="w-2.5 h-2.5" /> PREMIUM
-                          </div>
-                        )}
                       </div>
-                      {/* Info */}
                       <h3 className="text-sm font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors leading-snug">
                         {course.title}
                       </h3>
@@ -404,7 +372,6 @@ const Aprendizado = () => {
             </section>
           )}
 
-          {/* Articles Section */}
           {articleCourses.length > 0 && (
             <section>
               <div className="flex items-center gap-2 mb-4">
@@ -430,11 +397,6 @@ const Aprendizado = () => {
                         <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${categoryColors[course.category] || "bg-muted text-muted-foreground"}`}>
                           {course.category}
                         </span>
-                        {course.is_premium && (
-                          <span className="text-[10px] font-bold text-accent flex items-center gap-0.5">
-                            <Star className="w-2.5 h-2.5" /> Premium
-                          </span>
-                        )}
                       </div>
                       <h3 className="text-sm font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
                         {course.title}
