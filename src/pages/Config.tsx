@@ -240,7 +240,7 @@ const Config = () => {
                 className="w-full bg-muted border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary resize-none"
               />
             </div>
-            <Button onClick={saveProfileInfo} disabled={savingProfile || !displayName.trim()} className="w-full gap-2">
+            <Button onClick={saveProfileInfo} disabled={savingProfile} className="w-full gap-2">
               {savingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
               Salvar Perfil
             </Button>
