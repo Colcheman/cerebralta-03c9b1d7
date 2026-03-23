@@ -23,6 +23,7 @@ interface PostData {
   author: string;
   level: string;
   avatar: string;
+  avatar_url?: string | null;
   likes: number;
   comments: number;
   timestamp: string;
@@ -112,20 +113,22 @@ const PostCard = ({ post, index, onUpdate, onQuote }: { post: PostData; index: n
     >
       <div className="flex gap-3">
         {/* Avatar with hover */}
-        <ProfileHoverCard name={post.author} level={post.level} avatar={post.avatar}>
+        <ProfileHoverCard name={post.author} level={post.level} avatar={post.avatar} avatar_url={post.avatar_url}>
           <div 
             onClick={() => navigate(`/perfil/${post.user_id}`)}
-            className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold shrink-0 cursor-pointer hover:opacity-80 transition-opacity ${
+            className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold shrink-0 cursor-pointer hover:opacity-80 transition-opacity overflow-hidden ${
               isElevated ? "bg-gradient-gold text-accent-foreground" : "bg-gradient-primary text-primary-foreground"
             }`}>
-            {post.avatar}
+            {post.avatar_url ? (
+              <img src={post.avatar_url} alt={post.author} className="w-full h-full object-cover" />
+            ) : post.avatar}
           </div>
         </ProfileHoverCard>
 
         <div className="flex-1 min-w-0">
           {/* Header */}
           <div className="flex items-center gap-1.5 flex-wrap">
-            <ProfileHoverCard name={post.author} level={post.level} avatar={post.avatar}>
+            <ProfileHoverCard name={post.author} level={post.level} avatar={post.avatar} avatar_url={post.avatar_url}>
               <span 
                 onClick={() => navigate(`/perfil/${post.user_id}`)} 
                 className="text-sm font-bold text-foreground truncate cursor-pointer hover:underline"

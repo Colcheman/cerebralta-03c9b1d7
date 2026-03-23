@@ -64,8 +64,10 @@ const Sidebar = () => {
       <div className="px-4 py-5">
         <div className="bg-muted rounded-xl p-4">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center text-sm font-bold text-primary-foreground">
-              {initials}
+            <div className="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center text-sm font-bold text-primary-foreground overflow-hidden">
+              {profile?.avatar_url ? (
+                <img src={profile.avatar_url} alt={displayName} className="w-full h-full object-cover" />
+              ) : initials}
             </div>
             <div>
               <p className="text-sm font-semibold text-foreground">{displayName}</p>

@@ -371,6 +371,7 @@ const Feed = () => {
               author: post.profiles?.display_name ?? "Arquiteto Mental",
               level: post.profiles?.level ?? "Iniciante",
               avatar: (post.profiles?.display_name ?? "AM").split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase(),
+              avatar_url: post.profiles?.avatar_url ?? null,
               likes: post.likes_count,
               comments: post.comments_count,
               timestamp: getRelativeTime(post.created_at),
