@@ -66,13 +66,6 @@ const Feed = () => {
   }, [user]);
 
   const fetchPosts = async () => {
-    // Get blocked user IDs
-    let blockedIds: string[] = [];
-    if (user) {
-      const { data: blocks } = await (supabase as any).from("user_blocks").select("blocked_id").eq("blocker_id", user.id);
-      blockedIds = blocks?.map((b: any) => b.blocked_id) ?? [];
-    }
-
     let query = supabase.from("posts").select("*").order("created_at", { ascending: false }).limit(40);
 
     // If "seguindo" mode, filter by followed users
@@ -87,21 +80,21 @@ const Feed = () => {
     const { data } = await query;
     if (!data) { setLoading(false); return; }
 
-    // Filter out blocked users
-    const filteredData = blockedIds.length > 0 ? data.filter(p => !blockedIds.includes(p.user_id)) : data;
+    // Fetch profiles and quoted posts in parallel
+    const userIds = [...new Set(data.map(p => p.user_id))];
+    const quotedIds = data.filter(p => p.quoted_post_id).map(p => p.quoted_post_id!);
 
-    const userIds = [...new Set(filteredData.map(p => p.user_id))];
-    const { data: profiles } = await supabase.from("safe_profiles").select("user_id, display_name, level, avatar_url").in("user_id", userIds);
+    const [{ data: profiles }, quotedResult] = await Promise.all([
+      supabase.from("safe_profiles").select("user_id, display_name, level, avatar_url").in("user_id", userIds),
+      quotedIds.length > 0
+        ? supabase.from("posts").select("id, content, user_id").in("id", quotedIds)
+        : Promise.resolve({ data: [] as { id: string; content: string; user_id: string }[] }),
+    ]);
+
     const profileMap = new Map(profiles?.map(p => [p.user_id!, p]) ?? []);
+    const quotedMap = new Map(quotedResult.data?.map(q => [q.id, q]) ?? []);
 
-    const quotedIds = filteredData.filter(p => p.quoted_post_id).map(p => p.quoted_post_id!);
-    let quotedMap = new Map<string, { content: string; user_id: string }>();
-    if (quotedIds.length > 0) {
-      const { data: quoted } = await supabase.from("posts").select("id, content, user_id").in("id", quotedIds);
-      quotedMap = new Map(quoted?.map(q => [q.id, q]) ?? []);
-    }
-
-    const postsWithProfiles = filteredData.map(p => {
+    const postsWithProfiles = data.map(p => {
       const quoted = p.quoted_post_id ? quotedMap.get(p.quoted_post_id) : null;
       const quotedProfile = quoted ? profileMap.get(quoted.user_id) : null;
       return {
