@@ -313,6 +313,7 @@ const Perfil = () => {
                   author: profile.display_name ?? "Arquiteto Mental",
                   level: profile.level ?? "Iniciante",
                   avatar: initials,
+                  avatar_url: profile.avatar_url ?? null,
                   likes: post.likes_count,
                   comments: post.comments_count,
                   timestamp: getRelativeTime(post.created_at),
