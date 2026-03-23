@@ -23,6 +23,7 @@ interface PostData {
   author: string;
   level: string;
   avatar: string;
+  avatar_url?: string | null;
   likes: number;
   comments: number;
   timestamp: string;
