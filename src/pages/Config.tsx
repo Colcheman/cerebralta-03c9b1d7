@@ -17,7 +17,7 @@ const presetColors = [
 ];
 
 const Config = () => {
-  const { profile, user } = useAuth();
+  const { profile, user, refreshProfile } = useAuth();
   const { toast } = useToast();
   const { accentHex, setAccentColor } = useTheme();
   const navigate = useNavigate();
