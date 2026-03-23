@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import BillingHistory from "@/components/settings/BillingHistory";
+import SecurityCenter from "@/components/settings/SecurityCenter";
 import { Shield, Bell, Palette, Lock, Mail, Loader2, KeyRound, User, Camera, Check, ImagePlus, MessageSquare } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
