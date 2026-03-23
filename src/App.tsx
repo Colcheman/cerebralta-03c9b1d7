@@ -18,6 +18,7 @@ import Conquistas from "./pages/Conquistas";
 import Grupos from "./pages/Grupos";
 import GroupDetail from "./pages/GroupDetail";
 import Config from "./pages/Config";
+import Seguranca from "./pages/Seguranca";
 import Sobre from "./pages/Sobre";
 import Manual from "./pages/Manual";
 import LocaleSetup from "./pages/LocaleSetup";
