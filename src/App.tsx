@@ -18,6 +18,7 @@ import Conquistas from "./pages/Conquistas";
 import Grupos from "./pages/Grupos";
 import GroupDetail from "./pages/GroupDetail";
 import Config from "./pages/Config";
+import Seguranca from "./pages/Seguranca";
 import Sobre from "./pages/Sobre";
 import Manual from "./pages/Manual";
 import LocaleSetup from "./pages/LocaleSetup";
@@ -81,6 +82,7 @@ const App = () => (
                   <Route path="/grupos" element={<Grupos />} />
                   <Route path="/grupos/:id" element={<GroupDetail />} />
                   <Route path="/config" element={<Config />} />
+                  <Route path="/seguranca" element={<Seguranca />} />
                   <Route path="/manual" element={<Manual />} />
                   <Route path="/sobre" element={<Sobre />} />
                   <Route path="/mensagens" element={<Mensagens />} />
