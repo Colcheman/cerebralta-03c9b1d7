@@ -79,7 +79,7 @@ const Config = () => {
     if (file.size > 5 * 1024 * 1024) { toast({ title: "Arquivo muito grande", description: "Máximo 5MB.", variant: "destructive" }); return; }
     setBannerUploading(true);
     const ext = file.name.split(".").pop();
-    const path = `${user.id}.${ext}`;
+    const path = `${user.id}/banner.${ext}`;
     const { error } = await supabase.storage.from("banners").upload(path, file, { upsert: true });
     if (!error) {
       const { data: { publicUrl } } = supabase.storage.from("banners").getPublicUrl(path);
