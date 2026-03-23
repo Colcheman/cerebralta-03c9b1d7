@@ -445,6 +445,39 @@ export type Database = {
         }
         Relationships: []
       }
+      login_history: {
+        Row: {
+          browser: string | null
+          created_at: string
+          device: string | null
+          id: string
+          ip_address: string | null
+          location: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          browser?: string | null
+          created_at?: string
+          device?: string | null
+          id?: string
+          ip_address?: string | null
+          location?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          browser?: string | null
+          created_at?: string
+          device?: string | null
+          id?: string
+          ip_address?: string | null
+          location?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       missions: {
         Row: {
           category: string
@@ -541,6 +574,30 @@ export type Database = {
           sent_at?: string | null
           status?: string
           webhook_url?: string | null
+        }
+        Relationships: []
+      }
+      password_recovery_history: {
+        Row: {
+          created_at: string
+          id: string
+          ip_address: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          status?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -731,6 +788,54 @@ export type Database = {
           whatsapp_number?: string | null
           whatsapp_opt_in?: boolean
           whatsapp_status?: string
+        }
+        Relationships: []
+      }
+      security_settings: {
+        Row: {
+          auto_logout_minutes: number
+          created_at: string
+          id: string
+          notify_breach: boolean
+          notify_failed_login: boolean
+          notify_new_login: boolean
+          notify_password_change: boolean
+          notify_recovery: boolean
+          notify_via_email: boolean
+          notify_via_platform: boolean
+          rate_limit_level: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_logout_minutes?: number
+          created_at?: string
+          id?: string
+          notify_breach?: boolean
+          notify_failed_login?: boolean
+          notify_new_login?: boolean
+          notify_password_change?: boolean
+          notify_recovery?: boolean
+          notify_via_email?: boolean
+          notify_via_platform?: boolean
+          rate_limit_level?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_logout_minutes?: number
+          created_at?: string
+          id?: string
+          notify_breach?: boolean
+          notify_failed_login?: boolean
+          notify_new_login?: boolean
+          notify_password_change?: boolean
+          notify_recovery?: boolean
+          notify_via_email?: boolean
+          notify_via_platform?: boolean
+          rate_limit_level?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
