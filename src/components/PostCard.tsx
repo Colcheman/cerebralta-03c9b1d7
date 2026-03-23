@@ -128,7 +128,7 @@ const PostCard = ({ post, index, onUpdate, onQuote }: { post: PostData; index: n
         <div className="flex-1 min-w-0">
           {/* Header */}
           <div className="flex items-center gap-1.5 flex-wrap">
-            <ProfileHoverCard name={post.author} level={post.level} avatar={post.avatar}>
+            <ProfileHoverCard name={post.author} level={post.level} avatar={post.avatar} avatar_url={post.avatar_url}>
               <span 
                 onClick={() => navigate(`/perfil/${post.user_id}`)} 
                 className="text-sm font-bold text-foreground truncate cursor-pointer hover:underline"
