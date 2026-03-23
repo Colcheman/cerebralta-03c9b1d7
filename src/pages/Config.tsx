@@ -67,7 +67,10 @@ const Config = () => {
     if (!error) {
       const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
       setAvatarUrl(publicUrl);
-      await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("user_id", user.id);
+      const urlWithCacheBust = `${publicUrl}?t=${Date.now()}`;
+      setAvatarUrl(urlWithCacheBust);
+      await supabase.from("profiles").update({ avatar_url: urlWithCacheBust }).eq("user_id", user.id);
+      await refreshProfile();
       toast({ title: "📸 Foto atualizada!" });
     }
     setAvatarUploading(false);

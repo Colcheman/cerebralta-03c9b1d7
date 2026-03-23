@@ -116,10 +116,12 @@ const PostCard = ({ post, index, onUpdate, onQuote }: { post: PostData; index: n
         <ProfileHoverCard name={post.author} level={post.level} avatar={post.avatar}>
           <div 
             onClick={() => navigate(`/perfil/${post.user_id}`)}
-            className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold shrink-0 cursor-pointer hover:opacity-80 transition-opacity ${
+            className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold shrink-0 cursor-pointer hover:opacity-80 transition-opacity overflow-hidden ${
               isElevated ? "bg-gradient-gold text-accent-foreground" : "bg-gradient-primary text-primary-foreground"
             }`}>
-            {post.avatar}
+            {post.avatar_url ? (
+              <img src={post.avatar_url} alt={post.author} className="w-full h-full object-cover" />
+            ) : post.avatar}
           </div>
         </ProfileHoverCard>
 
