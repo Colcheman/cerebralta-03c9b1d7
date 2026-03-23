@@ -113,7 +113,7 @@ const PostCard = ({ post, index, onUpdate, onQuote }: { post: PostData; index: n
     >
       <div className="flex gap-3">
         {/* Avatar with hover */}
-        <ProfileHoverCard name={post.author} level={post.level} avatar={post.avatar}>
+        <ProfileHoverCard name={post.author} level={post.level} avatar={post.avatar} avatar_url={post.avatar_url}>
           <div 
             onClick={() => navigate(`/perfil/${post.user_id}`)}
             className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold shrink-0 cursor-pointer hover:opacity-80 transition-opacity overflow-hidden ${
