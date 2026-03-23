@@ -2,14 +2,13 @@ import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import BillingHistory from "@/components/settings/BillingHistory";
 import SecurityCenter from "@/components/settings/SecurityCenter";
-import { Shield, Bell, Palette, Lock, Mail, Loader2, KeyRound, User, Camera, Check, ImagePlus, MessageSquare } from "lucide-react";
+import { Bell, Palette, Lock, Loader2, User, Camera, Check, ImagePlus, MessageSquare, Mail } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/contexts/ThemeContext";
 import WhatsAppModal from "@/components/WhatsAppModal";
-import { hashPin } from "@/lib/crypto";
 
 const presetColors = [
   "#2563EB", "#1D4ED8", "#1E3A5F", "#0EA5E9", "#4F46E5",
@@ -23,7 +22,7 @@ const Config = () => {
   const { accentHex, setAccentColor } = useTheme();
 
   // Profile editing
-  const [displayName, setDisplayName] = useState(profile?.display_name ?? "");
+  const [displayName] = useState(profile?.display_name ?? "");
   const [bio, setBio] = useState((profile as any)?.bio ?? "");
   const [savingProfile, setSavingProfile] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
@@ -33,9 +32,6 @@ const Config = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
 
-  const [recoveryEmail, setRecoveryEmail] = useState(profile?.recovery_email ?? "");
-  const [savingEmail, setSavingEmail] = useState(false);
-  const [twoFactor, setTwoFactor] = useState(profile?.two_factor_enabled ?? false);
   const [notifPush, setNotifPush] = useState(profile?.notification_push ?? true);
   const [notifWhatsapp, setNotifWhatsapp] = useState(profile?.notification_whatsapp ?? false);
   const [notifEmail, setNotifEmail] = useState(profile?.notification_email ?? true);
@@ -46,19 +42,6 @@ const Config = () => {
   // WhatsApp opt-in
   const [whatsappOptIn, setWhatsappOptIn] = useState((profile as any)?.whatsapp_opt_in ?? false);
   const [savingOptIn, setSavingOptIn] = useState(false);
-
-  // App Lock PIN
-  const [lockEnabled, setLockEnabled] = useState(!!profile?.app_lock_pin);
-  const [pinInput, setPinInput] = useState("");
-  const [pinConfirm, setPinConfirm] = useState("");
-  const [pinStep, setPinStep] = useState<"idle" | "enter" | "confirm">("idle");
-  const [savingPin, setSavingPin] = useState(false);
-
-  // Change password
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [changingPassword, setChangingPassword] = useState(false);
 
   const updateProfile = async (field: string, value: any) => {
     if (!user) return;
@@ -110,16 +93,6 @@ const Config = () => {
     setBannerUploading(false);
   };
 
-  const saveRecoveryEmail = async () => {
-    if (!recoveryEmail.trim() || !user) return;
-    setSavingEmail(true);
-    await updateProfile("recovery_email", recoveryEmail.trim());
-    toast({ title: "Email salvo", description: "Seu email de recuperação foi atualizado." });
-    setSavingEmail(false);
-  };
-
-
-
   const handleWhatsappToggle = (val: boolean) => {
     if (val) setWhatsappModalOpen(true);
     setNotifWhatsapp(val);
@@ -135,7 +108,7 @@ const Config = () => {
     if (/^#[0-9A-Fa-f]{6}$/.test(customHex)) {
       setAccentColor(customHex);
     } else {
-      setCustomHex(accentHex); // Revert invalid input
+      setCustomHex(accentHex);
     }
   };
 
@@ -216,7 +189,6 @@ const Config = () => {
             <input ref={bannerInputRef} type="file" accept="image/*" className="hidden" onChange={handleBannerUpload} />
           </div>
 
-
           <div className="space-y-3">
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Nome de exibição</label>
@@ -249,100 +221,8 @@ const Config = () => {
           </div>
         </motion.div>
 
-        {/* Security */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="glass rounded-2xl p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <Shield className="w-5 h-5 text-primary" />
-            <h2 className="text-sm font-semibold text-foreground">Segurança</h2>
-          </div>
-          <div className="flex items-center justify-between py-2">
-            <div>
-              <p className="text-sm text-foreground">Autenticação 2FA</p>
-              <p className="text-xs text-muted-foreground">Proteja sua conta com verificação dupla</p>
-            </div>
-            <Toggle on={twoFactor} onToggle={(v) => { setTwoFactor(v); updateProfile("two_factor_enabled", v); }} />
-          </div>
-
-          <div className="border-t border-border pt-4 mt-2 space-y-3">
-            <div className="flex items-center gap-2 mb-2">
-              <KeyRound className="w-4 h-4 text-primary" />
-              <p className="text-sm font-medium text-foreground">Alterar Senha</p>
-            </div>
-            <input
-              type="password"
-              value={currentPassword}
-              onChange={e => setCurrentPassword(e.target.value)}
-              placeholder="Senha atual"
-              className="w-full bg-muted border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary"
-            />
-            <input
-              type="password"
-              value={newPassword}
-              onChange={e => setNewPassword(e.target.value)}
-              placeholder="Nova senha (mín. 6 caracteres)"
-              className="w-full bg-muted border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary"
-            />
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={e => setConfirmPassword(e.target.value)}
-              placeholder="Confirmar nova senha"
-              className="w-full bg-muted border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary"
-            />
-            <Button
-              className="w-full gap-2"
-              disabled={changingPassword || newPassword.length < 6 || newPassword !== confirmPassword || !currentPassword}
-              onClick={async () => {
-                if (newPassword !== confirmPassword) {
-                  toast({ title: "Senhas não conferem", variant: "destructive" });
-                  return;
-                }
-                setChangingPassword(true);
-                // Re-authenticate with current password to verify
-                const cpfEmail = user?.email;
-                if (!cpfEmail) { setChangingPassword(false); return; }
-                const { error: signInError } = await supabase.auth.signInWithPassword({
-                  email: cpfEmail,
-                  password: currentPassword,
-                });
-                if (signInError) {
-                  toast({ title: "Senha atual incorreta", description: "Verifique sua senha atual e tente novamente.", variant: "destructive" });
-                  setChangingPassword(false);
-                  return;
-                }
-                const { error } = await supabase.auth.updateUser({ password: newPassword });
-                setChangingPassword(false);
-                if (error) {
-                  toast({ title: "Erro ao alterar senha", description: error.message, variant: "destructive" });
-                } else {
-                  toast({ title: "🔑 Senha alterada!", description: "Sua nova senha está ativa." });
-                  setCurrentPassword("");
-                  setNewPassword("");
-                  setConfirmPassword("");
-                }
-              }}
-            >
-              {changingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />}
-              Alterar Senha
-            </Button>
-          </div>
-        </motion.div>
-
-        {/* Recovery Email */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass rounded-2xl p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <Mail className="w-5 h-5 text-primary" />
-            <h2 className="text-sm font-semibold text-foreground">Recuperação de Senha</h2>
-          </div>
-          <p className="text-xs text-muted-foreground mb-3">Vincule um email para recuperação de senha.</p>
-          <div className="flex gap-2">
-            <input type="email" value={recoveryEmail} onChange={e => setRecoveryEmail(e.target.value)} placeholder="seu@email.com"
-              className="flex-1 bg-muted border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary" />
-            <Button onClick={saveRecoveryEmail} disabled={!recoveryEmail.trim() || savingEmail} size="sm">
-              {savingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : "Salvar"}
-            </Button>
-          </div>
-        </motion.div>
+        {/* Central de Segurança da Conta */}
+        <SecurityCenter />
 
         {/* Notifications */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="glass rounded-2xl p-5">
@@ -481,67 +361,6 @@ const Config = () => {
             />
             <div className="w-10 h-10 rounded-lg border border-border" style={{ backgroundColor: accentHex }} />
           </div>
-        </motion.div>
-
-        {/* App Lock */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="glass rounded-2xl p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <KeyRound className="w-5 h-5 text-primary" />
-            <h2 className="text-sm font-semibold text-foreground">Bloqueio do App</h2>
-          </div>
-          <div className="flex items-center justify-between py-2 mb-3">
-            <div>
-              <p className="text-sm text-foreground">Bloquear com PIN</p>
-              <p className="text-xs text-muted-foreground">Exige PIN de 4 dígitos ao abrir o app</p>
-            </div>
-            <Toggle on={lockEnabled} onToggle={(v) => {
-              if (v) {
-                setPinStep("enter");
-                setPinInput("");
-                setPinConfirm("");
-              } else {
-                setLockEnabled(false);
-                setPinStep("idle");
-                updateProfile("app_lock_pin", null);
-                toast({ title: "Bloqueio desativado" });
-              }
-            }} />
-          </div>
-          {pinStep === "enter" && (
-            <div className="space-y-2">
-              <p className="text-xs text-muted-foreground">Digite um PIN de 4 dígitos:</p>
-              <input type="password" inputMode="numeric" maxLength={4} value={pinInput}
-                onChange={e => { const v = e.target.value.replace(/\D/g, ""); setPinInput(v); }}
-                className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground text-center text-2xl tracking-[1em] font-mono focus:outline-none focus:ring-1 focus:ring-primary" />
-              <Button size="sm" disabled={pinInput.length !== 4} onClick={() => { setPinStep("confirm"); setPinConfirm(""); }}>
-                Continuar
-              </Button>
-            </div>
-          )}
-          {pinStep === "confirm" && (
-            <div className="space-y-2">
-              <p className="text-xs text-muted-foreground">Confirme o PIN:</p>
-              <input type="password" inputMode="numeric" maxLength={4} value={pinConfirm}
-                onChange={e => { const v = e.target.value.replace(/\D/g, ""); setPinConfirm(v); }}
-                className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground text-center text-2xl tracking-[1em] font-mono focus:outline-none focus:ring-1 focus:ring-primary" />
-              <Button size="sm" disabled={pinConfirm.length !== 4 || savingPin} onClick={async () => {
-                if (pinConfirm !== pinInput) {
-                  toast({ title: "PINs não coincidem", variant: "destructive" });
-                  setPinConfirm("");
-                  return;
-                }
-                setSavingPin(true);
-                const hashedPin = await hashPin(pinInput);
-                await updateProfile("app_lock_pin", hashedPin);
-                setLockEnabled(true);
-                setPinStep("idle");
-                setSavingPin(false);
-                toast({ title: "🔒 PIN ativado!", description: "O app será bloqueado ao abrir." });
-              }}>
-                {savingPin ? <Loader2 className="w-4 h-4 animate-spin" /> : "Ativar Bloqueio"}
-              </Button>
-            </div>
-          )}
         </motion.div>
 
         {/* Billing History */}
