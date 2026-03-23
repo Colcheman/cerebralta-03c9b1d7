@@ -62,7 +62,7 @@ const Config = () => {
     if (file.size > 2 * 1024 * 1024) { toast({ title: "Arquivo muito grande", description: "Máximo 2MB.", variant: "destructive" }); return; }
     setAvatarUploading(true);
     const ext = file.name.split(".").pop();
-    const path = `${user.id}.${ext}`;
+    const path = `${user.id}/avatar.${ext}`;
     const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
     if (!error) {
       const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
