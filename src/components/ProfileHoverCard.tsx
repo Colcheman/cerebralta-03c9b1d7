@@ -7,6 +7,7 @@ interface Props {
   name: string;
   level: string;
   avatar: string;
+  avatar_url?: string | null;
 }
 
 const ELEVATED_LEVELS = ["Estrategista", "Mestre", "Visionário", "Arquiteto-Chefe"];
