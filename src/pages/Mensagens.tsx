@@ -134,6 +134,73 @@ const Mensagens = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Close menu on outside click
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setShowMenu(false);
+    };
+    if (showMenu) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [showMenu]);
+
+  // Load muted convos from localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem("muted_convos");
+    if (stored) setMutedConvos(new Set(JSON.parse(stored)));
+  }, []);
+
+  const toggleMute = () => {
+    if (!selectedConvo) return;
+    setMutedConvos(prev => {
+      const next = new Set(prev);
+      if (next.has(selectedConvo.id)) {
+        next.delete(selectedConvo.id);
+        toast({ title: "🔔 Notificações ativadas", description: "Você receberá notificações desta conversa." });
+      } else {
+        next.add(selectedConvo.id);
+        toast({ title: "🔕 Conversa silenciada", description: "Notificações desta conversa foram desativadas." });
+      }
+      localStorage.setItem("muted_convos", JSON.stringify([...next]));
+      return next;
+    });
+    setShowMenu(false);
+  };
+
+  const deleteChat = async () => {
+    if (!selectedConvo || !user) return;
+    // Delete all messages in the conversation, then the conversation itself
+    await supabase.from("direct_messages").delete().eq("conversation_id", selectedConvo.id).eq("sender_id", user.id);
+    // We can't delete the other user's messages, so just remove the conversation reference
+    // For a clean UX, remove from local state
+    setConversations(prev => prev.filter(c => c.id !== selectedConvo.id));
+    setSelectedConvo(null);
+    setMessages([]);
+    setConfirmAction(null);
+    setShowMenu(false);
+    toast({ title: "🗑️ Chat excluído", description: "A conversa foi removida da sua lista." });
+  };
+
+  const blockUser = async () => {
+    if (!selectedConvo || !user) return;
+    const otherId = selectedConvo.participant_1 === user.id ? selectedConvo.participant_2 : selectedConvo.participant_1;
+    const { error } = await (supabase as any).from("user_blocks").insert({
+      blocker_id: user.id,
+      blocked_id: otherId,
+    });
+    if (error && error.code === "23505") {
+      toast({ title: "Usuário já bloqueado" });
+    } else if (error) {
+      toast({ title: "Erro ao bloquear", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "🚫 Usuário bloqueado", description: `${selectedConvo.other_user?.display_name ?? "Usuário"} foi bloqueado.` });
+      setConversations(prev => prev.filter(c => c.id !== selectedConvo.id));
+      setSelectedConvo(null);
+      setMessages([]);
+    }
+    setConfirmAction(null);
+    setShowMenu(false);
+  };
+
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedConvo || !user || sending) return;
     setSending(true);
