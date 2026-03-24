@@ -443,6 +443,55 @@ const Mensagens = () => {
           )}
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      <AnimatePresence>
+        {confirmAction && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setConfirmAction(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-card border border-border rounded-2xl p-6 w-full max-w-sm space-y-4 shadow-lg"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center">
+                  <AlertTriangle className="w-5 h-5 text-destructive" />
+                </div>
+                <h3 className="text-sm font-bold text-foreground">
+                  {confirmAction.type === "delete" ? "Excluir conversa?" : `Bloquear ${confirmAction.label}?`}
+                </h3>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {confirmAction.type === "delete"
+                  ? "Suas mensagens serão removidas. Esta ação não pode ser desfeita."
+                  : "Este usuário será bloqueado e a conversa será removida. Ele não poderá mais enviar mensagens para você."}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setConfirmAction(null)}
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={confirmAction.type === "delete" ? deleteChat : blockUser}
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-destructive text-destructive-foreground text-sm font-medium hover:opacity-90 transition-opacity"
+                >
+                  {confirmAction.type === "delete" ? "Excluir" : "Bloquear"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
