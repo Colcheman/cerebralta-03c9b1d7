@@ -286,7 +286,10 @@ export type Database = {
           conversation_id: string
           created_at: string
           id: string
+          media_url: string | null
+          message_type: string
           read: boolean
+          reply_to_id: string | null
           sender_id: string
         }
         Insert: {
@@ -294,7 +297,10 @@ export type Database = {
           conversation_id: string
           created_at?: string
           id?: string
+          media_url?: string | null
+          message_type?: string
           read?: boolean
+          reply_to_id?: string | null
           sender_id: string
         }
         Update: {
@@ -302,7 +308,10 @@ export type Database = {
           conversation_id?: string
           created_at?: string
           id?: string
+          media_url?: string | null
+          message_type?: string
           read?: boolean
+          reply_to_id?: string | null
           sender_id?: string
         }
         Relationships: [
@@ -311,6 +320,13 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "direct_messages"
             referencedColumns: ["id"]
           },
         ]
