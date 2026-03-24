@@ -163,6 +163,7 @@ const GroupDetail = () => {
   const isCreator = group.creator_id === user?.id;
 
   return (
+    <>
     <div className="max-w-2xl mx-auto flex flex-col h-[calc(100vh-5rem)] lg:h-screen">
       {/* Header */}
       <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-md border-b border-border px-4 py-3">
