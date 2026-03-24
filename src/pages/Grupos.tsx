@@ -76,6 +76,7 @@ const Grupos = () => {
   };
 
   return (
+    <>
     <div className="max-w-2xl mx-auto px-4 py-6">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <div className="flex items-center justify-between mb-6">
