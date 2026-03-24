@@ -29,7 +29,7 @@ const Grupos = () => {
   const [newName, setNewName] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
-
+  const [reportGroup, setReportGroup] = useState<Group | null>(null);
   const fetchGroups = async () => {
     const { data } = await supabase.from("groups").select("*").eq("is_active", true).order("members_count", { ascending: false });
     setGroups((data ?? []) as Group[]);
