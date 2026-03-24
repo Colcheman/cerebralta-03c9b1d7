@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import BillingHistory from "@/components/settings/BillingHistory";
+import FinancialPanel from "@/components/settings/FinancialPanel";
 import { Bell, Palette, Lock, Loader2, User, Camera, Check, ImagePlus, MessageSquare, Mail, Shield, ChevronRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
