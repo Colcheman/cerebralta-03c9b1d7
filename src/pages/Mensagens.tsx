@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
-import { MessageCircle, Search, Send, Loader2, ArrowLeft } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { MessageCircle, Search, Send, Loader2, ArrowLeft, MoreVertical, BellOff, Bell, Ban, Trash2, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 interface Conversation {
   id: string;
@@ -32,6 +33,7 @@ interface ProfileBasic {
 
 const Mensagens = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConvo, setSelectedConvo] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -41,7 +43,11 @@ const Mensagens = () => {
   const [search, setSearch] = useState("");
   const [allUsers, setAllUsers] = useState<ProfileBasic[]>([]);
   const [showNewChat, setShowNewChat] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [mutedConvos, setMutedConvos] = useState<Set<string>>(new Set());
+  const [confirmAction, setConfirmAction] = useState<{ type: "delete" | "block"; label: string } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   // Load conversations
   useEffect(() => {
@@ -127,6 +133,73 @@ const Mensagens = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Close menu on outside click
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setShowMenu(false);
+    };
+    if (showMenu) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [showMenu]);
+
+  // Load muted convos from localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem("muted_convos");
+    if (stored) setMutedConvos(new Set(JSON.parse(stored)));
+  }, []);
+
+  const toggleMute = () => {
+    if (!selectedConvo) return;
+    setMutedConvos(prev => {
+      const next = new Set(prev);
+      if (next.has(selectedConvo.id)) {
+        next.delete(selectedConvo.id);
+        toast({ title: "🔔 Notificações ativadas", description: "Você receberá notificações desta conversa." });
+      } else {
+        next.add(selectedConvo.id);
+        toast({ title: "🔕 Conversa silenciada", description: "Notificações desta conversa foram desativadas." });
+      }
+      localStorage.setItem("muted_convos", JSON.stringify([...next]));
+      return next;
+    });
+    setShowMenu(false);
+  };
+
+  const deleteChat = async () => {
+    if (!selectedConvo || !user) return;
+    // Delete all messages in the conversation, then the conversation itself
+    await supabase.from("direct_messages").delete().eq("conversation_id", selectedConvo.id).eq("sender_id", user.id);
+    // We can't delete the other user's messages, so just remove the conversation reference
+    // For a clean UX, remove from local state
+    setConversations(prev => prev.filter(c => c.id !== selectedConvo.id));
+    setSelectedConvo(null);
+    setMessages([]);
+    setConfirmAction(null);
+    setShowMenu(false);
+    toast({ title: "🗑️ Chat excluído", description: "A conversa foi removida da sua lista." });
+  };
+
+  const blockUser = async () => {
+    if (!selectedConvo || !user) return;
+    const otherId = selectedConvo.participant_1 === user.id ? selectedConvo.participant_2 : selectedConvo.participant_1;
+    const { error } = await (supabase as any).from("user_blocks").insert({
+      blocker_id: user.id,
+      blocked_id: otherId,
+    });
+    if (error && error.code === "23505") {
+      toast({ title: "Usuário já bloqueado" });
+    } else if (error) {
+      toast({ title: "Erro ao bloquear", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "🚫 Usuário bloqueado", description: `${selectedConvo.other_user?.display_name ?? "Usuário"} foi bloqueado.` });
+      setConversations(prev => prev.filter(c => c.id !== selectedConvo.id));
+      setSelectedConvo(null);
+      setMessages([]);
+    }
+    setConfirmAction(null);
+    setShowMenu(false);
+  };
 
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedConvo || !user || sending) return;
@@ -276,12 +349,59 @@ const Mensagens = () => {
           {selectedConvo ? (
             <>
               <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-card">
+                <button onClick={() => { setSelectedConvo(null); setShowMenu(false); }} className="lg:hidden text-muted-foreground hover:text-foreground">
+                  <ArrowLeft className="w-5 h-5" />
+                </button>
                 <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center text-xs font-bold text-primary-foreground">
                   {getInitials(selectedConvo.other_user?.display_name ?? "?")}
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-foreground">{selectedConvo.other_user?.display_name ?? "Usuário"}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-foreground truncate">
+                    {selectedConvo.other_user?.display_name ?? "Usuário"}
+                    {mutedConvos.has(selectedConvo.id) && <BellOff className="w-3 h-3 inline ml-1.5 text-muted-foreground" />}
+                  </p>
                   <p className="text-xs text-accent">{selectedConvo.other_user?.level}</p>
+                </div>
+                {/* Actions menu */}
+                <div className="relative" ref={menuRef}>
+                  <button onClick={() => setShowMenu(!showMenu)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+                    <MoreVertical className="w-5 h-5" />
+                  </button>
+                  <AnimatePresence>
+                    {showMenu && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute right-0 top-full mt-1 w-52 bg-card border border-border rounded-xl shadow-lg z-30 overflow-hidden"
+                      >
+                        <button
+                          onClick={toggleMute}
+                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors text-left"
+                        >
+                          {mutedConvos.has(selectedConvo.id) ? (
+                            <><Bell className="w-4 h-4 text-primary" /> Ativar notificações</>
+                          ) : (
+                            <><BellOff className="w-4 h-4 text-muted-foreground" /> Silenciar conversa</>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => { setConfirmAction({ type: "block", label: selectedConvo.other_user?.display_name ?? "Usuário" }); setShowMenu(false); }}
+                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-destructive hover:bg-muted transition-colors text-left"
+                        >
+                          <Ban className="w-4 h-4" /> Bloquear usuário
+                        </button>
+                        <div className="border-t border-border" />
+                        <button
+                          onClick={() => { setConfirmAction({ type: "delete", label: "" }); setShowMenu(false); }}
+                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-destructive hover:bg-muted transition-colors text-left"
+                        >
+                          <Trash2 className="w-4 h-4" /> Excluir conversa
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
 
@@ -323,6 +443,55 @@ const Mensagens = () => {
           )}
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      <AnimatePresence>
+        {confirmAction && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setConfirmAction(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-card border border-border rounded-2xl p-6 w-full max-w-sm space-y-4 shadow-lg"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center">
+                  <AlertTriangle className="w-5 h-5 text-destructive" />
+                </div>
+                <h3 className="text-sm font-bold text-foreground">
+                  {confirmAction.type === "delete" ? "Excluir conversa?" : `Bloquear ${confirmAction.label}?`}
+                </h3>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {confirmAction.type === "delete"
+                  ? "Suas mensagens serão removidas. Esta ação não pode ser desfeita."
+                  : "Este usuário será bloqueado e a conversa será removida. Ele não poderá mais enviar mensagens para você."}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setConfirmAction(null)}
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={confirmAction.type === "delete" ? deleteChat : blockUser}
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-destructive text-destructive-foreground text-sm font-medium hover:opacity-90 transition-opacity"
+                >
+                  {confirmAction.type === "delete" ? "Excluir" : "Bloquear"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
