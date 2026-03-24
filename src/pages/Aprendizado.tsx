@@ -260,6 +260,7 @@ const Aprendizado = () => {
   }
 
   return (
+    <>
     <div className="max-w-5xl mx-auto px-4 py-6 pb-32">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-6">
         <h1 className="font-display text-2xl font-bold text-foreground mb-1">Aprendizado</h1>
