@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Flame, BookOpen, Trophy, MessageCircle, MoreHorizontal } from "lucide-react";
+import { Flame, BookOpen, Trophy, MessageCircle, MoreHorizontal, Bell } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Users, UserPlus, Settings, Info, Target, BookMarked } from "lucide-react";
