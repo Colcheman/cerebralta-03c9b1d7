@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
-import { MessageCircle, Search, Send, Loader2, ArrowLeft } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { MessageCircle, Search, Send, Loader2, ArrowLeft, MoreVertical, BellOff, Bell, Ban, Trash2, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 interface Conversation {
   id: string;
