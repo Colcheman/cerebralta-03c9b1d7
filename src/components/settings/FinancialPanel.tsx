@@ -134,6 +134,7 @@ const FinancialPanel = () => {
     if (!user) return;
     setCancelling(true);
     await supabase.from("profiles").update({ subscription_tier: "free" } as any).eq("user_id", user.id);
+    await createNotification(user.id, "informational", "Assinatura cancelada", "Sua assinatura Premium foi cancelada. Você ainda pode usar o plano gratuito.", profile?.display_name ?? "Você");
     await refreshProfile();
     setCancelling(false);
     setCancelConfirm(false);
