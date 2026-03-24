@@ -3,6 +3,7 @@ import { Brain, Flame, BookOpen, Trophy, UserPlus, Users, Settings, LogOut, Info
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getUnreadCount } from "@/lib/notifications";
 
 const socialItems = [
   { to: "/feed", icon: Flame, label: "Feed" },
