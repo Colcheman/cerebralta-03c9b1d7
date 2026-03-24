@@ -149,7 +149,7 @@ const Aprendizado = () => {
     const relatedCourses = courses.filter(c => c.id !== selectedCourse.id && c.category === selectedCourse.category).slice(0, 4);
 
     return (
-      <div className="max-w-5xl mx-auto px-4 py-6 pb-32">
+      <>
         <button onClick={() => setSelectedCourse(null)} className="text-sm text-muted-foreground hover:text-foreground mb-4 flex items-center gap-1">
           ← Voltar
         </button>
