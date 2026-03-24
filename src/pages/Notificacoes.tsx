@@ -20,6 +20,7 @@ const Notificacoes = () => {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | NotificationType>("all");
+  const [reportNotification, setReportNotification] = useState<AppNotification | null>(null);
 
   useEffect(() => {
     if (!user) return;

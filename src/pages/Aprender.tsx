@@ -34,6 +34,7 @@ const Aprender = () => {
   const [generating, setGenerating] = useState(false);
   const [hasEverHadMissions, setHasEverHadMissions] = useState<boolean | null>(null);
   const [videoMission, setVideoMission] = useState<Mission | null>(null);
+  const [reportMission, setReportMission] = useState<Mission | null>(null);
 
   const loadData = async () => {
     if (!user) return;
