@@ -33,6 +33,7 @@ interface ProfileBasic {
 
 const Mensagens = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConvo, setSelectedConvo] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -42,7 +43,11 @@ const Mensagens = () => {
   const [search, setSearch] = useState("");
   const [allUsers, setAllUsers] = useState<ProfileBasic[]>([]);
   const [showNewChat, setShowNewChat] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [mutedConvos, setMutedConvos] = useState<Set<string>>(new Set());
+  const [confirmAction, setConfirmAction] = useState<{ type: "delete" | "block"; label: string } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   // Load conversations
   useEffect(() => {
