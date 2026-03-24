@@ -35,6 +35,9 @@ const Sidebar = () => {
   useEffect(() => {
     if (!user) return;
     supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }).then(({ data }) => setIsAdmin(!!data));
+    getUnreadCount(user.id).then(setUnreadNotifs);
+    const interval = setInterval(() => getUnreadCount(user.id).then(setUnreadNotifs), 30000);
+    return () => clearInterval(interval);
   }, [user]);
 
   const handleLogout = async () => {
