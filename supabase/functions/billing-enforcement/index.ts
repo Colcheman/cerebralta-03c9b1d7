@@ -52,6 +52,15 @@ Deno.serve(async (req) => {
           })
           .eq("id", bill.id);
 
+        // Notify user about fine
+        await supabase.from("notifications").insert({
+          user_id: bill.user_id,
+          type: "system",
+          title: "Multa aplicada na fatura",
+          message: `Uma multa de R$ ${fineAmount.toFixed(2).replace(".", ",")} foi aplicada à sua fatura de ${currentMonth}/${currentYear} por atraso no pagamento.`,
+          sender_label: "Sistema de Cobrança",
+        });
+
         results.push({
           user_id: bill.user_id,
           action: "fine_applied",
