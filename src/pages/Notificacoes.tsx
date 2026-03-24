@@ -156,6 +156,13 @@ const Notificacoes = () => {
                         <span className="text-[10px] text-muted-foreground">
                           por {n.sender_label}
                         </span>
+                        <button
+                          onClick={() => setReportNotification(n)}
+                          className="text-muted-foreground hover:text-destructive transition-colors p-0.5 ml-auto"
+                          title="Denunciar notificação"
+                        >
+                          <Flag className="w-3 h-3" />
+                        </button>
                       </div>
                     </div>
                   </div>
