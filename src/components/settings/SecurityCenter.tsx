@@ -378,6 +378,7 @@ const SecurityCenter = () => {
                     toast({ title: "Erro ao alterar senha", description: error.message, variant: "destructive" });
                   } else {
                     toast({ title: "🔑 Senha alterada com sucesso!" });
+                    if (user) createNotification(user.id, "informational", "Senha alterada", "Sua senha foi alterada com sucesso.", profile?.display_name ?? "Você");
                     setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
                   }
                 }}>
