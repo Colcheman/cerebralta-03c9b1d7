@@ -297,8 +297,8 @@ const Config = () => {
           </div>
         </motion.div>
 
-        {/* Billing */}
-        <BillingHistory />
+        {/* Financial */}
+        <FinancialPanel />
 
         {/* Privacy */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="glass rounded-2xl p-5">
