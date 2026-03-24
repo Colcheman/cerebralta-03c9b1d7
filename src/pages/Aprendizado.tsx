@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, Play, FileText, Loader2, Lightbulb, X, Clock, ChevronRight, GraduationCap, Video, Search } from "lucide-react";
+import { BookOpen, Play, FileText, Loader2, Lightbulb, X, Clock, ChevronRight, GraduationCap, Video, Search, Flag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
+import ReportModal from "@/components/ReportModal";
 
 interface Course {
   id: string;
