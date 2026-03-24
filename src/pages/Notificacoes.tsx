@@ -29,7 +29,7 @@ const Notificacoes = () => {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(200);
-      setNotifications((data as AppNotification[]) ?? []);
+      setNotifications((data as unknown as AppNotification[]) ?? []);
       setLoading(false);
     };
     fetch();

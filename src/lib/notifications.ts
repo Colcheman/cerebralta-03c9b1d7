@@ -46,7 +46,7 @@ export async function markAllAsRead(userId: string) {
 }
 
 export async function getUnreadCount(userId: string): Promise<number> {
-  const { count } = await supabase
+  const { count } = await (supabase
     .from("notifications" as any)
     .select("*", { count: "exact", head: true })
     .eq("user_id", userId)
