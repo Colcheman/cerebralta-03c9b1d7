@@ -1,10 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, Search, Send, Loader2, ArrowLeft, MoreVertical, BellOff, Bell, Ban, Trash2, AlertTriangle } from "lucide-react";
+import { MessageCircle, Search, Loader2, ArrowLeft, MoreVertical, BellOff, Bell, Ban, Trash2, AlertTriangle, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import ChatMessage from "@/components/chat/ChatMessage";
+import ChatInput from "@/components/chat/ChatInput";
+import ContactProfileSheet from "@/components/chat/ContactProfileSheet";
+import ReportModal from "@/components/ReportModal";
 
 interface Conversation {
   id: string;
@@ -22,6 +26,9 @@ interface Message {
   content: string;
   read: boolean;
   created_at: string;
+  reply_to_id?: string | null;
+  message_type?: string;
+  media_url?: string | null;
 }
 
 interface ProfileBasic {
@@ -37,7 +44,6 @@ const Mensagens = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConvo, setSelectedConvo] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -46,8 +52,13 @@ const Mensagens = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [mutedConvos, setMutedConvos] = useState<Set<string>>(new Set());
   const [confirmAction, setConfirmAction] = useState<{ type: "delete" | "block"; label: string } | null>(null);
+  const [replyTo, setReplyTo] = useState<{ id: string; content: string; senderName: string } | null>(null);
+  const [showContactProfile, setShowContactProfile] = useState(false);
+  const [reportModal, setReportModal] = useState<{ open: boolean; userId: string; postId?: string | null; name?: string }>({ open: false, userId: "" });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const getOtherId = (c: Conversation) => c.participant_1 === user?.id ? c.participant_2 : c.participant_1;
 
   // Load conversations
   useEffect(() => {
@@ -58,25 +69,17 @@ const Mensagens = () => {
         .select("*")
         .or(`participant_1.eq.${user.id},participant_2.eq.${user.id}`)
         .order("last_message_at", { ascending: false });
-
       if (!convos) { setLoading(false); return; }
-
       const otherIds = convos.map(c => c.participant_1 === user.id ? c.participant_2 : c.participant_1);
       const { data: profiles } = await supabase.from("safe_profiles").select("user_id, display_name, avatar_url, level").in("user_id", otherIds);
       const profileMap = new Map((profiles ?? []).map(p => [p.user_id, p]));
-
-      const enriched = convos.map(c => {
-        const otherId = c.participant_1 === user.id ? c.participant_2 : c.participant_1;
-        return { ...c, other_user: profileMap.get(otherId) };
-      });
-
-      setConversations(enriched as Conversation[]);
+      setConversations(convos.map(c => ({ ...c, other_user: profileMap.get(c.participant_1 === user.id ? c.participant_2 : c.participant_1) })) as Conversation[]);
       setLoading(false);
     };
     loadConversations();
   }, [user]);
 
-  // Load messages for selected conversation
+  // Load messages
   useEffect(() => {
     if (!selectedConvo) return;
     const loadMessages = async () => {
@@ -86,41 +89,23 @@ const Mensagens = () => {
         .eq("conversation_id", selectedConvo.id)
         .order("created_at", { ascending: true });
       setMessages((data ?? []) as Message[]);
-
-      // Mark unread as read
       if (user) {
-        await supabase.from("direct_messages")
-          .update({ read: true })
-          .eq("conversation_id", selectedConvo.id)
-          .neq("sender_id", user.id)
-          .eq("read", false);
+        await supabase.from("direct_messages").update({ read: true }).eq("conversation_id", selectedConvo.id).neq("sender_id", user.id).eq("read", false);
       }
     };
     loadMessages();
   }, [selectedConvo, user]);
 
-  // Realtime messages
+  // Realtime
   useEffect(() => {
     if (!selectedConvo) return;
     const channel = supabase
       .channel(`dm-${selectedConvo.id}`)
-      .on("postgres_changes", {
-        event: "INSERT",
-        schema: "public",
-        table: "direct_messages",
-        filter: `conversation_id=eq.${selectedConvo.id}`,
-      }, (payload) => {
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "direct_messages", filter: `conversation_id=eq.${selectedConvo.id}` }, (payload) => {
         const newMsg = payload.new as Message;
         setMessages(prev => {
-          // Avoid duplicates: check by ID or by matching content+sender for optimistic msgs
-          if (prev.some(m => m.id === newMsg.id || 
-            (m.sender_id === newMsg.sender_id && m.content === newMsg.content && m.id !== newMsg.id && Math.abs(new Date(m.created_at).getTime() - new Date(newMsg.created_at).getTime()) < 5000)
-          )) {
-            // Replace optimistic msg with real one
-            return prev.map(m => 
-              (m.sender_id === newMsg.sender_id && m.content === newMsg.content && m.id !== newMsg.id && Math.abs(new Date(m.created_at).getTime() - new Date(newMsg.created_at).getTime()) < 5000)
-                ? newMsg : m
-            );
+          if (prev.some(m => m.id === newMsg.id || (m.sender_id === newMsg.sender_id && m.content === newMsg.content && Math.abs(new Date(m.created_at).getTime() - new Date(newMsg.created_at).getTime()) < 5000))) {
+            return prev.map(m => (m.sender_id === newMsg.sender_id && m.content === newMsg.content && m.id !== newMsg.id && Math.abs(new Date(m.created_at).getTime() - new Date(newMsg.created_at).getTime()) < 5000) ? newMsg : m);
           }
           return [...prev, newMsg];
         });
@@ -129,21 +114,14 @@ const Mensagens = () => {
     return () => { supabase.removeChannel(channel); };
   }, [selectedConvo]);
 
-  // Auto scroll
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
-  // Close menu on outside click
   useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setShowMenu(false);
-    };
+    const handleClick = (e: MouseEvent) => { if (menuRef.current && !menuRef.current.contains(e.target as Node)) setShowMenu(false); };
     if (showMenu) document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, [showMenu]);
 
-  // Load muted convos from localStorage
   useEffect(() => {
     const stored = localStorage.getItem("muted_convos");
     if (stored) setMutedConvos(new Set(JSON.parse(stored)));
@@ -153,13 +131,8 @@ const Mensagens = () => {
     if (!selectedConvo) return;
     setMutedConvos(prev => {
       const next = new Set(prev);
-      if (next.has(selectedConvo.id)) {
-        next.delete(selectedConvo.id);
-        toast({ title: "🔔 Notificações ativadas", description: "Você receberá notificações desta conversa." });
-      } else {
-        next.add(selectedConvo.id);
-        toast({ title: "🔕 Conversa silenciada", description: "Notificações desta conversa foram desativadas." });
-      }
+      if (next.has(selectedConvo.id)) { next.delete(selectedConvo.id); toast({ title: "🔔 Notificações ativadas" }); }
+      else { next.add(selectedConvo.id); toast({ title: "🔕 Conversa silenciada" }); }
       localStorage.setItem("muted_convos", JSON.stringify([...next]));
       return next;
     });
@@ -168,59 +141,38 @@ const Mensagens = () => {
 
   const deleteChat = async () => {
     if (!selectedConvo || !user) return;
-    // Delete all messages in the conversation, then the conversation itself
     await supabase.from("direct_messages").delete().eq("conversation_id", selectedConvo.id).eq("sender_id", user.id);
-    // We can't delete the other user's messages, so just remove the conversation reference
-    // For a clean UX, remove from local state
     setConversations(prev => prev.filter(c => c.id !== selectedConvo.id));
-    setSelectedConvo(null);
-    setMessages([]);
-    setConfirmAction(null);
-    setShowMenu(false);
-    toast({ title: "🗑️ Chat excluído", description: "A conversa foi removida da sua lista." });
+    setSelectedConvo(null); setMessages([]); setConfirmAction(null); setShowMenu(false);
+    toast({ title: "🗑️ Chat excluído" });
   };
 
   const blockUser = async () => {
     if (!selectedConvo || !user) return;
-    const otherId = selectedConvo.participant_1 === user.id ? selectedConvo.participant_2 : selectedConvo.participant_1;
-    const { error } = await (supabase as any).from("user_blocks").insert({
-      blocker_id: user.id,
-      blocked_id: otherId,
-    });
-    if (error && error.code === "23505") {
-      toast({ title: "Usuário já bloqueado" });
-    } else if (error) {
-      toast({ title: "Erro ao bloquear", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "🚫 Usuário bloqueado", description: `${selectedConvo.other_user?.display_name ?? "Usuário"} foi bloqueado.` });
+    const otherId = getOtherId(selectedConvo);
+    const { error } = await (supabase as any).from("user_blocks").insert({ blocker_id: user.id, blocked_id: otherId });
+    if (error && error.code === "23505") toast({ title: "Usuário já bloqueado" });
+    else if (error) toast({ title: "Erro", description: error.message, variant: "destructive" });
+    else {
+      toast({ title: "🚫 Usuário bloqueado" });
       setConversations(prev => prev.filter(c => c.id !== selectedConvo.id));
-      setSelectedConvo(null);
-      setMessages([]);
+      setSelectedConvo(null); setMessages([]);
     }
-    setConfirmAction(null);
-    setShowMenu(false);
+    setConfirmAction(null); setShowMenu(false);
   };
 
-  const sendMessage = async () => {
-    if (!newMessage.trim() || !selectedConvo || !user || sending) return;
+  const handleSend = async (content: string, messageType: string, mediaUrl: string | null, replyToId: string | null) => {
+    if (!selectedConvo || !user) return;
     setSending(true);
-    const content = newMessage.trim();
-    setNewMessage("");
-
-    const optimisticMsg: Message = {
-      id: crypto.randomUUID(),
-      conversation_id: selectedConvo.id,
-      sender_id: user.id,
-      content,
-      read: false,
-      created_at: new Date().toISOString(),
+    const optimistic: Message = {
+      id: crypto.randomUUID(), conversation_id: selectedConvo.id, sender_id: user.id,
+      content, read: false, created_at: new Date().toISOString(),
+      reply_to_id: replyToId, message_type: messageType, media_url: mediaUrl,
     };
-    setMessages(prev => [...prev, optimisticMsg]);
-
-    await supabase.from("direct_messages").insert({
-      conversation_id: selectedConvo.id,
-      sender_id: user.id,
-      content,
+    setMessages(prev => [...prev, optimistic]);
+    await (supabase as any).from("direct_messages").insert({
+      conversation_id: selectedConvo.id, sender_id: user.id, content,
+      message_type: messageType, media_url: mediaUrl, reply_to_id: replyToId,
     });
     await supabase.from("conversations").update({ last_message_at: new Date().toISOString() }).eq("id", selectedConvo.id);
     setSending(false);
@@ -228,40 +180,24 @@ const Mensagens = () => {
 
   const startNewChat = async (targetUserId: string) => {
     if (!user) return;
-    // Check existing conversation
-    const { data: existing } = await supabase
-      .from("conversations")
-      .select("*")
-      .or(`and(participant_1.eq.${user.id},participant_2.eq.${targetUserId}),and(participant_1.eq.${targetUserId},participant_2.eq.${user.id})`);
-
+    const { data: existing } = await supabase.from("conversations").select("*").or(`and(participant_1.eq.${user.id},participant_2.eq.${targetUserId}),and(participant_1.eq.${targetUserId},participant_2.eq.${user.id})`);
     if (existing && existing.length > 0) {
       const otherProfile = allUsers.find(u => u.user_id === targetUserId);
       setSelectedConvo({ ...existing[0], other_user: otherProfile } as Conversation);
-      setShowNewChat(false);
-      return;
+      setShowNewChat(false); return;
     }
-
-    const { data: newConvo } = await supabase
-      .from("conversations")
-      .insert({ participant_1: user.id, participant_2: targetUserId })
-      .select()
-      .single();
-
+    const { data: newConvo } = await supabase.from("conversations").insert({ participant_1: user.id, participant_2: targetUserId }).select().single();
     if (newConvo) {
       const otherProfile = allUsers.find(u => u.user_id === targetUserId);
       const enriched = { ...newConvo, other_user: otherProfile } as Conversation;
       setConversations(prev => [enriched, ...prev]);
-      setSelectedConvo(enriched);
-      setShowNewChat(false);
+      setSelectedConvo(enriched); setShowNewChat(false);
     }
   };
 
-  // Load all users for new chat
   useEffect(() => {
     if (!showNewChat || !user) return;
-    supabase.from("safe_profiles").select("user_id, display_name, avatar_url, level").neq("user_id", user.id).then(({ data }) => {
-      setAllUsers((data ?? []) as ProfileBasic[]);
-    });
+    supabase.from("safe_profiles").select("user_id, display_name, avatar_url, level").neq("user_id", user.id).then(({ data }) => setAllUsers((data ?? []) as ProfileBasic[]));
   }, [showNewChat, user]);
 
   const getInitials = (name: string) => name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
@@ -273,6 +209,28 @@ const Mensagens = () => {
   };
 
   const filteredUsers = allUsers.filter(u => u.display_name.toLowerCase().includes(search.toLowerCase()));
+
+  const getReplyData = (msg: Message) => {
+    if (!msg.reply_to_id) return null;
+    const original = messages.find(m => m.id === msg.reply_to_id);
+    if (!original) return null;
+    const senderName = original.sender_id === user?.id ? "Você" : (selectedConvo?.other_user?.display_name ?? "Usuário");
+    return { id: original.id, content: original.content, senderName };
+  };
+
+  const handleReportMessage = (msgId: string) => {
+    if (!selectedConvo) return;
+    const msg = messages.find(m => m.id === msgId);
+    if (!msg) return;
+    setReportModal({ open: true, userId: msg.sender_id, postId: msgId, name: selectedConvo.other_user?.display_name });
+  };
+
+  const handleReportContact = () => {
+    if (!selectedConvo) return;
+    const otherId = getOtherId(selectedConvo);
+    setReportModal({ open: true, userId: otherId, name: selectedConvo.other_user?.display_name });
+    setShowMenu(false);
+  };
 
   return (
     <div className="max-w-4xl mx-auto h-[calc(100vh-8rem)] flex flex-col">
@@ -288,7 +246,7 @@ const Mensagens = () => {
       </motion.div>
 
       <div className="flex-1 flex overflow-hidden rounded-xl border border-border mx-4 mb-4">
-        {/* Sidebar - conversations list */}
+        {/* Sidebar */}
         <div className={`w-full lg:w-80 border-r border-border flex flex-col bg-card ${selectedConvo ? "hidden lg:flex" : "flex"}`}>
           {showNewChat ? (
             <div className="flex flex-col h-full">
@@ -322,7 +280,6 @@ const Mensagens = () => {
                 <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
                   <MessageCircle className="w-10 h-10 text-muted-foreground/30 mb-3" />
                   <p className="text-sm text-muted-foreground">Nenhuma conversa ainda</p>
-                  <p className="text-xs text-muted-foreground/60 mt-1">Inicie uma nova conversa!</p>
                 </div>
               ) : (
                 <div className="flex-1 overflow-y-auto">
@@ -348,55 +305,49 @@ const Mensagens = () => {
         <div className={`flex-1 flex flex-col bg-background ${!selectedConvo ? "hidden lg:flex" : "flex"}`}>
           {selectedConvo ? (
             <>
+              {/* Header */}
               <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-card">
-                <button onClick={() => { setSelectedConvo(null); setShowMenu(false); }} className="lg:hidden text-muted-foreground hover:text-foreground">
+                <button onClick={() => { setSelectedConvo(null); setShowMenu(false); setReplyTo(null); }} className="lg:hidden text-muted-foreground hover:text-foreground">
                   <ArrowLeft className="w-5 h-5" />
                 </button>
-                <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center text-xs font-bold text-primary-foreground">
+                <button onClick={() => setShowContactProfile(true)} className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center text-xs font-bold text-primary-foreground hover:ring-2 hover:ring-primary/30 transition-all">
                   {getInitials(selectedConvo.other_user?.display_name ?? "?")}
-                </div>
-                <div className="flex-1 min-w-0">
+                </button>
+                <button onClick={() => setShowContactProfile(true)} className="flex-1 min-w-0 text-left">
                   <p className="text-sm font-semibold text-foreground truncate">
                     {selectedConvo.other_user?.display_name ?? "Usuário"}
                     {mutedConvos.has(selectedConvo.id) && <BellOff className="w-3 h-3 inline ml-1.5 text-muted-foreground" />}
                   </p>
                   <p className="text-xs text-accent">{selectedConvo.other_user?.level}</p>
-                </div>
-                {/* Actions menu */}
+                </button>
+
                 <div className="relative" ref={menuRef}>
                   <button onClick={() => setShowMenu(!showMenu)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
                     <MoreVertical className="w-5 h-5" />
                   </button>
                   <AnimatePresence>
                     {showMenu && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: -4 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: -4 }}
-                        transition={{ duration: 0.15 }}
-                        className="absolute right-0 top-full mt-1 w-52 bg-card border border-border rounded-xl shadow-lg z-30 overflow-hidden"
-                      >
-                        <button
-                          onClick={toggleMute}
-                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors text-left"
-                        >
-                          {mutedConvos.has(selectedConvo.id) ? (
-                            <><Bell className="w-4 h-4 text-primary" /> Ativar notificações</>
-                          ) : (
-                            <><BellOff className="w-4 h-4 text-muted-foreground" /> Silenciar conversa</>
-                          )}
+                      <motion.div initial={{ opacity: 0, scale: 0.95, y: -4 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                        className="absolute right-0 top-full mt-1 w-52 bg-card border border-border rounded-xl shadow-lg z-30 overflow-hidden">
+                        <button onClick={() => { setShowContactProfile(true); setShowMenu(false); }}
+                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors text-left">
+                          <User className="w-4 h-4 text-primary" /> Ver perfil
                         </button>
-                        <button
-                          onClick={() => { setConfirmAction({ type: "block", label: selectedConvo.other_user?.display_name ?? "Usuário" }); setShowMenu(false); }}
-                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-destructive hover:bg-muted transition-colors text-left"
-                        >
+                        <button onClick={toggleMute}
+                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors text-left">
+                          {mutedConvos.has(selectedConvo.id) ? <><Bell className="w-4 h-4 text-primary" /> Ativar notificações</> : <><BellOff className="w-4 h-4 text-muted-foreground" /> Silenciar conversa</>}
+                        </button>
+                        <button onClick={handleReportContact}
+                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-destructive hover:bg-muted transition-colors text-left">
+                          <AlertTriangle className="w-4 h-4" /> Denunciar contato
+                        </button>
+                        <button onClick={() => { setConfirmAction({ type: "block", label: selectedConvo.other_user?.display_name ?? "Usuário" }); setShowMenu(false); }}
+                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-destructive hover:bg-muted transition-colors text-left">
                           <Ban className="w-4 h-4" /> Bloquear usuário
                         </button>
                         <div className="border-t border-border" />
-                        <button
-                          onClick={() => { setConfirmAction({ type: "delete", label: "" }); setShowMenu(false); }}
-                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-destructive hover:bg-muted transition-colors text-left"
-                        >
+                        <button onClick={() => { setConfirmAction({ type: "delete", label: "" }); setShowMenu(false); }}
+                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-destructive hover:bg-muted transition-colors text-left">
                           <Trash2 className="w-4 h-4" /> Excluir conversa
                         </button>
                       </motion.div>
@@ -405,35 +356,36 @@ const Mensagens = () => {
                 </div>
               </div>
 
+              {/* Messages */}
               <div className="flex-1 overflow-y-auto p-4 space-y-3">
                 {messages.map(m => (
-                  <div key={m.id} className={`flex ${m.sender_id === user?.id ? "justify-end" : "justify-start"}`}>
-                    <div className={`max-w-[75%] px-4 py-2 rounded-2xl text-sm ${
-                      m.sender_id === user?.id
-                        ? "bg-primary text-primary-foreground rounded-br-md"
-                        : "bg-muted text-foreground rounded-bl-md"
-                    }`}>
-                      <p className="whitespace-pre-wrap break-words">{m.content}</p>
-                      <p className={`text-[10px] mt-1 ${m.sender_id === user?.id ? "text-primary-foreground/60" : "text-muted-foreground"}`}>
-                        {formatTime(m.created_at)}
-                      </p>
-                    </div>
-                  </div>
+                  <ChatMessage
+                    key={m.id}
+                    id={m.id}
+                    content={m.content}
+                    senderId={m.sender_id}
+                    currentUserId={user?.id ?? ""}
+                    createdAt={m.created_at}
+                    messageType={m.message_type ?? "text"}
+                    mediaUrl={m.media_url}
+                    replyTo={getReplyData(m)}
+                    senderName={m.sender_id === user?.id ? "Você" : (selectedConvo.other_user?.display_name ?? "Usuário")}
+                    onReply={(id, content, senderName) => setReplyTo({ id, content, senderName })}
+                    onReport={handleReportMessage}
+                  />
                 ))}
                 <div ref={messagesEndRef} />
               </div>
 
-              <div className="p-3 border-t border-border bg-card">
-                <div className="flex gap-2">
-                  <input value={newMessage} onChange={e => setNewMessage(e.target.value)}
-                    onKeyDown={e => e.key === "Enter" && !e.shiftKey && sendMessage()}
-                    placeholder="Digite sua mensagem..."
-                    className="flex-1 bg-muted border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary" />
-                  <Button onClick={sendMessage} disabled={!newMessage.trim() || sending} size="icon" className="shrink-0 rounded-xl">
-                    <Send className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
+              {/* Input */}
+              <ChatInput
+                userId={user?.id ?? ""}
+                conversationId={selectedConvo.id}
+                replyTo={replyTo}
+                onClearReply={() => setReplyTo(null)}
+                onSend={handleSend}
+                sending={sending}
+              />
             </>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
@@ -444,23 +396,33 @@ const Mensagens = () => {
         </div>
       </div>
 
+      {/* Contact Profile Sheet */}
+      {selectedConvo && (
+        <ContactProfileSheet
+          open={showContactProfile}
+          onClose={() => setShowContactProfile(false)}
+          userId={getOtherId(selectedConvo)}
+          onReport={() => { setShowContactProfile(false); handleReportContact(); }}
+        />
+      )}
+
+      {/* Report Modal */}
+      <ReportModal
+        open={reportModal.open}
+        onOpenChange={(open) => setReportModal(prev => ({ ...prev, open }))}
+        reportedUserId={reportModal.userId}
+        reportedPostId={reportModal.postId}
+        reportedName={reportModal.name}
+      />
+
       {/* Confirmation Modal */}
       <AnimatePresence>
         {confirmAction && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => setConfirmAction(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-card border border-border rounded-2xl p-6 w-full max-w-sm space-y-4 shadow-lg"
-              onClick={e => e.stopPropagation()}
-            >
+            onClick={() => setConfirmAction(null)}>
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-card border border-border rounded-2xl p-6 w-full max-w-sm space-y-4 shadow-lg" onClick={e => e.stopPropagation()}>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center">
                   <AlertTriangle className="w-5 h-5 text-destructive" />
@@ -470,21 +432,11 @@ const Mensagens = () => {
                 </h3>
               </div>
               <p className="text-xs text-muted-foreground">
-                {confirmAction.type === "delete"
-                  ? "Suas mensagens serão removidas. Esta ação não pode ser desfeita."
-                  : "Este usuário será bloqueado e a conversa será removida. Ele não poderá mais enviar mensagens para você."}
+                {confirmAction.type === "delete" ? "Suas mensagens serão removidas. Esta ação não pode ser desfeita." : "Este usuário será bloqueado e a conversa será removida."}
               </p>
               <div className="flex gap-2">
-                <button
-                  onClick={() => setConfirmAction(null)}
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={confirmAction.type === "delete" ? deleteChat : blockUser}
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-destructive text-destructive-foreground text-sm font-medium hover:opacity-90 transition-opacity"
-                >
+                <button onClick={() => setConfirmAction(null)} className="flex-1 px-4 py-2.5 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors">Cancelar</button>
+                <button onClick={confirmAction.type === "delete" ? deleteChat : blockUser} className="flex-1 px-4 py-2.5 rounded-xl bg-destructive text-destructive-foreground text-sm font-medium hover:opacity-90 transition-opacity">
                   {confirmAction.type === "delete" ? "Excluir" : "Bloquear"}
                 </button>
               </div>
