@@ -177,6 +177,13 @@ const GroupDetail = () => {
             <h1 className="text-sm font-bold text-foreground truncate">{group.name}</h1>
             <p className="text-xs text-muted-foreground">{group.members_count} membros</p>
           </div>
+          <button
+            onClick={() => setShowReport(true)}
+            className="text-muted-foreground hover:text-destructive transition-colors p-1.5"
+            title="Denunciar grupo"
+          >
+            <Flag className="w-4 h-4" />
+          </button>
           {isMember ? (
             <Button size="sm" variant="outline" onClick={leaveGroup} disabled={joining} className="text-xs gap-1">
               {joining ? <Loader2 className="w-3 h-3 animate-spin" /> : <LogOut className="w-3 h-3" />} Sair
