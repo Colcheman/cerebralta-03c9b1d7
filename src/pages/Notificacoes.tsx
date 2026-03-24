@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, BellOff, Check, CheckCheck, Clock, User, Shield, Info, Filter } from "lucide-react";
+import { Bell, BellOff, Check, CheckCheck, Clock, User, Shield, Info, Filter, Flag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { markAsRead, markAllAsRead, type AppNotification, type NotificationType } from "@/lib/notifications";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import ReportModal from "@/components/ReportModal";
 
 const typeConfig: Record<NotificationType, { icon: typeof Shield; label: string; color: string; bg: string }> = {
   system: { icon: Shield, label: "Sistema", color: "text-primary", bg: "bg-primary/10" },

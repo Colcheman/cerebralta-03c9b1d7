@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Check, Zap, BookOpen, Loader2, AlertTriangle, Sparkles, Play, X } from "lucide-react";
+import { Check, Zap, BookOpen, Loader2, AlertTriangle, Sparkles, Play, X, Flag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import OnboardingChat from "@/components/missions/OnboardingChat";
+import ReportModal from "@/components/ReportModal";
 
 interface Mission {
   id: string;

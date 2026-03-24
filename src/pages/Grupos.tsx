@@ -131,8 +131,14 @@ const Grupos = () => {
                       {group.description && <p className="text-xs text-muted-foreground mt-0.5">{group.description}</p>}
                       <div className="flex items-center gap-3 mt-2">
                         <span className="text-xs text-muted-foreground">{group.members_count} membros</span>
-                        {isCreator && <span className="text-xs text-accent font-medium">Criador</span>}
-                      </div>
+                         {isCreator && <span className="text-xs text-accent font-medium">Criador</span>}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setReportGroup(group); }}
+                          className="text-muted-foreground hover:text-destructive transition-colors p-0.5"
+                          title="Denunciar grupo"
+                        >
+                          <Flag className="w-3.5 h-3.5" />
+                        </button>
                     </div>
                   </div>
                   <div>
