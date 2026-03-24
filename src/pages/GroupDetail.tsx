@@ -43,6 +43,7 @@ const GroupDetail = () => {
   const [joining, setJoining] = useState(false);
   const [newMsg, setNewMsg] = useState("");
   const [tab, setTab] = useState<"chat" | "members">("chat");
+  const [showReport, setShowReport] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const fetchGroup = async () => {
