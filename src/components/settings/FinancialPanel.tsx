@@ -123,6 +123,7 @@ const FinancialPanel = () => {
       });
       if (error) throw error;
       toast({ title: "✅ Dados de cobrança atualizados no Asaas" });
+      if (user) await createNotification(user.id, "informational", "Dados de cobrança atualizados", "Seus dados de cobrança foram enviados ao Asaas com sucesso.", profile?.display_name ?? "Você");
     } catch {
       toast({ title: "Erro ao atualizar dados", description: "Tente novamente mais tarde.", variant: "destructive" });
     }
