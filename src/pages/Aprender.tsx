@@ -116,6 +116,7 @@ const Aprender = () => {
   const showOnboarding = hasEverHadMissions === false && missions.length === 0 && !generating;
 
   return (
+    <>
     <div className="max-w-2xl mx-auto px-4 py-6 pb-32">
       {/* Video modal */}
       {videoMission && (
