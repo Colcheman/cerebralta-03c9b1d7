@@ -80,6 +80,15 @@ Deno.serve(async (req) => {
           .update({ subscription_tier: "free" })
           .eq("user_id", bill.user_id);
 
+        // Notify user about premium removal
+        await supabase.from("notifications").insert({
+          user_id: bill.user_id,
+          type: "system",
+          title: "Assinatura Premium removida",
+          message: `Sua assinatura Premium foi removida por falta de pagamento da fatura de ${currentMonth}/${currentYear}. Renove para continuar acessando conteúdo exclusivo.`,
+          sender_label: "Sistema de Cobrança",
+        });
+
         results.push({
           user_id: bill.user_id,
           action: "premium_removed",
