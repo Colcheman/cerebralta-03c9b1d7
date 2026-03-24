@@ -349,12 +349,59 @@ const Mensagens = () => {
           {selectedConvo ? (
             <>
               <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-card">
+                <button onClick={() => { setSelectedConvo(null); setShowMenu(false); }} className="lg:hidden text-muted-foreground hover:text-foreground">
+                  <ArrowLeft className="w-5 h-5" />
+                </button>
                 <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center text-xs font-bold text-primary-foreground">
                   {getInitials(selectedConvo.other_user?.display_name ?? "?")}
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-foreground">{selectedConvo.other_user?.display_name ?? "Usuário"}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-foreground truncate">
+                    {selectedConvo.other_user?.display_name ?? "Usuário"}
+                    {mutedConvos.has(selectedConvo.id) && <BellOff className="w-3 h-3 inline ml-1.5 text-muted-foreground" />}
+                  </p>
                   <p className="text-xs text-accent">{selectedConvo.other_user?.level}</p>
+                </div>
+                {/* Actions menu */}
+                <div className="relative" ref={menuRef}>
+                  <button onClick={() => setShowMenu(!showMenu)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+                    <MoreVertical className="w-5 h-5" />
+                  </button>
+                  <AnimatePresence>
+                    {showMenu && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute right-0 top-full mt-1 w-52 bg-card border border-border rounded-xl shadow-lg z-30 overflow-hidden"
+                      >
+                        <button
+                          onClick={toggleMute}
+                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors text-left"
+                        >
+                          {mutedConvos.has(selectedConvo.id) ? (
+                            <><Bell className="w-4 h-4 text-primary" /> Ativar notificações</>
+                          ) : (
+                            <><BellOff className="w-4 h-4 text-muted-foreground" /> Silenciar conversa</>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => { setConfirmAction({ type: "block", label: selectedConvo.other_user?.display_name ?? "Usuário" }); setShowMenu(false); }}
+                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-destructive hover:bg-muted transition-colors text-left"
+                        >
+                          <Ban className="w-4 h-4" /> Bloquear usuário
+                        </button>
+                        <div className="border-t border-border" />
+                        <button
+                          onClick={() => { setConfirmAction({ type: "delete", label: "" }); setShowMenu(false); }}
+                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-destructive hover:bg-muted transition-colors text-left"
+                        >
+                          <Trash2 className="w-4 h-4" /> Excluir conversa
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
 
