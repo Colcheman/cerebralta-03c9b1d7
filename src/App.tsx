@@ -31,6 +31,7 @@ import Metas from "./pages/Metas";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import VerificacaoIdentidade from "./pages/VerificacaoIdentidade";
+import Notificacoes from "./pages/Notificacoes";
 
 const queryClient = new QueryClient();
 
