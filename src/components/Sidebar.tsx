@@ -146,7 +146,13 @@ const Sidebar = () => {
           <div className="space-y-1">
             {socialItems.map(({ to, icon: Icon, label }) => (
               <NavLink key={to} to={to} className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}>
-                <Icon className="w-5 h-5" />{label}
+                <Icon className="w-5 h-5" />
+                {label}
+                {to === "/notificacoes" && unreadNotifs > 0 && (
+                  <span className="ml-auto text-[10px] font-bold bg-destructive text-destructive-foreground px-1.5 py-0.5 rounded-full">
+                    {unreadNotifs > 99 ? "99+" : unreadNotifs}
+                  </span>
+                )}
               </NavLink>
             ))}
           </div>
