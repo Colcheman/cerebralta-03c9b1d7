@@ -150,6 +150,7 @@ const Aprendizado = () => {
 
     return (
       <>
+      <div className="max-w-5xl mx-auto px-4 py-6 pb-32">
         <button onClick={() => setSelectedCourse(null)} className="text-sm text-muted-foreground hover:text-foreground mb-4 flex items-center gap-1">
           ← Voltar
         </button>
