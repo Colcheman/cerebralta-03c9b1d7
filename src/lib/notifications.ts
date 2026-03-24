@@ -50,6 +50,6 @@ export async function getUnreadCount(userId: string): Promise<number> {
     .from("notifications" as any)
     .select("*", { count: "exact", head: true })
     .eq("user_id", userId)
-    .eq("read", false);
+    .eq("read", false) as any);
   return count ?? 0;
 }
