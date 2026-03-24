@@ -345,6 +345,16 @@ const Aprender = () => {
         </>
       )}
     </div>
+    {reportMission && (
+      <ReportModal
+        open={!!reportMission}
+        onOpenChange={(open) => !open && setReportMission(null)}
+        reportedItemId={reportMission.id}
+        reportedItemType="mission"
+        reportedName={reportMission.title}
+      />
+    )}
+    </>
   );
 };
 
