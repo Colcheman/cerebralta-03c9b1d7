@@ -292,6 +292,17 @@ const GroupDetail = () => {
         </div>
       )}
     </div>
+    {group && (
+      <ReportModal
+        open={showReport}
+        onOpenChange={setShowReport}
+        reportedItemId={group.id}
+        reportedItemType="group"
+        reportedName={group.name}
+        reportedUserId={group.creator_id}
+      />
+    )}
+    </>
   );
 };
 
