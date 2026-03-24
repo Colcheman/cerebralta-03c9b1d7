@@ -1,13 +1,13 @@
 import { NavLink } from "react-router-dom";
-import { Flame, BookOpen, Trophy, MessageCircle, MoreHorizontal } from "lucide-react";
+import { Flame, BookOpen, Trophy, MessageCircle, MoreHorizontal, Bell } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Users, UserPlus, Settings, Info, Target, BookMarked } from "lucide-react";
 
 const mainItems = [
   { to: "/feed", icon: Flame, label: "Feed" },
+  { to: "/notificacoes", icon: Bell, label: "Alertas" },
   { to: "/aprender", icon: Target, label: "Missões" },
-  { to: "/metas", icon: Target, label: "Metas" },
   { to: "/mensagens", icon: MessageCircle, label: "Chat" },
   { to: "/conquistas", icon: Trophy, label: "Troféus" },
 ];

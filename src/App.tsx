@@ -31,6 +31,7 @@ import Metas from "./pages/Metas";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import VerificacaoIdentidade from "./pages/VerificacaoIdentidade";
+import Notificacoes from "./pages/Notificacoes";
 
 const queryClient = new QueryClient();
 
@@ -86,6 +87,7 @@ const App = () => (
                   <Route path="/manual" element={<Manual />} />
                   <Route path="/sobre" element={<Sobre />} />
                   <Route path="/mensagens" element={<Mensagens />} />
+                  <Route path="/notificacoes" element={<Notificacoes />} />
                   <Route path="/admin" element={<Admin />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />

@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { hashPin } from "@/lib/crypto";
+import { createNotification } from "@/lib/notifications";
 import { Progress } from "@/components/ui/progress";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -377,6 +378,7 @@ const SecurityCenter = () => {
                     toast({ title: "Erro ao alterar senha", description: error.message, variant: "destructive" });
                   } else {
                     toast({ title: "🔑 Senha alterada com sucesso!" });
+                    if (user) createNotification(user.id, "informational", "Senha alterada", "Sua senha foi alterada com sucesso.", profile?.display_name ?? "Você");
                     setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
                   }
                 }}>
@@ -400,6 +402,7 @@ const SecurityCenter = () => {
                   setTwoFactor(v);
                   updateProfile("two_factor_enabled", v);
                   toast({ title: v ? "🔐 2FA ativado!" : "2FA desativado" });
+                  if (user) createNotification(user.id, "informational", v ? "2FA ativado" : "2FA desativado", v ? "A autenticação de dois fatores foi ativada na sua conta." : "A autenticação de dois fatores foi desativada.", profile?.display_name ?? "Você");
                 }} />
               </div>
 

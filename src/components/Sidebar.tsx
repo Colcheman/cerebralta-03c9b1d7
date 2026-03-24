@@ -1,11 +1,13 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { Brain, Flame, BookOpen, Trophy, UserPlus, Users, Settings, LogOut, Info, Shield, MessageCircle, BookMarked, Target, TrendingDown } from "lucide-react";
+import { Brain, Flame, BookOpen, Trophy, UserPlus, Users, Settings, LogOut, Info, Shield, MessageCircle, BookMarked, Target, TrendingDown, Bell } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getUnreadCount } from "@/lib/notifications";
 
 const socialItems = [
   { to: "/feed", icon: Flame, label: "Feed" },
+  { to: "/notificacoes", icon: Bell, label: "Notificações" },
   { to: "/mensagens", icon: MessageCircle, label: "Mensagens" },
   { to: "/amigos", icon: UserPlus, label: "Amigos" },
   { to: "/grupos", icon: Users, label: "Grupos" },
@@ -28,10 +30,14 @@ const Sidebar = () => {
   const { logout, profile, user } = useAuth();
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [unreadNotifs, setUnreadNotifs] = useState(0);
 
   useEffect(() => {
     if (!user) return;
     supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }).then(({ data }) => setIsAdmin(!!data));
+    getUnreadCount(user.id).then(setUnreadNotifs);
+    const interval = setInterval(() => getUnreadCount(user.id).then(setUnreadNotifs), 30000);
+    return () => clearInterval(interval);
   }, [user]);
 
   const handleLogout = async () => {
@@ -140,7 +146,13 @@ const Sidebar = () => {
           <div className="space-y-1">
             {socialItems.map(({ to, icon: Icon, label }) => (
               <NavLink key={to} to={to} className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}>
-                <Icon className="w-5 h-5" />{label}
+                <Icon className="w-5 h-5" />
+                {label}
+                {to === "/notificacoes" && unreadNotifs > 0 && (
+                  <span className="ml-auto text-[10px] font-bold bg-destructive text-destructive-foreground px-1.5 py-0.5 rounded-full">
+                    {unreadNotifs > 99 ? "99+" : unreadNotifs}
+                  </span>
+                )}
               </NavLink>
             ))}
           </div>

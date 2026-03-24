@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { createNotification } from "@/lib/notifications";
 
 interface BillingRecord {
   id: string;
@@ -103,6 +104,7 @@ const FinancialPanel = () => {
       billing_notifications_enabled: enabled,
     } as any).eq("user_id", user.id);
     setSavingNotify(false);
+    if (user) await createNotification(user.id, "informational", "Preferências de notificação atualizadas", `Você será notificado ${days} dias antes do vencimento.`, profile?.display_name ?? "Você");
     toast({ title: "✅ Preferências salvas" });
   };
 
@@ -122,6 +124,7 @@ const FinancialPanel = () => {
       });
       if (error) throw error;
       toast({ title: "✅ Dados de cobrança atualizados no Asaas" });
+      if (user) await createNotification(user.id, "informational", "Dados de cobrança atualizados", "Seus dados de cobrança foram enviados ao Asaas com sucesso.", profile?.display_name ?? "Você");
     } catch {
       toast({ title: "Erro ao atualizar dados", description: "Tente novamente mais tarde.", variant: "destructive" });
     }
@@ -132,6 +135,7 @@ const FinancialPanel = () => {
     if (!user) return;
     setCancelling(true);
     await supabase.from("profiles").update({ subscription_tier: "free" } as any).eq("user_id", user.id);
+    await createNotification(user.id, "informational", "Assinatura cancelada", "Sua assinatura Premium foi cancelada. Você ainda pode usar o plano gratuito.", profile?.display_name ?? "Você");
     await refreshProfile();
     setCancelling(false);
     setCancelConfirm(false);

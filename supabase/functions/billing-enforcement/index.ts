@@ -52,6 +52,15 @@ Deno.serve(async (req) => {
           })
           .eq("id", bill.id);
 
+        // Notify user about fine
+        await supabase.from("notifications").insert({
+          user_id: bill.user_id,
+          type: "system",
+          title: "Multa aplicada na fatura",
+          message: `Uma multa de R$ ${fineAmount.toFixed(2).replace(".", ",")} foi aplicada à sua fatura de ${currentMonth}/${currentYear} por atraso no pagamento.`,
+          sender_label: "Sistema de Cobrança",
+        });
+
         results.push({
           user_id: bill.user_id,
           action: "fine_applied",
@@ -70,6 +79,15 @@ Deno.serve(async (req) => {
           .from("profiles")
           .update({ subscription_tier: "free" })
           .eq("user_id", bill.user_id);
+
+        // Notify user about premium removal
+        await supabase.from("notifications").insert({
+          user_id: bill.user_id,
+          type: "system",
+          title: "Assinatura Premium removida",
+          message: `Sua assinatura Premium foi removida por falta de pagamento da fatura de ${currentMonth}/${currentYear}. Renove para continuar acessando conteúdo exclusivo.`,
+          sender_label: "Sistema de Cobrança",
+        });
 
         results.push({
           user_id: bill.user_id,
