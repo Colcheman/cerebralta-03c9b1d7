@@ -433,6 +433,16 @@ const Aprendizado = () => {
         </div>
       )}
     </div>
+    {reportCourse && (
+      <ReportModal
+        open={!!reportCourse}
+        onOpenChange={(open) => !open && setReportCourse(null)}
+        reportedItemId={reportCourse.id}
+        reportedItemType="course"
+        reportedName={reportCourse.title}
+      />
+    )}
+    </>
   );
 };
 
