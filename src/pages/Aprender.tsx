@@ -270,6 +270,13 @@ const Aprender = () => {
                                 <Play className="w-3 h-3" /> Vídeo
                               </button>
                             )}
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setReportMission(mission); }}
+                              className="text-xs text-muted-foreground hover:text-destructive rounded-full px-2 py-0.5 flex items-center gap-1 hover:bg-destructive/10 transition-colors"
+                              title="Denunciar missão"
+                            >
+                              <Flag className="w-3 h-3" />
+                            </button>
                           </div>
                         </div>
                       </div>
