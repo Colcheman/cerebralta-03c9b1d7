@@ -7,6 +7,7 @@ import { getUnreadCount } from "@/lib/notifications";
 
 const socialItems = [
   { to: "/feed", icon: Flame, label: "Feed" },
+  { to: "/notificacoes", icon: Bell, label: "Notificações" },
   { to: "/mensagens", icon: MessageCircle, label: "Mensagens" },
   { to: "/amigos", icon: UserPlus, label: "Amigos" },
   { to: "/grupos", icon: Users, label: "Grupos" },
