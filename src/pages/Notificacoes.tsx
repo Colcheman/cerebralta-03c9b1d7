@@ -174,6 +174,16 @@ const Notificacoes = () => {
         </div>
       )}
     </div>
+    {reportNotification && (
+      <ReportModal
+        open={!!reportNotification}
+        onOpenChange={(open) => !open && setReportNotification(null)}
+        reportedItemId={reportNotification.id}
+        reportedItemType="notification"
+        reportedName={reportNotification.title}
+      />
+    )}
+    </>
   );
 };
 
