@@ -103,7 +103,7 @@ const FinancialPanel = () => {
       billing_notify_days_before: days,
       billing_notifications_enabled: enabled,
     } as any).eq("user_id", user.id);
-    setSavingNotify(false);
+    if (user) await createNotification(user.id, "informational", "Preferências de notificação atualizadas", `Você será notificado ${days} dias antes do vencimento.`, profile?.display_name ?? "Você");
     toast({ title: "✅ Preferências salvas" });
   };
 
