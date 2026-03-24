@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Users, Send, LogIn, LogOut, Loader2, Crown } from "lucide-react";
+import { ArrowLeft, Users, Send, LogIn, LogOut, Loader2, Crown, Flag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import ReportModal from "@/components/ReportModal";
 
 interface GroupData {
   id: string;
