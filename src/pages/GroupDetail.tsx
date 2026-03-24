@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Users, Send, LogIn, LogOut, Loader2, Crown } from "lucide-react";
+import { ArrowLeft, Users, Send, LogIn, LogOut, Loader2, Crown, Flag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import ReportModal from "@/components/ReportModal";
 
 interface GroupData {
   id: string;
@@ -42,6 +43,7 @@ const GroupDetail = () => {
   const [joining, setJoining] = useState(false);
   const [newMsg, setNewMsg] = useState("");
   const [tab, setTab] = useState<"chat" | "members">("chat");
+  const [showReport, setShowReport] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const fetchGroup = async () => {
@@ -161,6 +163,7 @@ const GroupDetail = () => {
   const isCreator = group.creator_id === user?.id;
 
   return (
+    <>
     <div className="max-w-2xl mx-auto flex flex-col h-[calc(100vh-5rem)] lg:h-screen">
       {/* Header */}
       <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-md border-b border-border px-4 py-3">
@@ -175,6 +178,13 @@ const GroupDetail = () => {
             <h1 className="text-sm font-bold text-foreground truncate">{group.name}</h1>
             <p className="text-xs text-muted-foreground">{group.members_count} membros</p>
           </div>
+          <button
+            onClick={() => setShowReport(true)}
+            className="text-muted-foreground hover:text-destructive transition-colors p-1.5"
+            title="Denunciar grupo"
+          >
+            <Flag className="w-4 h-4" />
+          </button>
           {isMember ? (
             <Button size="sm" variant="outline" onClick={leaveGroup} disabled={joining} className="text-xs gap-1">
               {joining ? <Loader2 className="w-3 h-3 animate-spin" /> : <LogOut className="w-3 h-3" />} Sair
@@ -283,6 +293,17 @@ const GroupDetail = () => {
         </div>
       )}
     </div>
+    {group && (
+      <ReportModal
+        open={showReport}
+        onOpenChange={setShowReport}
+        reportedItemId={group.id}
+        reportedItemType="group"
+        reportedName={group.name}
+        reportedUserId={group.creator_id}
+      />
+    )}
+    </>
   );
 };
 

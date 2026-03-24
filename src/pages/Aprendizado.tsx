@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, Play, FileText, Loader2, Lightbulb, X, Clock, ChevronRight, GraduationCap, Video, Search } from "lucide-react";
+import { BookOpen, Play, FileText, Loader2, Lightbulb, X, Clock, ChevronRight, GraduationCap, Video, Search, Flag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
+import ReportModal from "@/components/ReportModal";
 
 interface Course {
   id: string;
@@ -52,6 +53,7 @@ const Aprendizado = () => {
   const [tip, setTip] = useState("");
   const [loadingTip, setLoadingTip] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [reportCourse, setReportCourse] = useState<Course | null>(null);
 
   const categories = ["Todos", "geral", "estratégia", "estoicismo", "psicologia", "liderança"];
 
@@ -147,6 +149,7 @@ const Aprendizado = () => {
     const relatedCourses = courses.filter(c => c.id !== selectedCourse.id && c.category === selectedCourse.category).slice(0, 4);
 
     return (
+      <>
       <div className="max-w-5xl mx-auto px-4 py-6 pb-32">
         <button onClick={() => setSelectedCourse(null)} className="text-sm text-muted-foreground hover:text-foreground mb-4 flex items-center gap-1">
           ← Voltar
@@ -173,7 +176,16 @@ const Aprendizado = () => {
                 </div>
               )}
 
-              <h1 className="text-xl font-bold text-foreground mb-2">{selectedCourse.title}</h1>
+              <div className="flex items-start justify-between">
+                <h1 className="text-xl font-bold text-foreground mb-2">{selectedCourse.title}</h1>
+                <button
+                  onClick={() => setReportCourse(selectedCourse)}
+                  className="text-muted-foreground hover:text-destructive transition-colors p-1.5 rounded-lg hover:bg-destructive/10"
+                  title="Denunciar curso"
+                >
+                  <Flag className="w-4 h-4" />
+                </button>
+              </div>
               <div className="flex items-center gap-3 mb-4 flex-wrap">
                 <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${categoryColors[selectedCourse.category] || "bg-muted text-muted-foreground"}`}>
                   {categoryIcons[selectedCourse.category] || "📚"} {selectedCourse.category}
@@ -234,10 +246,21 @@ const Aprendizado = () => {
           </div>
         </div>
       </div>
+      {reportCourse && (
+        <ReportModal
+          open={!!reportCourse}
+          onOpenChange={(open) => !open && setReportCourse(null)}
+          reportedItemId={reportCourse.id}
+          reportedItemType="course"
+          reportedName={reportCourse.title}
+        />
+      )}
+    </>
     );
   }
 
   return (
+    <>
     <div className="max-w-5xl mx-auto px-4 py-6 pb-32">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-6">
         <h1 className="font-display text-2xl font-bold text-foreground mb-1">Aprendizado</h1>
@@ -422,6 +445,16 @@ const Aprendizado = () => {
         </div>
       )}
     </div>
+    {reportCourse && (
+      <ReportModal
+        open={!!reportCourse}
+        onOpenChange={(open) => !open && setReportCourse(null)}
+        reportedItemId={reportCourse.id}
+        reportedItemType="course"
+        reportedName={reportCourse.title}
+      />
+    )}
+    </>
   );
 };
 

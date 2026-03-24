@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Check, Zap, BookOpen, Loader2, AlertTriangle, Sparkles, Play, X } from "lucide-react";
+import { Check, Zap, BookOpen, Loader2, AlertTriangle, Sparkles, Play, X, Flag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import OnboardingChat from "@/components/missions/OnboardingChat";
+import ReportModal from "@/components/ReportModal";
 
 interface Mission {
   id: string;
@@ -33,6 +34,7 @@ const Aprender = () => {
   const [generating, setGenerating] = useState(false);
   const [hasEverHadMissions, setHasEverHadMissions] = useState<boolean | null>(null);
   const [videoMission, setVideoMission] = useState<Mission | null>(null);
+  const [reportMission, setReportMission] = useState<Mission | null>(null);
 
   const loadData = async () => {
     if (!user) return;
@@ -114,6 +116,7 @@ const Aprender = () => {
   const showOnboarding = hasEverHadMissions === false && missions.length === 0 && !generating;
 
   return (
+    <>
     <div className="max-w-2xl mx-auto px-4 py-6 pb-32">
       {/* Video modal */}
       {videoMission && (
@@ -268,6 +271,13 @@ const Aprender = () => {
                                 <Play className="w-3 h-3" /> Vídeo
                               </button>
                             )}
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setReportMission(mission); }}
+                              className="text-xs text-muted-foreground hover:text-destructive rounded-full px-2 py-0.5 flex items-center gap-1 hover:bg-destructive/10 transition-colors"
+                              title="Denunciar missão"
+                            >
+                              <Flag className="w-3 h-3" />
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -336,6 +346,16 @@ const Aprender = () => {
         </>
       )}
     </div>
+    {reportMission && (
+      <ReportModal
+        open={!!reportMission}
+        onOpenChange={(open) => !open && setReportMission(null)}
+        reportedItemId={reportMission.id}
+        reportedItemType="mission"
+        reportedName={reportMission.title}
+      />
+    )}
+    </>
   );
 };
 

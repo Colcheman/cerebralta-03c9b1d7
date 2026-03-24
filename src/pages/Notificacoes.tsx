@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, BellOff, Check, CheckCheck, Clock, User, Shield, Info, Filter } from "lucide-react";
+import { Bell, BellOff, Check, CheckCheck, Clock, User, Shield, Info, Filter, Flag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { markAsRead, markAllAsRead, type AppNotification, type NotificationType } from "@/lib/notifications";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import ReportModal from "@/components/ReportModal";
 
 const typeConfig: Record<NotificationType, { icon: typeof Shield; label: string; color: string; bg: string }> = {
   system: { icon: Shield, label: "Sistema", color: "text-primary", bg: "bg-primary/10" },
@@ -19,6 +20,7 @@ const Notificacoes = () => {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | NotificationType>("all");
+  const [reportNotification, setReportNotification] = useState<AppNotification | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -56,6 +58,7 @@ const Notificacoes = () => {
   };
 
   return (
+    <>
     <div className="max-w-2xl mx-auto p-4 space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -154,6 +157,13 @@ const Notificacoes = () => {
                         <span className="text-[10px] text-muted-foreground">
                           por {n.sender_label}
                         </span>
+                        <button
+                          onClick={() => setReportNotification(n)}
+                          className="text-muted-foreground hover:text-destructive transition-colors p-0.5 ml-auto"
+                          title="Denunciar notificação"
+                        >
+                          <Flag className="w-3 h-3" />
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -164,6 +174,16 @@ const Notificacoes = () => {
         </div>
       )}
     </div>
+    {reportNotification && (
+      <ReportModal
+        open={!!reportNotification}
+        onOpenChange={(open) => !open && setReportNotification(null)}
+        reportedItemId={reportNotification.id}
+        reportedItemType="notification"
+        reportedName={reportNotification.title}
+      />
+    )}
+    </>
   );
 };
 

@@ -12,18 +12,34 @@ const REASONS = [
   "Assédio ou bullying",
   "Conteúdo falso ou enganoso",
   "Discurso de ódio",
+  "Conteúdo inapropriado",
+  "Violação de regras",
   "Outro",
 ];
+
+export type ReportItemType = "user" | "post" | "course" | "group" | "mission" | "notification" | "chat_message";
+
+const itemTypeLabels: Record<ReportItemType, string> = {
+  user: "usuário",
+  post: "publicação",
+  course: "curso",
+  group: "grupo",
+  mission: "missão",
+  notification: "notificação",
+  chat_message: "mensagem",
+};
 
 interface ReportModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  reportedUserId: string;
+  reportedUserId?: string;
   reportedPostId?: string | null;
+  reportedItemId?: string | null;
+  reportedItemType?: ReportItemType;
   reportedName?: string;
 }
 
-const ReportModal = ({ open, onOpenChange, reportedUserId, reportedPostId, reportedName }: ReportModalProps) => {
+const ReportModal = ({ open, onOpenChange, reportedUserId, reportedPostId, reportedItemId, reportedItemType = "user", reportedName }: ReportModalProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [reason, setReason] = useState("");
@@ -35,8 +51,10 @@ const ReportModal = ({ open, onOpenChange, reportedUserId, reportedPostId, repor
     setSubmitting(true);
     const { error } = await (supabase as any).from("reports").insert({
       reporter_id: user.id,
-      reported_user_id: reportedUserId,
+      reported_user_id: reportedUserId ?? null,
       reported_post_id: reportedPostId ?? null,
+      reported_item_id: reportedItemId ?? null,
+      reported_item_type: reportedItemType,
       reason,
       description: description.trim(),
     });
@@ -51,15 +69,17 @@ const ReportModal = ({ open, onOpenChange, reportedUserId, reportedPostId, repor
     }
   };
 
+  const label = itemTypeLabels[reportedItemType] || "conteúdo";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Flag className="w-5 h-5 text-destructive" /> Denunciar
+            <Flag className="w-5 h-5 text-destructive" /> Denunciar {label}
           </DialogTitle>
           <DialogDescription>
-            Denunciar {reportedName ?? "este usuário"}. Sua identidade será mantida em sigilo.
+            Denunciar {reportedName ?? `este ${label}`}. Sua identidade será mantida em sigilo.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">

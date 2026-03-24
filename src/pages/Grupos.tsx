@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Users, Plus, LogIn, LogOut, Loader2 } from "lucide-react";
+import { Users, Plus, LogIn, LogOut, Loader2, Flag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import ReportModal from "@/components/ReportModal";
 
 interface Group {
   id: string;
@@ -28,7 +29,7 @@ const Grupos = () => {
   const [newName, setNewName] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
-
+  const [reportGroup, setReportGroup] = useState<Group | null>(null);
   const fetchGroups = async () => {
     const { data } = await supabase.from("groups").select("*").eq("is_active", true).order("members_count", { ascending: false });
     setGroups((data ?? []) as Group[]);
@@ -75,6 +76,7 @@ const Grupos = () => {
   };
 
   return (
+    <>
     <div className="max-w-2xl mx-auto px-4 py-6">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <div className="flex items-center justify-between mb-6">
@@ -130,7 +132,14 @@ const Grupos = () => {
                       {group.description && <p className="text-xs text-muted-foreground mt-0.5">{group.description}</p>}
                       <div className="flex items-center gap-3 mt-2">
                         <span className="text-xs text-muted-foreground">{group.members_count} membros</span>
-                        {isCreator && <span className="text-xs text-accent font-medium">Criador</span>}
+                         {isCreator && <span className="text-xs text-accent font-medium">Criador</span>}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setReportGroup(group); }}
+                          className="text-muted-foreground hover:text-destructive transition-colors p-0.5"
+                          title="Denunciar grupo"
+                        >
+                          <Flag className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -152,6 +161,17 @@ const Grupos = () => {
         </div>
       )}
     </div>
+    {reportGroup && (
+      <ReportModal
+        open={!!reportGroup}
+        onOpenChange={(open) => !open && setReportGroup(null)}
+        reportedItemId={reportGroup.id}
+        reportedItemType="group"
+        reportedName={reportGroup.name}
+        reportedUserId={reportGroup.creator_id}
+      />
+    )}
+    </>
   );
 };
 

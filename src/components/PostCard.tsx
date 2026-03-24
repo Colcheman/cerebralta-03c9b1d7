@@ -233,6 +233,8 @@ const PostCard = ({ post, index, onUpdate, onQuote }: { post: PostData; index: n
         onOpenChange={setShowReport}
         reportedUserId={post.user_id}
         reportedPostId={post.id}
+        reportedItemId={post.id}
+        reportedItemType="post"
         reportedName={post.author}
       />
     </motion.article>

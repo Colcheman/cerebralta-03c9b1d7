@@ -855,6 +855,48 @@ export type Database = {
         }
         Relationships: []
       }
+      reports: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          reason: string
+          reported_item_id: string | null
+          reported_item_type: string
+          reported_post_id: string | null
+          reported_user_id: string | null
+          reporter_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          reason: string
+          reported_item_id?: string | null
+          reported_item_type?: string
+          reported_post_id?: string | null
+          reported_user_id?: string | null
+          reporter_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          reason?: string
+          reported_item_id?: string | null
+          reported_item_type?: string
+          reported_post_id?: string | null
+          reported_user_id?: string | null
+          reporter_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       security_settings: {
         Row: {
           auto_logout_minutes: number
