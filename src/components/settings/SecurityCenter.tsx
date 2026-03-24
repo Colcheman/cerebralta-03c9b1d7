@@ -402,6 +402,7 @@ const SecurityCenter = () => {
                   setTwoFactor(v);
                   updateProfile("two_factor_enabled", v);
                   toast({ title: v ? "🔐 2FA ativado!" : "2FA desativado" });
+                  if (user) createNotification(user.id, "informational", v ? "2FA ativado" : "2FA desativado", v ? "A autenticação de dois fatores foi ativada na sua conta." : "A autenticação de dois fatores foi desativada.", profile?.display_name ?? "Você");
                 }} />
               </div>
 
