@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { hashPin } from "@/lib/crypto";
+import { createNotification } from "@/lib/notifications";
 import { Progress } from "@/components/ui/progress";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
