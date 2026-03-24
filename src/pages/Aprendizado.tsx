@@ -53,6 +53,7 @@ const Aprendizado = () => {
   const [tip, setTip] = useState("");
   const [loadingTip, setLoadingTip] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [reportCourse, setReportCourse] = useState<Course | null>(null);
 
   const categories = ["Todos", "geral", "estratégia", "estoicismo", "psicologia", "liderança"];
 
