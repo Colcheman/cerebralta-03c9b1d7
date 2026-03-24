@@ -174,7 +174,16 @@ const Aprendizado = () => {
                 </div>
               )}
 
-              <h1 className="text-xl font-bold text-foreground mb-2">{selectedCourse.title}</h1>
+              <div className="flex items-start justify-between">
+                <h1 className="text-xl font-bold text-foreground mb-2">{selectedCourse.title}</h1>
+                <button
+                  onClick={() => setReportCourse(selectedCourse)}
+                  className="text-muted-foreground hover:text-destructive transition-colors p-1.5 rounded-lg hover:bg-destructive/10"
+                  title="Denunciar curso"
+                >
+                  <Flag className="w-4 h-4" />
+                </button>
+              </div>
               <div className="flex items-center gap-3 mb-4 flex-wrap">
                 <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${categoryColors[selectedCourse.category] || "bg-muted text-muted-foreground"}`}>
                   {categoryIcons[selectedCourse.category] || "📚"} {selectedCourse.category}
