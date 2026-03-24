@@ -30,6 +30,7 @@ const Sidebar = () => {
   const { logout, profile, user } = useAuth();
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [unreadNotifs, setUnreadNotifs] = useState(0);
 
   useEffect(() => {
     if (!user) return;
