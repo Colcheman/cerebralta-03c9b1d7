@@ -6,8 +6,8 @@ import { Users, UserPlus, Settings, Info, Target, BookMarked } from "lucide-reac
 
 const mainItems = [
   { to: "/feed", icon: Flame, label: "Feed" },
+  { to: "/notificacoes", icon: Bell, label: "Alertas" },
   { to: "/aprender", icon: Target, label: "Missões" },
-  { to: "/metas", icon: Target, label: "Metas" },
   { to: "/mensagens", icon: MessageCircle, label: "Chat" },
   { to: "/conquistas", icon: Trophy, label: "Troféus" },
 ];
