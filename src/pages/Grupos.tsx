@@ -160,6 +160,17 @@ const Grupos = () => {
         </div>
       )}
     </div>
+    {reportGroup && (
+      <ReportModal
+        open={!!reportGroup}
+        onOpenChange={(open) => !open && setReportGroup(null)}
+        reportedItemId={reportGroup.id}
+        reportedItemType="group"
+        reportedName={reportGroup.name}
+        reportedUserId={reportGroup.creator_id}
+      />
+    )}
+    </>
   );
 };
 
