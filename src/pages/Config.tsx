@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import BillingHistory from "@/components/settings/BillingHistory";
+import FinancialPanel from "@/components/settings/FinancialPanel";
 import { Bell, Palette, Lock, Loader2, User, Camera, Check, ImagePlus, MessageSquare, Mail, Shield, ChevronRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -297,8 +297,8 @@ const Config = () => {
           </div>
         </motion.div>
 
-        {/* Billing */}
-        <BillingHistory />
+        {/* Financial */}
+        <FinancialPanel />
 
         {/* Privacy */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="glass rounded-2xl p-5">

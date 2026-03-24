@@ -100,10 +100,13 @@ export type Database = {
           created_at: string
           discount_percent: number
           final_amount: number
+          fine_amount: number
           id: string
           month: number
           paid_at: string | null
           status: string
+          subscription_end: string | null
+          subscription_start: string | null
           user_id: string
           year: number
         }
@@ -114,10 +117,13 @@ export type Database = {
           created_at?: string
           discount_percent?: number
           final_amount?: number
+          fine_amount?: number
           id?: string
           month: number
           paid_at?: string | null
           status?: string
+          subscription_end?: string | null
+          subscription_start?: string | null
           user_id: string
           year: number
         }
@@ -128,10 +134,13 @@ export type Database = {
           created_at?: string
           discount_percent?: number
           final_amount?: number
+          fine_amount?: number
           id?: string
           month?: number
           paid_at?: string | null
           status?: string
+          subscription_end?: string | null
+          subscription_start?: string | null
           user_id?: string
           year?: number
         }
@@ -684,6 +693,8 @@ export type Database = {
           app_lock_pin: string | null
           avatar_url: string | null
           banner_url: string | null
+          billing_notifications_enabled: boolean
+          billing_notify_days_before: number
           bio: string | null
           birth_date: string | null
           country: string
@@ -721,6 +732,8 @@ export type Database = {
           app_lock_pin?: string | null
           avatar_url?: string | null
           banner_url?: string | null
+          billing_notifications_enabled?: boolean
+          billing_notify_days_before?: number
           bio?: string | null
           birth_date?: string | null
           country?: string
@@ -758,6 +771,8 @@ export type Database = {
           app_lock_pin?: string | null
           avatar_url?: string | null
           banner_url?: string | null
+          billing_notifications_enabled?: boolean
+          billing_notify_days_before?: number
           bio?: string | null
           birth_date?: string | null
           country?: string
